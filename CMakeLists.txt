@@ -18,4 +18,5 @@ include_directories(include)
 file(GLOB SOURCES "src/*.c")
 
 # add the executable
-add_executable(outputFile ${SOURCES})
+add_executable(ifj21compiler ${SOURCES})
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ifj21compiler)
