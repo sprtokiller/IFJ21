@@ -9,9 +9,12 @@
 
 ## Požadavky
 
-Zprovozněné [gcc]
-C [pip](https://pip.pypa.io/en/stable/) to install foobar.
+Globálně instalované [gcc](https://gcc.gnu.org/)
+[Visual Studio Code](https://code.visualstudio.com/) nebo [Visual Studio 2019](https://visualstudio.microsoft.com/cs/vs/) s C/C++ moduly (doporučeno)
+[CMake](https://cmake.org/install/) verze >=3.10
 
-```bash
-pip install foobar
+## Zprovoznění (win10 + VS)
+```
+cd .\build\
+cmake ..
 ```
