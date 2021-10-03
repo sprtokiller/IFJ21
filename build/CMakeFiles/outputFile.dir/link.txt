@@ -1,3 +1,0 @@
-"C:\Program Files\CMake\bin\cmake.exe" -E rm -f CMakeFiles\outputFile.dir/objects.a
-C:\TDM-GCC-64\bin\ar.exe cr CMakeFiles\outputFile.dir/objects.a @CMakeFiles\outputFile.dir\objects1.rsp
-gcc -std=c99 -Wall -Wextra -Werror -g -g -Wl,--whole-archive CMakeFiles\outputFile.dir/objects.a -Wl,--no-whole-archive -o outputFile.exe -Wl,--out-implib,liboutputFile.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\outputFile.dir\linklibs.rsp

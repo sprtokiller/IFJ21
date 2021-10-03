@@ -1,3 +1,0 @@
-D:/OneDrive - SPS-CL/VUT_FIT/IFJ/IFJ21 Compiler/build/CMakeFiles/outputFile.dir
-D:/OneDrive - SPS-CL/VUT_FIT/IFJ/IFJ21 Compiler/build/CMakeFiles/edit_cache.dir
-D:/OneDrive - SPS-CL/VUT_FIT/IFJ/IFJ21 Compiler/build/CMakeFiles/rebuild_cache.dir
