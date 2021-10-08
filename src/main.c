@@ -4,9 +4,9 @@
 
 #include "common.h"
 #include "scanner.h"
+#include "token.h"
 
-
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
 	bool verbose = false;
 	size_t argIndex;
@@ -18,11 +18,13 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	char c;
-	while ((c = getc(stdin)) != EOF)
+	//prints all tokens recived stops at EOF
+	token_s* t;
+	do
 	{
-		putc(c, stdout);
-	}
-	
+		t = get_t(stdin);
+		print_t(t);
+	} while (t->type != eof);
+
 	return EXIT_SUCCESS;
 }

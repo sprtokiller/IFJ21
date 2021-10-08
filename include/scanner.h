@@ -1,6 +1,8 @@
-#ifndef HEADER_FILE
-#define HEADER_FILE
+#ifndef scanner_h
+#define scanner_h
+#include "token.h"
 
-void hello();
+//gets word that can be used in token from stream
+token_s* get_t(FILE* f);
 
 #endif
