@@ -22,10 +22,11 @@ endif(CMAKE_COMPILER_IS_GNUCXX)
 
 # include header files
 include_directories(include)
+file(GLOB INCLUDE "include/*.h")
 
 # include source files
 file(GLOB SOURCES "src/*.c")
 
 # add the executable
-add_executable(ifj21compiler ${SOURCES})
+add_executable(ifj21compiler ${SOURCES} ${INCLUDE})
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ifj21compiler)

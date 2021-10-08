@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "test.h"
+#include "scanner.h"
 
 int main()
 {
