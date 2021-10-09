@@ -4,10 +4,10 @@
 
 //dont use this!
 //just for editors autocomplete
-enum token_type { id, dt, kw, lit, br, bl, op, lab, sem, com, as, eof };
+enum token_type { id, dt, kw, lit, br, bl, op, lab, sem, com, as, eof, err};
 
 //enum type of token
-//identificator, data type, key word, literal(int,flt,str), bracket,
+//identifier, data type, key word, literal(int,flt,str), bracket,
 //operator, lable, semicolum, comma, assignment, end of file
 typedef enum token_type token_t;
 

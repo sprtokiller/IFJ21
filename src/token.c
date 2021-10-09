@@ -4,52 +4,7 @@
 #include <stdbool.h>
 #include "token.h"
 #include "common.h"
-
-//skips all numbers
-void skipNum(char** val) {
-	while (isdigit(**val))
-		(*val)++;
-}
-
-const char* warning_name[] = { "Not number after comma!" };
-
-//checks if string is number
-// TODO: float is not fully implemented
-bool isNum(token_s* t, char* val) {
-	if (!isdigit(*val))
-		return false;
-	val++;
-	skipNum(&val);
-	//check for dot in decima number and skips it
-	//floating point number
-	if (*val == '.') {
-		val++;
-		if (!isdigit(*val)) {
-			t->warning = warning_name[0];
-			return false;
-		}
-		val++;
-		skipNum(&val);
-		if (*val == '\0')
-			return true;
-	}
-	//dicimal number
-	else if (*val == '\0')
-		return true;
-	return false;
-}
-
-//Returns type of token based on recived value
-// TODO: implement "tiny" switch
-token_t selector(token_s* t) {
-	char* val = t->val;
-	if (val[0] == EOF || val[0] == '\x1a')
-		return eof;
-	else if (isNum(t, val))
-		return lit;
-	else
-		return id;
-}
+#include "selector.h"
 
 //allocates token and inicializes it
 token_s* init_t(char* val, uint line, uint col) {
@@ -64,7 +19,7 @@ token_s* init_t(char* val, uint line, uint col) {
 	t->colum = col;
 
 	t->val = val;
-	t->type = selector(t);
+	selector(t);
 	return t;
 }
 
@@ -72,7 +27,7 @@ token_s* init_t(char* val, uint line, uint col) {
 const char* type_name(token_t type) {
 	switch (type) {
 	case id:
-		return "idtifier";
+		return "identifier";
 	case dt:
 		return "data type";
 	case kw:
@@ -92,7 +47,7 @@ const char* type_name(token_t type) {
 	case com:
 		return "comma";
 	case as:
-		return "asigment";
+		return "assigment";
 	case eof:
 		return "end of file";
 	default:
