@@ -1,6 +1,4 @@
-#ifndef common_h
-#define common_h
-
+#pragma once
 #define EXIT_BAD_USAGE 64
 
 typedef unsigned int uint;
@@ -19,5 +17,3 @@ void e_msg(const char* fmt, ...);
 //prints error in stderr
 //and shuts down program
 void e_exit(const char* fmt, ...);
-
-#endif

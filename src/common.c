@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
+#include <windows.h>
 
 // TODO: keep technique DRY alive
 // i didnt know how to pass va_list to function

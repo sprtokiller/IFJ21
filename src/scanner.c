@@ -1,9 +1,11 @@
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <scanner.h>
 #include <ctype.h>
 #include "common.h"
 #include "token.h"
+#include "llc.h"
 
 //gets word that can be used in token from stream
 char* get_word(FILE* f) {
@@ -65,11 +67,96 @@ char* get_word(FILE* f) {
 	return w;
 }
 
+char get_next_nonwhite(FILE* f, coord_s* coord) {
+	char c = fgetc(f);
+	coord->column++;
+	while (isspace(c) && c != EOF) {
+		c = fgetc(f);
+		if (c == '\n')
+		{
+			coord->column = 0;
+			coord->line++;
+		}
+		else
+		{
+			coord->column++;
+		}
+	}
+	return c;
+}
+
+token_s* tilda_state(FILE* f, LLC_s* llc, coord_s* coord) {
+	token_s* token;
+	char c = fgetc(f);
+	if (c == '\n')
+	{
+		coord->column = 0;
+		coord->line++;
+	}
+	else
+	{
+		coord->column++;
+	}
+
+	switch (c)
+	{
+	case '=':
+		token = init_t(NULL, coord->line, coord->column, tt_ne, tg_operator);
+		break;
+	default:
+		token = init_t(NULL, coord->line, coord->column, tt_err, tg_err);
+		break;
+	}
+	return token;
+}
+
+token_s* enter_the_state_machine(FILE* f, LLC_s* llc, char c, coord_s* coord) {
+	token_s* token;
+	switch (c)
+	{
+	case '+':
+		token = init_t(NULL, coord->line, coord->column, tt_add, tg_operator);
+		break;
+	case '*':
+		token = init_t(NULL, coord->line, coord->column, tt_multiply, tg_operator);
+		break;
+	case '%':
+		token = init_t(NULL, coord->line, coord->column, tt_modulo, tg_operator);
+		break;
+	case ':':
+		token = init_t(NULL, coord->line, coord->column, tt_semicolumn, tg_special);
+		break;
+	case '^':
+		token = init_t(NULL, coord->line, coord->column, tt_power, tg_operator);
+		break;
+	case '(':
+		token = init_t(NULL, coord->line, coord->column, tt_left_parenthese, tg_special);
+		break;
+	case ')':
+		token = init_t(NULL, coord->line, coord->column, tt_right_parenthese, tg_special);
+		break;
+	case '#':
+		token = init_t(NULL, coord->line, coord->column, tt_length, tg_operator);
+		break;
+	case '~':
+		token = tilda_state();
+		break;
+	default:
+		//TODO
+		token = init_t(NULL, coord->line, coord->column, tt_err, tg_err);
+		break;
+	}
+	return token;
+}
+
 //Returns next token
-token_s* get_t(FILE* f) {
-	//scaned word
-	char* w = get_word(f);
-	// TODO: implement line, colum numbering
-	token_s* t = init_t(w, 0, 0);
-	return t;
+token_s* get_t(FILE* f, LLC_s* llc, coord_s* coord) {
+
+	//skip epsilon transition of whitespace
+	char c = get_next_nonwhite(f, coord);
+	LLC_push(llc, c);
+
+	token_s* token = enter_the_state_machine(f, llc, c, coord);
+	
+	return token;
 }

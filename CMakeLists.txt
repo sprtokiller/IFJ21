@@ -11,10 +11,13 @@ endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-if(CMAKE_COMPILER_IS_GNUCXX)
+if(MSVC)
+    message(STATUS "MSVC detected, adding compile flags")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11")
+elseif(CMAKE_COMPILER_IS_GNUCXX)
     message(STATUS "GCC detected, adding compile flags")
     SET(CMAKE_C_COMPILER gcc)
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -Wall -Wextra -Werror -g")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -Wall -Wextra -Werror -g")
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
 

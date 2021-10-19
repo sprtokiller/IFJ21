@@ -1,4 +1,4 @@
--- Program 1: Vypocet faktorialu (iterativne)
+  -- Program 1: Vypocet faktorialu (iterativne)
 require "ifj21"
 
 function main() -- uzivatelska funkce bez parametru
