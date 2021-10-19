@@ -120,6 +120,9 @@ token_s* enter_the_state_machine(FILE* f, LLC_s* llc, char c, coord_s* coord) {
 	case '*':
 		token = init_t(NULL, coord->line, coord->column, tt_multiply, tg_operator);
 		break;
+	case '/':
+		token = init_t(NULL, coord->line, coord->column, tt_divide, tg_operator);
+		break;
 	case '%':
 		token = init_t(NULL, coord->line, coord->column, tt_modulo, tg_operator);
 		break;
@@ -138,9 +141,11 @@ token_s* enter_the_state_machine(FILE* f, LLC_s* llc, char c, coord_s* coord) {
 	case '#':
 		token = init_t(NULL, coord->line, coord->column, tt_length, tg_operator);
 		break;
+
 	case '~':
-		token = tilda_state();
+		token = tilda_state(f,llc, coord);
 		break;
+	
 	default:
 		//TODO
 		token = init_t(NULL, coord->line, coord->column, tt_err, tg_err);
