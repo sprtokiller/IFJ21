@@ -7,8 +7,17 @@
 
 #define SWITCH_TEXT(tt, str) case tt: return str
 
+const char* tk_group_str[tkg_size] =
+{
+#define X(a) #a,
+ENUM_GROUPS
+#undef X
+};
+
+extern inline const char* group_name(enum token_group group);
+
 //allocates token and inicializes it
-token_s* init_t(char* val, uint line, uint col, token_type_t type, token_group_t group) {
+token_s* init_t(char* val, uint32_t line, uint32_t col, token_type_t type, token_group_t group) {
 	token_s* t = malloc(sizeof(token_s));
 	if (!t) {
 		e_msg("Alocation failed.\n");
@@ -22,20 +31,6 @@ token_s* init_t(char* val, uint line, uint col, token_type_t type, token_group_t
 	t->group = group;
 	t->val = val;
 	return t;
-}
-
-//converts type_name enum to string
-const char* group_name(token_group_t group) {
-	switch (group) {
-		SWITCH_TEXT(tg_keyword, "keyword");
-		SWITCH_TEXT(tg_identifier, "identifier");
-		SWITCH_TEXT(tg_literal, "literal");
-		SWITCH_TEXT(tg_operator, "operator");
-		SWITCH_TEXT(tg_special, "symbol");
-		SWITCH_TEXT(tg_eof, "EOF");
-	default:
-		return "error";
-	}
 }
 
 //converts type_name enum to string

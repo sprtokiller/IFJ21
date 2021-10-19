@@ -30,7 +30,7 @@ char* get_word(FILE* f) {
 	}
 
 	//max chars per word
-	uint max = 4;
+	uint32_t max = 4;
 	w = (char*)malloc(max);
 	if (!w) {
 		e_msg("Alocation failed.\n");
@@ -38,7 +38,7 @@ char* get_word(FILE* f) {
 	}
 
 	//curently used chars in word
-	uint count = 0;
+	uint32_t count = 0;
 
 	//scan words
 	// TODO: missing another seperators and logic

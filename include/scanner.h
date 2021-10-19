@@ -12,7 +12,7 @@ token_s* get_t(FILE* f, LLC_s* llc, coord_s* coord);
 //dont use this!
 //just for editors autocomplete
 struct coord_struct {
-	uint line;
-	uint column;
+	uint32_t line;
+	uint32_t column;
 };
 

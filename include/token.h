@@ -1,9 +1,27 @@
 #pragma once
 #include "common.h"
 
-//don't use this!
-//just for editors autocomplete
-enum token_group { tg_keyword, tg_identifier, tg_literal, tg_operator, tg_special, tg_eof, tg_err };
+#define ENUM_GROUPS \
+ X(keyword) X(identifier) X(literal) X(operator) X(special) X(eof) X(err)
+
+enum token_group
+{
+#define X(a) tg_##a,
+	ENUM_GROUPS
+#undef X
+	tkg_size
+};
+
+extern const char* tk_group_str[tkg_size];
+
+
+//converts type_name enum to string
+inline const char* group_name(enum token_group group)
+{
+	return tk_group_str[group];
+}
+
+
 
 //don't use this!
 //just for editors autocomplete
@@ -26,8 +44,8 @@ typedef enum token_type token_type_t;
 //just for editors autocomplete
 struct token_struct {
 	//for debugging
-	uint line;
-	uint column;
+	uint32_t line;
+	uint32_t column;
 	char* warning;
 
 	//the data we actually care about
@@ -42,11 +60,9 @@ typedef struct token_struct token_s;
 //converts type_name enum to string
 const char* type_name(token_type_t type);
 
-//converts type_name enum to string
-const char* group_name(token_group_t group);
 
 //allocates token and inicializes it
-token_s* init_t(char* val, uint line, uint col, token_type_t type, token_group_t group);
+token_s* init_t(char* val, uint32_t line, uint32_t col, token_type_t type, token_group_t group);
 
 //prints token information
 void print_t(token_s* t);
