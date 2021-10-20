@@ -1,11 +1,4 @@
-#include <stdio.h>
-#include <stdbool.h>
-#include <stdlib.h>
-
-#include "common.h"
 #include "scanner.h"
-#include "token.h"
-#include "llc.h"
 #ifdef _WIN32
 	#include "windows.h"
 #endif // _WIN32

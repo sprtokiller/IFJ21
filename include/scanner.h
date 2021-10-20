@@ -1,8 +1,6 @@
 #pragma once
 #include <stdio.h>
-
 #include "common.h"
-#include "token.h"
 #include "Templates.h"
 
 typedef struct Scanner Scanner;
