@@ -1,23 +1,35 @@
 cmake_minimum_required(VERSION 3.10)
 
 # set the project name
-project(IFJ21 C)
+project(IFJ21 LANGUAGES C)
 
+set_property(GLOBAL PROPERTY C_STANDARD 11)
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-if (CMAKE_C_COMPILER_VERSION VERSION_LESS 8.0)
-    message(FATAL_ERROR "GCC version must be at least 8.0!")
+message(STATUS "${CMAKE_C_COMPILER_ID} detected, adding compile flags")
+if (CMAKE_C_COMPILER_ID STREQUAL "Clang")
+  # using Clang
+elseif (CMAKE_C_COMPILER_ID STREQUAL "GNU")
+  # using GCC
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -Wall -Wextra -Werror -g")
+elseif (CMAKE_C_COMPILER_ID STREQUAL "MSVC")
+  # using Visual Studio C++
+  message(DEPRECATION "Pls don't use pure MSVC")
 endif()
 
 
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+configure_file(GTest.cmake
+        googletest-download/CMakeLists.txt)
+execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googletest-download )
+execute_process(COMMAND ${CMAKE_COMMAND} --build .
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googletest-download )
 
-if(CMAKE_COMPILER_IS_GNUCXX)
-    message(STATUS "GCC detected, adding compile flags")
-    SET(CMAKE_C_COMPILER gcc)
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -Wall -Wextra -Werror -g")
-endif(CMAKE_COMPILER_IS_GNUCXX)
+add_subdirectory(${CMAKE_BINARY_DIR}/googletest-src
+        ${CMAKE_BINARY_DIR}/googletest-build)
 
-
+enable_testing()
+add_subdirectory("test")
 
 
 # include header files
@@ -28,5 +40,4 @@ file(GLOB INCLUDE "include/*.h")
 file(GLOB SOURCES "src/*.c")
 
 # add the executable
-add_executable(ifj21compiler ${SOURCES} ${INCLUDE})
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ifj21compiler)
+add_executable(${PROJECT_NAME} ${SOURCES} ${INCLUDE})
