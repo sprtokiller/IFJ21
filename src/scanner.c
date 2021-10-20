@@ -169,7 +169,9 @@ typedef enum
 	s_int,
 	s_float,
 	s_minus,
-	s_plus
+	s_plus,
+	s_expf = s_float | 1 << 15,
+	s_expf_pm = s_float | 1 << 14
 }State;
 
 void Scanner_ctor(Scanner* self, FILE* source)
@@ -198,7 +200,7 @@ int fetch_symbol(Scanner* self)
 }
 bool probably_op(uint32_t state)
 {
-	return state == s_int || state == s_float;
+	return state == s_int || (state | 3<<14) > 0;
 }
 
 typedef struct
@@ -299,13 +301,16 @@ Error _get_token(Scanner* self, token* tk)
 			{
 				state = s_float;
 				push_back_str(&xtoken, (char)sym);
+			}else if (sym == 'E' || sym == 'e')
+			{
+				state = s_expf;
+				push_back_str(&xtoken, (char)sym);
+				valid = false;
 			}
 			else
 			{
-				token_ctor(tk, tt_int_literal, &xtoken);
-				tk->line = tkstart_line;
-				tk->column = tkstart_col;
-				return e;
+				predict = tt_int_literal;
+				goto make_token;
 			}
 			break;
 		case s_float:
@@ -314,13 +319,16 @@ Error _get_token(Scanner* self, token* tk)
 				push_back_str(&xtoken, (char)sym);
 				valid = true;
 			}
+			else if (sym == 'E' || sym == 'e')
+			{
+				state = s_expf;
+				push_back_str(&xtoken, (char)sym);
+				valid = false;
+			}
 			else
 			{
-				if (!valid)return e_invalid_token;
-				token_ctor(tk, tt_double_literal, &xtoken);
-				tk->line = tkstart_line;
-				tk->column = tkstart_col;
-				return e;
+				predict = tt_double_literal;
+				goto check_valid;
 			}
 			break;
 		case s_minus:
@@ -330,16 +338,38 @@ Error _get_token(Scanner* self, token* tk)
 				state = s_int;
 				push_back_str(&xtoken, (char)sym);
 			}
-			else
-			{
-				token_ctor(tk, predict, NULL);
-				tk->line = tkstart_line;
-				tk->column = tkstart_col;
-				return e;
+			else{
+				goto make_token;
 			}
 			break;
+		case s_expf:
+			if (!valid && (sym == '+' || sym == '-'))
+			{
+				state = s_expf_pm;
+				push_back_str(&xtoken, (char)sym);
+				break;
+			}
+			/* fall through */
+		case s_expf_pm:
+			if (isdigit(sym))
+			{
+				valid = true;
+				push_back_str(&xtoken, (char)sym);
+			}
+			else
+			{
+				predict = tt_double_literal;
+				goto check_valid;
+			}
 		default:
 			break;
+		check_valid:
+			if (!valid)return e_invalid_token;
+		make_token:
+			token_ctor(tk, predict, &xtoken);
+			tk->line = tkstart_line;
+			tk->column = tkstart_col;
+			return e;
 		}
 	}
 	return e_eof;
