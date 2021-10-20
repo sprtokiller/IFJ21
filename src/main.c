@@ -30,26 +30,39 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	LLC_s* llc = LLC_init(64);
-	coord_s coords = { .column = 1, .line = 1 };
-
-	if (!llc) {
-		e_msg("Alocation failed.\n");
-		return 1;
-	}
-
-	//prints all tokens recived stops at EOF
-	token_s* t = NULL;
-	do
-	{
-		if (t) free(t);
-		t = get_t(stdin, llc, &coords);
-		if (!t) break;
-		print_t(t);
-	} while ((t->group != tg_eof) && (t->group != tg_err));
 
 
-	LLC_destroy(llc);
+	//LLC_s* llc = LLC_init(64);
+	//coord_s coords = { .column = 1, .line = 1 };
+
+	//if (!llc) {
+	//	e_msg("Alocation failed.\n");
+	//	return 1;
+	//}
+
+	////prints all tokens recived stops at EOF
+	//token_s* t = NULL;
+	//do
+	//{
+	//	if (t) free(t);
+	//	t = get_t(stdin, llc, &coords);
+	//	if (!t) break;
+	//	print_t(t);
+	//} while ((t->group != tg_eof) && (t->group != tg_err));
+
+
+	//LLC_destroy(llc);
+
+	FILE* fp = fopen("../../../../examples/testnum.tl", "r");
+
+	Scanner sc;
+	Scanner_ctor(&sc, fp);
+	token tk;
+	_get_token(&sc, &tk);
+	print_tk(&tk);
+	token_dtor(&tk);
+	Scanner_dtor(&sc);
+
 
 	return EXIT_SUCCESS;
 }

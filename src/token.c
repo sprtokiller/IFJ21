@@ -14,10 +14,13 @@ ENUM_GROUPS
 #undef X
 };
 
-extern inline const char* group_name(enum token_group group);
+const char* group_name(enum token_group group)
+{
+	return tk_group_str[group];
+}
 
 //allocates token and inicializes it
-token_s* init_t(char* val, uint32_t line, uint32_t col, token_type_t type, token_group_t group) {
+token_s* init_t(char* val, uint32_t line, uint32_t col, token_type type, token_group_t group) {
 	token_s* t = malloc(sizeof(token_s));
 	if (!t) {
 		e_msg("Alocation failed.\n");
@@ -34,7 +37,7 @@ token_s* init_t(char* val, uint32_t line, uint32_t col, token_type_t type, token
 }
 
 //converts type_name enum to string
-const char* type_name(token_type_t type) {
+const char* type_name(token_type type) {
 	switch (type) {
 		SWITCH_TEXT(tt_do, "do");
 		SWITCH_TEXT(tt_else, "else");
@@ -95,4 +98,50 @@ void print_t(token_s* t) {
 
 	if (t->warning)
 		w_msg("%s", t->warning);
+}
+
+void token_ctor(token* self, token_type ty, String* val)
+{
+	self->line = 0;
+	self->column = 0;
+	self->type = ty;
+	self->var = v_none;
+	char* endptr = NULL;
+	if (ty == tt_int_literal){
+		self->var = v_int;
+		self->ival = strtoll(c_str(val), &endptr, 10);
+		clear_str(val);
+	}else if (ty == tt_double_literal){
+		self->var = v_flt;
+		self->dval = strtod(c_str(val), &endptr);
+		clear_str(val);
+	}else if (val) {
+		self->var = v_str;
+		String_move_ctor(&self->sval, val);
+	}
+}
+
+void token_dtor(token* self)
+{
+	if (self->var == v_str)
+		String_dtor(&self->sval);
+}
+
+void print_tk(token* self)
+{
+	d_msg("Token at [%d, %d]: %s", self->line, self->column, type_name(self->type));
+	switch (self->var)
+	{
+	case v_int:
+		d_msg("Val: %d", self->ival);
+		break;
+	case v_flt:
+		d_msg("Val: %.9lf", self->dval);
+		break;
+	case v_str:
+		d_msg("Val: %s", self->sval);
+		break;
+	default:
+		break;
+	}
 }

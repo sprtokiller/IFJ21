@@ -3,6 +3,7 @@
 #include <stdbool.h>
 
 typedef union String String;
+#define unique_string __attribute__((cleanup(String_dtor))) String
 
 union String
 {
@@ -18,6 +19,7 @@ union String
 
 void String_ctor(String* self, const char* str);
 void String_dtor(String* self);
+void String_move_ctor(String* self, String* other);
 
 const char* c_str(const String* self);
 
@@ -25,3 +27,4 @@ bool empty_str(const String* self);
 
 size_t length_str(const String* self);
 void push_back_str(String* self, char c);
+void clear_str(String* self);

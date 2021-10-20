@@ -93,6 +93,13 @@ void String_dtor(String* self)
 		free(self->str);
 }
 
+void String_move_ctor(String* self, String* other)
+{
+	*self = *other;
+	memset(other, 0, sizeof(*other));
+	*last(other) = i_size(0);
+}
+
 const char* c_str(const String* self)
 {
 	if (self->is_large)
@@ -126,6 +133,18 @@ void push_back_str(String* self, char c)
 	reallocate_for(self, 1);
 	self->str[self->len++] = c;
 	self->str[self->len] = '\0';
+}
+
+void clear_str(String* self)
+{
+	if (self->is_large)
+	{
+		self->len = 0;
+		self->str[0] = '\0';
+		return;
+	}
+	*last(self) = i_size(0);
+	self->short_str[0] = '\0';
 }
 
 

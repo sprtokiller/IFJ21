@@ -1,5 +1,5 @@
 #pragma once
-#include "common.h"
+#include <stdint.h>
 
 #define ENUM_GROUPS \
  X(keyword) X(identifier) X(literal) X(operator) X(special) X(eof) X(err)
@@ -12,14 +12,8 @@ enum token_group
 	tkg_size
 };
 
-extern const char* tk_group_str[tkg_size];
-
-
 //converts type_name enum to string
-inline const char* group_name(enum token_group group)
-{
-	return tk_group_str[group];
-}
+const char* group_name(enum token_group group);
 
 
 
@@ -38,7 +32,7 @@ enum token_type {
 typedef enum token_group token_group_t;
 
 //enum type of token_group_t
-typedef enum token_type token_type_t;
+typedef enum token_type token_type;
 
 //dont use this!
 //just for editors autocomplete
@@ -50,7 +44,7 @@ struct token_struct {
 
 	//the data we actually care about
 	token_group_t group;
-	token_type_t type;
+	token_type type;
 	char* val;
 };
 
@@ -58,11 +52,41 @@ struct token_struct {
 typedef struct token_struct token_s;
 
 //converts type_name enum to string
-const char* type_name(token_type_t type);
+const char* type_name(token_type type);
 
 
 //allocates token and inicializes it
-token_s* init_t(char* val, uint32_t line, uint32_t col, token_type_t type, token_group_t group);
+token_s* init_t(char* val, uint32_t line, uint32_t col, token_type type, token_group_t group);
 
 //prints token information
 void print_t(token_s* t);
+
+
+/////////////////////////////////////////////////
+#include "XString.h"
+
+typedef struct token token;
+
+enum val_ty { v_none, v_str, v_flt, v_int };
+
+struct token {
+	//for debugging
+	uint32_t line;
+	uint32_t column;
+
+	//the data we actually care about
+	token_type type : sizeof(token_type) * 8 - 2;
+
+	uint8_t var : 2;
+	union
+	{
+		String sval;
+		double dval;
+		int64_t ival;
+	};
+};
+
+void token_ctor(token* self, token_type ty, String* val);
+void token_dtor(token* self);
+
+void print_tk(token* self);

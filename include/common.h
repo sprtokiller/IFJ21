@@ -2,6 +2,11 @@
 #include <stdint.h>
 #define EXIT_BAD_USAGE 64
 
+typedef enum Error
+{
+	Ok,
+	e_eof
+}Error;
 
 void usage(char* prgName);
 
