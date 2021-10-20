@@ -5,7 +5,7 @@
 	X(do) X(else) X(boolean) X(end) X(function) X(global) X(if) X(integer) X(local) X(nil) X(number) X(require) X(return) X(string) X(then) X(while)\
 X(identifier)\
 X(int_literal) X(double_literal) X(string_literal) X(true) X(false)\
-X(length) X(multiply) X(divide) X(int_divide) X(add) X(subtract) X(concatenate) X(l) X(le) X(g) X(ge) X(e) X(ne) X(ee) X(modulo) X(power) X(not) X(and) X(or)\
+X(length) X(multiply) X(divide) X(int_divide) X(add) X(subtract) X(concatenate) X(l) X(le) X(g) X(ge) X(e) X(ee) X(ne) X(modulo) X(power) X(not) X(and) X(or)\
 X(left_parenthese) X(right_parenthese) X(comma) X(semicolumn)\
 X(eof) X(err)
 

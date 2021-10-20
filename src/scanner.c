@@ -8,6 +8,9 @@ typedef enum
 	s_minus,
 	s_plus,
 	s_string,
+	s_cmp,
+	s_eof,
+	s_cat,
 	s_float = 1 << 13,
 	s_expf = 1 << 15,
 	s_expf_pm = 1 << 14
@@ -79,10 +82,10 @@ Error _get_token(Scanner* self, token* tk)
 
 	if (self->sym) { sym = self->sym; goto inbound; }
 
-	while ((sym = fetch_symbol(self)) != EOF)
+	while (true)
 	{
+		sym = fetch_symbol(self);
 	inbound:
-
 		switch (state)
 		{
 		case s_begin:
@@ -93,10 +96,7 @@ Error _get_token(Scanner* self, token* tk)
 				predict = sym > '+' ? tt_subtract : tt_add;
 				state = sym > '+' ? s_minus : s_plus;
 				if (probably_op(self->prev_state))goto simple_tk;
-				push_back_str(&xtoken, (char)sym);
-				tkstart_col = self->column;
-				tkstart_line = self->line;
-				continue;
+				goto cont_scan;
 			case '*':
 				predict = tt_multiply;
 				goto simple_tk;
@@ -106,9 +106,26 @@ Error _get_token(Scanner* self, token* tk)
 			case '%':
 				predict = tt_modulo;
 				goto simple_tk;
+			case '>':
+				state = s_cmp;
+				predict = tt_g;
+				goto cont_scan;
+			case '<':
+				state = s_cmp;
+				predict = tt_l;
+				goto cont_scan;
+			case '=':
+				state = s_cmp;
+				predict = tt_e;
+				goto cont_scan;
+			case '.':
+				state = s_cat;
+				predict = tt_concatenate;
+				goto cont_scan;
 			case '"':
 				state = s_string;
 				predict = tt_string_literal;
+			cont_scan:
 				push_back_str(&xtoken, (char)sym);
 				tkstart_col = self->column;
 				tkstart_line = self->line;
@@ -116,6 +133,13 @@ Error _get_token(Scanner* self, token* tk)
 			case ' ':
 			case '\n':
 				continue;
+			case EOF:
+				e = e_eof;
+				predict = tt_eof;
+				token_ctor(tk, predict, NULL);
+				tk->line = self->line;
+				tk->column = self->column;
+				return e;
 			default:
 				break;
 			simple_tk:
@@ -219,6 +243,23 @@ Error _get_token(Scanner* self, token* tk)
 				push_back_str(&xtoken, (char)sym);
 			}
 			break;
+		case s_cmp:
+			if (sym == '=')
+			{
+				push_back_str(&xtoken, (char)sym);
+				predict = (token_type)((uint32_t)predict + 1);
+				sym = 0;
+			}
+			goto make_token;
+			break;
+		case s_cat:
+			if (sym == '.')
+			{
+				push_back_str(&xtoken, (char)sym);
+				sym = 0;
+				goto make_token;
+			}
+			return e_invalid_token;
 		default:
 			break;
 		check_valid:
