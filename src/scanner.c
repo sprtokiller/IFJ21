@@ -7,6 +7,7 @@ typedef enum
 	s_int,
 	s_minus,
 	s_plus,
+	s_string,
 	s_float = 1 << 13,
 	s_expf = 1 << 15,
 	s_expf_pm = 1 << 14
@@ -105,6 +106,13 @@ Error _get_token(Scanner* self, token* tk)
 			case '%':
 				predict = tt_modulo;
 				goto simple_tk;
+			case '"':
+				state = s_string;
+				predict = tt_string_literal;
+				push_back_str(&xtoken, (char)sym);
+				tkstart_col = self->column;
+				tkstart_line = self->line;
+				/* fall through */
 			case ' ':
 			case '\n':
 				continue;
@@ -198,6 +206,19 @@ Error _get_token(Scanner* self, token* tk)
 				predict = tt_double_literal;
 				goto check_valid;
 			}
+			break;
+		case s_string:
+			if (sym == '"')
+			{
+				push_back_str(&xtoken, (char)sym);
+				sym = 0;
+				goto make_token;
+			}
+			else
+			{
+				push_back_str(&xtoken, (char)sym);
+			}
+			break;
 		default:
 			break;
 		check_valid:
