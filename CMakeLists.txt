@@ -2,25 +2,20 @@ cmake_minimum_required(VERSION 3.10)
 
 # set the project name
 project(IFJ21 C)
-
-
-if (CMAKE_C_COMPILER_VERSION VERSION_LESS 8.0)
-    message(FATAL_ERROR "GCC version must be at least 8.0!")
-endif()
-
-
+set_property(GLOBAL PROPERTY C_STANDARD 11)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-if(MSVC)
-    message(STATUS "MSVC detected, adding compile flags")
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11")
-elseif(CMAKE_COMPILER_IS_GNUCXX)
-    message(STATUS "GCC detected, adding compile flags")
-    SET(CMAKE_C_COMPILER gcc)
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -Wall -Wextra -Werror -g")
-endif(CMAKE_COMPILER_IS_GNUCXX)
-
-
+message(STATUS "${CMAKE_C_COMPILER_ID} detected, adding compile flags")
+if (CMAKE_C_COMPILER_ID STREQUAL "Clang")
+  # using Clang
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Werror")
+elseif (CMAKE_C_COMPILER_ID STREQUAL "GNU")
+  # using GCC
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -Wall -Wextra -Werror -g")
+elseif (CMAKE_C_COMPILER_ID STREQUAL "MSVC")
+  # using Visual Studio C++
+  message(DEPRECATION "Pls don't use pure MSVC")
+endif()
 
 
 # include header files
