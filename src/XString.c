@@ -61,7 +61,7 @@ static void reallocate_for(String* self, size_t sz)
 	}
 
 	char* Replacement = malloc(Newcapacity);
-	memcpy(Replacement, self, Oldsize - 1);
+	memcpy(Replacement, self, Oldsize + 1);
 
 	self->str = Replacement;
 	self->len = Oldsize;
@@ -72,7 +72,7 @@ static void reallocate_for(String* self, size_t sz)
 void String_ctor(String* self, const char* str)
 {
 	memset(self->short_str, 0, sizeof(*self));
-	if (!str)return;
+	if (!str) { *last(self) = i_size(0); return; }
 	size_t sz = strlen(str);
 	if (sz < sizeof * self - 1)
 	{
@@ -80,16 +80,31 @@ void String_ctor(String* self, const char* str)
 		*last(self) = i_size(sz);
 		return;
 	}
-	self->str = malloc(sz);
-	memcpy(self->str, str, sz);
-	self->al_sz = sz + 1;
+	self->str = malloc(sz + 1);
+	memcpy(self->str, str, sz + 1);
+	self->al_sz = sz;
 	self->len = sz;
+	self->is_large = true;
 }
 
 void String_dtor(String* self)
 {
 	if (self->is_large)
 		free(self->str);
+}
+
+const char* c_str(const String* self)
+{
+	if (self->is_large)
+		return self->str;
+	return self->short_str;
+}
+
+bool empty_str(const String* self)
+{
+	if (self->is_large)
+		return self->len == 0;
+	return !self->short_str[0];
 }
 
 size_t length_str(const String* self)

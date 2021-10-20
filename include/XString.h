@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef union String String;
 
@@ -17,6 +18,10 @@ union String
 
 void String_ctor(String* self, const char* str);
 void String_dtor(String* self);
+
+const char* c_str(const String* self);
+
+bool empty_str(const String* self);
 
 size_t length_str(const String* self);
 void push_back_str(String* self, char c);
