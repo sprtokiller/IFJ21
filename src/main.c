@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
 
 	if (!llc) {
 		e_msg("Alocation failed.\n");
-		return NULL;
+		return 1;
 	}
 
 	//prints all tokens recived stops at EOF

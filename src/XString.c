@@ -12,7 +12,7 @@ static const char* last_c(const String* self)
 }
 static char i_size(size_t sz)
 {
-	return (char)sizeof(String) - 1 - sz;
+	return (char)sizeof(String) - 1 - (char)sz;
 }
 static size_t capacity_str(const String* self)
 {
@@ -89,22 +89,22 @@ void String_ctor(String* self, const char* str)
 void String_dtor(String* self)
 {
 	if (self->is_large)
-		return free(self->str);
+		free(self->str);
 }
 
 size_t length_str(const String* self)
 {
 	if (self->is_large)
 		return self->len;
-	return sizeof(String) - 1 - *last_c(self);
+	return sizeof(String) - 1 - (size_t)*last_c(self);
 }
 
 void push_back_str(String* self, char c)
 {
 	if (!self->is_large && *last_c(self))
 	{
-		self->short_str[sizeof(String) - 1 - self->short_str[sizeof(String) - 1]--] = c;
-		self->short_str[sizeof(String) - 1 - self->short_str[sizeof(String) - 1]] = '\0';
+		self->short_str[sizeof(String) - 1 - (size_t)self->short_str[sizeof(String) - 1]--] = c;
+		self->short_str[sizeof(String) - 1 - (size_t)self->short_str[sizeof(String) - 1]] = '\0';
 		return;
 	}
 
