@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.10)
 
 # set the project name
-project(IFJ21 LANGUAGES C)
+project(IFJ21 LANGUAGES C CXX)
 
+set(CMAKE_CXX_STANDARD 20)
 set_property(GLOBAL PROPERTY C_STANDARD 11)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
