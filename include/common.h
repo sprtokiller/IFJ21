@@ -5,7 +5,8 @@
 typedef enum Error
 {
 	Ok,
-	e_eof
+	e_eof,
+	e_invalid_token
 }Error;
 
 void usage(char* prgName);

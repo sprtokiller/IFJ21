@@ -58,9 +58,15 @@ int main(int argc, char* argv[])
 	Scanner sc;
 	Scanner_ctor(&sc, fp);
 	token tk;
-	_get_token(&sc, &tk);
-	print_tk(&tk);
-	token_dtor(&tk);
+	Error e = Ok;
+
+	while (true)
+	{
+		e = _get_token(&sc, &tk);
+		if (e == e_eof)break;
+		print_tk(&tk);
+		token_dtor(&tk);
+	}
 	Scanner_dtor(&sc);
 
 

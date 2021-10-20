@@ -8,6 +8,7 @@
 #include <malloc.h>
 #include <stdbool.h>
 #include <memory.h>
+#include <stdlib.h>
 
 #define c_class Vector(VECTOR_T)
 

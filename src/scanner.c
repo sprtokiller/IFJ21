@@ -167,7 +167,9 @@ typedef enum
 {
 	s_begin,
 	s_int,
-	s_float
+	s_float,
+	s_minus,
+	s_plus
 }State;
 
 void Scanner_ctor(Scanner* self, FILE* source)
@@ -177,6 +179,7 @@ void Scanner_ctor(Scanner* self, FILE* source)
 	self->line = 1;
 	self->column = 0;
 	self->sym = 0;
+	self->prev_state = s_begin;
 }
 void Scanner_dtor(Scanner* self)
 {
@@ -193,27 +196,87 @@ int fetch_symbol(Scanner* self)
 	}
 	return sym;
 }
+bool probably_op(uint32_t state)
+{
+	return state == s_int || state == s_float;
+}
+
+typedef struct
+{
+	uint32_t* state_to;
+	State* state_from;
+	int* sym_to;
+	int* sym_from;
+}sym_guard;
+void sym_guard_dtor(sym_guard* self)
+{
+	*self->sym_to = *self->sym_from;
+	*self->state_to = *self->state_from;
+}
 
 Error _get_token(Scanner* self, token* tk)
 {
 	unique_string xtoken;
+
 	String_ctor(&xtoken, NULL);
 	uint32_t tkstart_col = 0;
 	uint32_t tkstart_line = 1;
+	token_type predict = tt_eof;
 
 	int sym = 0;
 	State state = s_begin;
+
+	UNIQUE(sym_guard) sg;
+	sg.sym_to = &self->sym;
+	sg.sym_from = &sym;
+	sg.state_to = &self->prev_state;
+	sg.state_from = &state;
+
+
 	Error e = Ok;
+	bool valid = false;
 
 	if (self->sym) { sym = self->sym; goto inbound; }
-	while (sym != EOF)
+
+	while ((sym = fetch_symbol(self)) != EOF)
 	{
-		sym = fetch_symbol(self);
-inbound:
+	inbound:
 
 		switch (state)
 		{
 		case s_begin:
+			switch (sym)
+			{
+			case '+':
+			case '-':
+				predict = sym > '+' ? tt_subtract : tt_add;
+				state = sym > '+' ? s_minus : s_plus;
+				if (probably_op(self->prev_state))goto simple_tk;
+				push_back_str(&xtoken, (char)sym);
+				tkstart_col = self->column;
+				tkstart_line = self->line;
+				continue;
+			case '*':
+				predict = tt_multiply;
+				goto simple_tk;
+			case '/':
+				predict = tt_divide;
+				goto simple_tk;
+			case '%':
+				predict = tt_modulo;
+				goto simple_tk;
+			case ' ':
+			case '\n':
+				continue;
+			default:
+				break;
+			simple_tk:
+				token_ctor(tk, predict, NULL);
+				tk->line = self->line;
+				tk->column = self->column;
+				sym = 0;
+				return e;
+			}
 			if (isdigit(sym))
 			{
 				state = s_int;
@@ -223,6 +286,7 @@ inbound:
 			}
 			else
 			{
+				sym = 0;
 				return e;
 			}
 			break;
@@ -248,10 +312,27 @@ inbound:
 			if (isdigit(sym))
 			{
 				push_back_str(&xtoken, (char)sym);
+				valid = true;
 			}
 			else
 			{
+				if (!valid)return e_invalid_token;
 				token_ctor(tk, tt_double_literal, &xtoken);
+				tk->line = tkstart_line;
+				tk->column = tkstart_col;
+				return e;
+			}
+			break;
+		case s_minus:
+		case s_plus:
+			if (isdigit(sym))
+			{
+				state = s_int;
+				push_back_str(&xtoken, (char)sym);
+			}
+			else
+			{
+				token_ctor(tk, predict, NULL);
 				tk->line = tkstart_line;
 				tk->column = tkstart_col;
 				return e;
