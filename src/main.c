@@ -3,6 +3,8 @@
 	#include "windows.h"
 #endif // _WIN32
 
+#include "common.h"
+
 int main(int argc, char* argv[])
 {
 #ifdef _WIN32
@@ -57,6 +59,7 @@ int main(int argc, char* argv[])
 	{
 		e = _get_token(&sc, &tk);
 		if (e == e_eof)break;
+		if (e != Ok) e_msg(" %d", e);
 		print_tk(&tk);
 		token_dtor(&tk);
 	}

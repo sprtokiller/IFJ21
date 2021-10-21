@@ -74,7 +74,7 @@ void print_tk(token* self)
 		d_msg("Val: %.9lf", self->dval);
 		break;
 	case v_str:
-		d_msg("Val: %s", self->sval);
+		d_msg("Val: %s", c_str(&self->sval));
 		break;
 	default:
 		break;

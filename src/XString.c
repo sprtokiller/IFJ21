@@ -107,6 +107,14 @@ const char* c_str(const String* self)
 	return self->short_str;
 }
 
+char at_str(const String* self, size_t pos)
+{
+	if (pos > length_str(self))return '\0';
+	if (self->is_large)
+		return self->str[pos];
+	return self->short_str[pos];
+}
+
 bool empty_str(const String* self)
 {
 	if (self->is_large)
@@ -145,6 +153,13 @@ void clear_str(String* self)
 	}
 	*last(self) = i_size(0);
 	self->short_str[0] = '\0';
+}
+
+StringView substr_b(const String* self, size_t offset_back)
+{
+	size_t len = length_str(self);
+	if (offset_back > len)return (StringView) { "", 0 };
+	return (StringView) { .data = c_str(self) + len - offset_back, .len = offset_back};
 }
 
 
