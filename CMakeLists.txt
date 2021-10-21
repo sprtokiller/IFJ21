@@ -40,5 +40,7 @@ file(GLOB INCLUDE "include/*.h")
 # include source files
 file(GLOB SOURCES "src/*.c")
 
+add_compile_definitions(SOURCE_DIR="${CMAKE_SOURCE_DIR}")
+
 # add the executable
 add_executable(${PROJECT_NAME} ${SOURCES} ${INCLUDE})

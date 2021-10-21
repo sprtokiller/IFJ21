@@ -47,8 +47,8 @@ int main(int argc, char* argv[])
 
 
 	//LLC_destroy(llc);
-
-	FILE* fp = fopen("../../../../examples/testnum.tl", "r");
+	
+	FILE* fp = fopen(SOURCE_DIR"/examples/testnum.tl", "r");
 
 	Scanner sc;
 	Scanner_ctor(&sc, fp);
