@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
 	{
 		e = _get_token(&sc, &tk);
 		if (e == e_eof)break;
-		if (e != Ok) e_msg(" %d", e);
+		if (e != Ok) { e_msg(" %d", e); return 1; }
 		print_tk(&tk);
 		token_dtor(&tk);
 	}

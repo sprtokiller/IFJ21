@@ -471,6 +471,10 @@ Error _get_token(Scanner* self, token* tk)
 			{
 				state = s_esc;
 			}
+			else if (sym == EOF)
+			{
+				return e_invalid_token;
+			}
 			push_back_str(&xtoken, (char)sym);
 			break;
 		case s_cmp:
