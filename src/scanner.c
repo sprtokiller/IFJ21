@@ -315,6 +315,9 @@ Error _get_token(Scanner* self, token* tk)
 			case ';':
 				predict = tt_semicolon;
 				goto simple_tk;
+			case ':':
+				predict = tt_colon;
+				goto simple_tk;
 			case '>':
 				state = s_cmp;
 				predict = tt_g;
