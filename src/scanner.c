@@ -343,6 +343,7 @@ Error _get_token(Scanner* self, token* tk)
 				tkstart_line = self->line;
 				/* fall through */
 			case ' ':
+			case '\t':
 			case '\n':
 				continue;
 			case EOF:

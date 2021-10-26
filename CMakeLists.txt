@@ -30,6 +30,7 @@ add_subdirectory(${CMAKE_BINARY_DIR}/googletest-src
         ${CMAKE_BINARY_DIR}/googletest-build)
 
 enable_testing()
+add_compile_definitions(SOURCE_DIR="${CMAKE_SOURCE_DIR}")
 add_subdirectory("test")
 
 
@@ -39,8 +40,6 @@ file(GLOB INCLUDE "include/*.h")
 
 # include source files
 file(GLOB SOURCES "src/*.c")
-
-add_compile_definitions(SOURCE_DIR="${CMAKE_SOURCE_DIR}")
 
 # add the executable
 add_executable(${PROJECT_NAME} ${SOURCES} ${INCLUDE})

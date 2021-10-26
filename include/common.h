@@ -1,5 +1,7 @@
 #pragma once
 
+//Ok		running state of scanner
+//e_eof		end of file
 typedef enum Error
 {
 	Ok,
