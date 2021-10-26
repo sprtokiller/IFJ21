@@ -21,7 +21,7 @@ int main(int argc, char* argv[])
 		switch (argv[argIndex][1]) {
 		case 'v': verbose = true; break;
 		case 'h': usage(argv[0]); exit(EXIT_FAILURE); break;
-		default: usage(argv[0]); exit(EXIT_BAD_USAGE); break;
+		default: usage(argv[0]); exit(64); break;
 		}
 	}
 

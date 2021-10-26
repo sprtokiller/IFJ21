@@ -51,3 +51,8 @@ void e_exit(const char* fmt, ...) {
 	fprintf(stderr, "\n");
 	exit(1);
 }
+
+void usage(char* prgName)
+{
+	printf("Usage: %s [-h] < input_tl_prg > output_ifj21_prg\n", prgName);
+}
