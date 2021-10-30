@@ -30,8 +30,7 @@ public:
 class ProgramTest : public ::testing::Test
 {
 private:
-	Scanner s;
-	token tk;
+	Scanner sc;
 	Error e;
 	std::string current_out;
 	//state of test setup, has nothing to do with actual testing
@@ -45,7 +44,7 @@ private:
 	}
 	void TearDown() override
 	{
-		Scanner_dtor(&s);
+		Scanner_dtor(&sc);
 	}
 
 public:
@@ -56,7 +55,7 @@ public:
 			e_exit("Wrong calling order in tests! %i!=0", state);
 
 		FILE* fp = fopen(sourcePath, "r");
-		Scanner_ctor(&s, fp);
+		Scanner_ctor(&sc, fp);
 
 		state++;
 	}
@@ -69,20 +68,7 @@ public:
 		//record text in stderr
 		testing::internal::CaptureStderr();
 
-		uint64_t i;
-		for (i = 0; i < UINT64_MAX; i++)
-		{
-			e = _get_token(&s, &tk);
-			if (e == e_eof)
-				break;
-			if (e != Ok)
-				w_msg(" %d", e);
-			print_tk(&tk);
-			token_dtor(&tk);
-		}
-
-		//Out of index space or wrong file end.
-		ASSERT_FALSE(i == UINT64_MAX - 1);
+		Scanner_print(&sc, &e);
 
 		//saves log to string
 		current_out = testing::internal::GetCapturedStderr();
@@ -163,8 +149,24 @@ public:
 };
 
 //test scanner on example files
+
+#define NAME "scan_1.tl"
+TEST_F(ProgramTest, scan_1)
+{
+	const char* sourcePath = SOURCE_DIR "/examples/" NAME;
+	SetInput(sourcePath);
+	RunScanner();
+	const char* TestPathO = SOURCE_DIR"/test/o/";
+	const char* TestPathR = SOURCE_DIR"/test/r/";
+	CheckFolders(TestPathO, TestPathR);
+	const char* TestPathOut = SOURCE_DIR"/test/o/" NAME;
+	const char* TestPathCor = SOURCE_DIR"/test/r/" NAME;
+	TestOutput(TestPathOut, TestPathCor);
+}
+#undef Name
+
 #define NAME "prg_1.tl"
-TEST_F(ProgramTest, 1)
+TEST_F(ProgramTest, prg_1)
 {
 	const char* sourcePath = SOURCE_DIR "/examples/" NAME;
 	SetInput(sourcePath);
@@ -179,7 +181,7 @@ TEST_F(ProgramTest, 1)
 #undef Name
 
 #define NAME "prg_2.tl"
-TEST_F(ProgramTest, 2)
+TEST_F(ProgramTest, prg_2)
 {
 	const char* sourcePath = SOURCE_DIR "/examples/" NAME;
 	SetInput(sourcePath);
@@ -194,7 +196,7 @@ TEST_F(ProgramTest, 2)
 #undef Name
 
 #define NAME "prg_3.tl"
-TEST_F(ProgramTest, 3)
+TEST_F(ProgramTest, prg_3)
 {
 	const char* sourcePath = SOURCE_DIR "/examples/" NAME;
 	SetInput(sourcePath);

@@ -48,21 +48,12 @@ int main(int argc, char* argv[])
 
 	//LLC_destroy(llc);
 	
-	FILE* fp = fopen(SOURCE_DIR"/examples/testnum.tl", "r");
+	FILE* fp = fopen(SOURCE_DIR"/examples/scan_1.tl", "r");
 
 	Scanner sc;
 	Scanner_ctor(&sc, fp);
-	token tk;
 	Error e = Ok;
-
-	while (true)
-	{
-		e = _get_token(&sc, &tk);
-		if (e == e_eof)break;
-		if (e != Ok) { e_msg(" %d", e); return 1; }
-		print_tk(&tk);
-		token_dtor(&tk);
-	}
+	Scanner_print(&sc, &e);
 	Scanner_dtor(&sc);
 
 

@@ -3,6 +3,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+/*!
+ *  States of finite state machine
+ *  
+ *  @code s_float is moved to 1 << 13
+ */
 typedef enum
 {
 	s_begin,
@@ -40,7 +45,7 @@ void Scanner_dtor(Scanner* self)
 	Vector_token_dtor(&self->tk_stream);
 }
 
-
+//returns first symbol
 int fetch_symbol(Scanner* self)
 {
 	int sym = fgetc(self->source);
@@ -50,6 +55,12 @@ int fetch_symbol(Scanner* self)
 	}
 	return sym;
 }
+
+/*!
+ *  skips everything to end of line or end of file
+ *  
+ *  @return EOF or \"\\n\"
+ */
 int skip_comment(Scanner* self)
 {
 	int sym = 0;
@@ -57,12 +68,12 @@ int skip_comment(Scanner* self)
 		sym = fetch_symbol(self);
 	return sym;
 }
-int skip_space(Scanner* self, int sym)
-{
-	while (sym != EOF && sym == ' ')
-		sym = fetch_symbol(self);
-	return sym;
-}
+
+/*!
+ *  skips everything to ]]
+ *  
+ *  @return EOF or \"]\"
+ */
 int skip_comment_ml(Scanner* self)
 {
 	bool br = false;
@@ -76,11 +87,38 @@ int skip_comment_ml(Scanner* self)
 	}
 	return sym;
 }
+
+/*!
+ *  skips all white spaces except new line
+ *  
+ *  @return next char
+ */
+int skip_space(Scanner* self, int sym)
+{
+	while (sym != EOF && isspace(sym) && sym != '\n')
+		sym = fetch_symbol(self);
+	return sym;
+}
+
+/*!
+ *  By masking value of state return bool
+ *  
+ *  @param state is numeric value of enum
+ *	@return TRUE, if state is operand
+ */
 bool is_operand(uint32_t state)
 {
 	return state == s_int || (state & 1 << 13) > 0 || state == s_id;
 }
 
+/*!
+ *  Binary search char in string
+ *  
+ *  @param str string of ordered chars
+ *  @param len size of str
+ *  @param el char target char
+ *  @return TRUE, if char is in str
+ */
 inline bool x_bsearch(const char* str, size_t len, int el)
 {
 	int l = 0;
@@ -96,17 +134,28 @@ inline bool x_bsearch(const char* str, size_t len, int el)
 	}
 	return false;
 }
+
+/*!
+ *  Detection of posible esc char
+ *  @return TRUE, if c is posible esc char
+ */
 bool esc_sym(int c)
 {
 	static const char* esc_ = "\"'\\abfnrtv";
 	return x_bsearch(esc_, 10, c);
 }
+
+/*!
+ *  Detection of posible kw char
+ *  @return TRUE, if c is posible kw char
+ */
 bool maybe_kw(int c)
 {
 	static const char* str = "abdefgilnorstw";
 	return x_bsearch(str, 15, c);
 }
 
+//Storage of pointers to new/old states and symbols
 typedef struct
 {
 	uint32_t* state_to;
@@ -114,27 +163,50 @@ typedef struct
 	int* sym_to;
 	int* sym_from;
 }sym_guard;
+
+//copy states and symbols from new to old
 void sym_guard_dtor(sym_guard* self)
 {
 	*self->sym_to = *self->sym_from;
 	*self->state_to = *self->state_from;
 }
 
+/*!
+ *  Sub-finite-state machine for keywords
+ *  @param self pointer to scanner
+ *  @param xtoken pointer to token
+ *  @param xsym pointer to next symbol
+ *  @param tt pointer to token type
+ *  @return TRUE, if token is keyword
+ */
 bool _parse_kw(Scanner* self, String* xtoken, int* xsym, token_type* tt)
 {
+	//first token
 	int sym = at_str(xtoken, 0);
 	const char* predict = NULL;
+	//next token
 	int nsym = *xsym;
-	bool e = true;
 	push_back_str(xtoken, nsym);
+	//starting index of check loop
 	size_t i = 2;
-
-	if (sym == 'e')
+	//sets prediction by first two chars or more
+	switch (sym)
 	{
+	case 'a':
+		predict = "and"; *tt = tt_and; break;
+
+	case 'b':
+		predict = "boolean"; *tt = tt_boolean; break;
+
+	case 'd':
+		predict = "do"; *tt = tt_do; break;
+
+	case 'e':
 		if (nsym == EOF || (!isalnum(nsym) && nsym != '_')) return false;
 
 		if (nsym == 'n') { predict = "end"; *tt = tt_end; goto done; }
-		if (nsym != 'l')return false;
+
+		if (nsym != 'l') return false;
 
 		predict = "else"; *tt = tt_else;
 
@@ -148,96 +220,99 @@ bool _parse_kw(Scanner* self, String* xtoken, int* xsym, token_type* tt)
 		if ((!isalnum(*xsym = sym = fetch_symbol(self)) && sym != '_') || sym == EOF)
 			return true;
 		i++; push_back_str(xtoken, sym);
-		if (sym == 'i') { e = false; predict = "elseif"; *tt = tt_elseif; goto done; }
-	}
-
-	switch (sym)
-	{
-	case 'a':
-		predict = "and"; *tt = tt_and; break;
-	case 'b':
-		predict = "boolean"; *tt = tt_boolean; break;
-	case 'd':
-		predict = "do"; *tt = tt_do; break;
-	case 'g':
-		predict = "global"; *tt = tt_global; break;
-	case 'l':
-		predict = "local"; *tt = tt_local; break;
-	case 'o':
-		predict = "or"; *tt = tt_or; break;
-	case 's':
-		predict = "string"; *tt = tt_string; break;
-	case 'w':
-		predict = "while"; *tt = tt_while; break;
+		if (sym == 'i') { predict = "elseif"; *tt = tt_elseif; goto done; }
+		break;
 
 	case 'f':
-		e = false;
 		switch (nsym)
 		{
-		case 'a': predict = "false"; *tt = tt_false; break;
-		case 'u': predict = "function"; *tt = tt_function; break;
-		default:return false;
+			case 'a': predict = "false"; *tt = tt_false; break;
+			case 'u': predict = "function"; *tt = tt_function; break;
+			default:return false;
 		}
 		break;
+
+	case 'g':
+		predict = "global"; *tt = tt_global; break;
+
 	case 'i':
-		e = false;
 		switch (nsym)
 		{
-		case 'n': predict = "integer"; *tt = tt_integer; break;
-		case 'f': predict = "if"; *tt = tt_if; break;
-		default:return false;
+			case 'n': predict = "integer"; *tt = tt_integer; break;
+			case 'f': predict = "if"; *tt = tt_if; break;
+			default:return false;
 		}
 		break;
+
+	case 'l':
+		predict = "local"; *tt = tt_local; break;
+
 	case 'n':
-		e = false;
 		switch (nsym)
 		{
-		case 'i': predict = "nil"; *tt = tt_nil; break;
-		case 'o': predict = "not"; *tt = tt_not; break;
-		case 'u': predict = "number"; *tt = tt_number; break;
-		default:return false;
+			case 'i': predict = "nil"; *tt = tt_nil; break;
+			case 'o': predict = "not"; *tt = tt_not; break;
+			case 'u': predict = "number"; *tt = tt_number; break;
+			default: return false;
 		}
 		break;
-	case 't':
-		e = false;
-		switch (nsym)
+
+	case 'o':
+		predict = "or"; *tt = tt_or; break;
+
+	case 's':
+		predict = "string"; *tt = tt_string; break;
+
+	case 'r':
+		if (nsym == 'e')
 		{
-		case 'h': predict = "then"; *tt = tt_then; break;
-		case 'r': predict = "true"; *tt = tt_true; break;
-		default:return false;
-		}
-		break;
-	default:
-		if (sym == 'r' && nsym == 'e')
-		{
-			e = false;
 			*xsym = sym = fetch_symbol(self);
 			if (sym == EOF || (!isalnum(sym) && sym != '_')) return false;
 			i++; push_back_str(xtoken, sym);
 			switch (sym)
 			{
-			case 'q': predict = "require"; *tt = tt_require; break;
-			case 't': predict = "return"; *tt = tt_return; break;
-			default:return false;
+				case 'q': predict = "require"; *tt = tt_require; break;
+				case 't': predict = "return"; *tt = tt_return; break;
+				default: return false;
 			}
+			break;
 		}
 		break;
+
+	case 't':
+		switch (nsym)
+		{
+			case 'h': predict = "then"; *tt = tt_then; break;
+			case 'r': predict = "true"; *tt = tt_true; break;
+			default:return false;
+		}
+		break;
+
+	case 'w':
+		predict = "while"; *tt = tt_while; break;
+	default:
+		//no match was found
 		return false;
 	}
+	//end of prediction switch
 done:
-	size_t len = strlen(predict);
+	if (predict == NULL) {
+		e_msg("Internal scanner error");
+		return false;
+	}
 
-	if (e) { if (nsym != predict[i - 1])return false; }
-
-	for (; i < len; i++)
+	//checks if prediction is same as string
+	for (; i < strlen(predict); i++)
 	{
 		*xsym = sym = fetch_symbol(self);
 		if (sym == EOF || (!isalnum(sym) && sym != '_')) return false;
 		push_back_str(xtoken, sym);
-		if (sym != predict[i])return false;
+		if (sym != predict[i]) return false;
 	}
+
 	if ((!isalnum(*xsym = sym = fetch_symbol(self)) && sym != '_') || sym == EOF)
 		return true;
+
 	push_back_str(xtoken, sym);
 	return false;
 }
@@ -342,9 +417,10 @@ Error _get_token(Scanner* self, token* tk)
 				tkstart_col = self->column;
 				tkstart_line = self->line;
 				/* fall through */
-			case ' ':
+			case ' ' :
 			case '\t':
 			case '\n':
+			case '\v':
 				continue;
 			case EOF:
 				e = e_eof;
@@ -370,6 +446,7 @@ Error _get_token(Scanner* self, token* tk)
 				}
 				sym = 0;
 				return e_invalid_token;
+
 			simple_tk:
 				token_ctor(tk, predict, NULL);
 				tk->line = self->line;
@@ -377,6 +454,7 @@ Error _get_token(Scanner* self, token* tk)
 				sym = 0;
 				return e;
 			}
+		//start of states
 		case s_int:
 			if (isdigit(sym)) {
 				push_back_str(&xtoken, (char)sym);
@@ -590,4 +668,20 @@ Error _get_token(Scanner* self, token* tk)
 		}
 	}
 	return e_eof;
+}
+
+void Scanner_print(Scanner* self, Error* e) {
+	token tk;
+
+	while (true)
+	{
+		*e = _get_token(self, &tk);
+		if (*e == e_eof)break;
+		if (*e != Ok) {
+			e_msg(" %d", *e);
+			break;
+		}
+		print_tk(&tk);
+		token_dtor(&tk);
+	}
 }

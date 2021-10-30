@@ -2,6 +2,7 @@
 
 //Ok		running state of scanner
 //e_eof		end of file
+//e_invalid_token
 typedef enum Error
 {
 	Ok,

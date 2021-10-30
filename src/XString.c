@@ -1,19 +1,32 @@
 #include "XString.h"
 #include <string.h>
 #include <malloc.h>
-
+/*!
+ *  Returns last char of string
+ *
+ *  @param self pointer to string
+ *  @return pointer to last char
+ */
 static char* last(String* self)
 {
 	return &self->short_str[sizeof(*self) - 1];
 }
+/*!
+ *  Returns last char of string
+ *
+ *  @param self pointer to string
+ *  @return const pointer to last char
+ */
 static const char* last_c(const String* self)
 {
 	return &self->short_str[sizeof(*self) - 1];
 }
+
 static char i_size(size_t sz)
 {
 	return (char)sizeof(String) - 1 - (char)sz;
 }
+
 static size_t capacity_str(const String* self)
 {
 	if (self->is_large)
@@ -21,12 +34,11 @@ static size_t capacity_str(const String* self)
 	return sizeof(*self) - 1;
 }
 
-
-
 static inline size_t max_size()
 {
 	return 1ull << ((sizeof(size_t) * 8) - 2);
 }
+
 static inline size_t calculate_growth(size_t Oldcapacity, size_t Newsize) //MS STL Impl
 {
 	// given _Oldcapacity and _Newsize, calculate geometric growth
@@ -55,12 +67,12 @@ static void reallocate_for(String* self, size_t sz)
 
 	if (self->is_large)
 	{
-		self->str = realloc(self->str, Newcapacity);
+		self->str = (char*)realloc(self->str, Newcapacity);
 		self->al_sz = Newcapacity - 1;
 		return;
 	}
 
-	char* Replacement = malloc(Newcapacity);
+	char* Replacement = (char*)malloc(Newcapacity);
 	memcpy(Replacement, self, Oldsize + 1);
 
 	self->str = Replacement;
@@ -80,7 +92,7 @@ void String_ctor(String* self, const char* str)
 		*last(self) = i_size(sz);
 		return;
 	}
-	self->str = malloc(sz + 1);
+	self->str = (char*)malloc(sz + 1);
 	memcpy(self->str, str, sz + 1);
 	self->al_sz = sz;
 	self->len = sz;
@@ -129,6 +141,7 @@ size_t length_str(const String* self)
 	return sizeof(String) - 1 - (size_t)*last_c(self);
 }
 
+//add character to end of string
 void push_back_str(String* self, char c)
 {
 	if (!self->is_large && *last_c(self))
@@ -143,6 +156,7 @@ void push_back_str(String* self, char c)
 	self->str[self->len] = '\0';
 }
 
+//sets lenght to 0, but doesn't free string
 void clear_str(String* self)
 {
 	if (self->is_large)
