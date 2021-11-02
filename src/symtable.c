@@ -5,7 +5,7 @@ void Sym_v_table_dtor(Sym_v_table* self)
 	return;
 }
 
-void Sym_v_table_insert(Sym_v_table* self, char* id, token_type_t token_type, uint32_t frame_count)
+void Sym_v_table_insert(Sym_v_table* self, char* id, token_type token_type, uint32_t frame_count)
 {
 	return;
 }

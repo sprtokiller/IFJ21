@@ -1,26 +1,16 @@
 #include "scanner.h"
-#ifdef _WIN32
-	#include "windows.h"
-#endif // _WIN32
-
 #include "common.h"
 
 int main(int argc, char* argv[])
 {
-#ifdef _WIN32
-	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-	DWORD dwMode = 0;
-	GetConsoleMode(hOut, &dwMode);
-	dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-	SetConsoleMode(hOut, dwMode);
-#endif // _WIN32
+	SetupTerminal();
 
 	bool verbose = false;
 	size_t argIndex;
 	for (argIndex = 1; argIndex < argc && argv[argIndex][0] == '-'; argIndex++) {
 		switch (argv[argIndex][1]) {
 		case 'v': verbose = true; break;
-		case 'h': usage(argv[0]); exit(EXIT_FAILURE); break;
+		case 'h': usage(argv[0]); exit(1); break;
 		default: usage(argv[0]); exit(64); break;
 		}
 	}
@@ -57,5 +47,5 @@ int main(int argc, char* argv[])
 	Scanner_dtor(&sc);
 
 
-	return EXIT_SUCCESS;
+	return 0;
 }

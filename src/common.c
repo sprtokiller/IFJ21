@@ -56,3 +56,18 @@ void usage(char* prgName)
 {
 	printf("Usage: %s [-h] < input_tl_prg > output_ifj21_prg\n", prgName);
 }
+
+#ifdef _WIN32
+#include <Windows.h>
+void SetupTerminal(void)
+{
+	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+	DWORD dwMode = 0;
+	GetConsoleMode(hOut, &dwMode);
+	dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+	SetConsoleMode(hOut, dwMode);
+}
+#else
+void SetupTerminal(void)
+{}
+#endif // _WIN32

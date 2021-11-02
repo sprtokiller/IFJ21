@@ -18,9 +18,17 @@ void d_msg(const char* fmt, ...);
 //prints warning in stderr
 void w_msg(const char* fmt, ...);
 
-//prints error in stderr
+/// @brief prints error in stderr
+/// @param fmt format string
+/// @param variables
 void e_msg(const char* fmt, ...);
 
-//prints error in stderr
-//and shuts down program
+
+/// @brief prints error in stderr
+/// and shuts down program
+/// @param fmt format string
+/// @param variables
 void e_exit(const char* fmt, ...);
+
+/// @brief Sets up terminal on Windows
+void SetupTerminal(void);
