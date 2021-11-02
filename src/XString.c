@@ -1,19 +1,32 @@
 #include "XString.h"
 #include <string.h>
 #include <malloc.h>
-
+/*!
+ *  Returns last char of string
+ *
+ *  @param self pointer to string
+ *  @return pointer to last char
+ */
 static char* last(String* self)
 {
 	return &self->short_str[sizeof(*self) - 1];
 }
+/*!
+ *  Returns last char of string
+ *
+ *  @param self pointer to string
+ *  @return const pointer to last char
+ */
 static const char* last_c(const String* self)
 {
 	return &self->short_str[sizeof(*self) - 1];
 }
+
 static char i_size(size_t sz)
 {
 	return (char)sizeof(String) - 1 - (char)sz;
 }
+
 static size_t capacity_str(const String* self)
 {
 	if (self->is_large)
@@ -21,12 +34,11 @@ static size_t capacity_str(const String* self)
 	return sizeof(*self) - 1;
 }
 
-
-
 static inline size_t max_size()
 {
 	return 1ull << ((sizeof(size_t) * 8) - 2);
 }
+
 static inline size_t calculate_growth(size_t Oldcapacity, size_t Newsize) //MS STL Impl
 {
 	// given _Oldcapacity and _Newsize, calculate geometric growth
@@ -55,13 +67,13 @@ static void reallocate_for(String* self, size_t sz)
 
 	if (self->is_large)
 	{
-		self->str = realloc(self->str, Newcapacity);
+		self->str = (char*)realloc(self->str, Newcapacity);
 		self->al_sz = Newcapacity - 1;
 		return;
 	}
 
-	char* Replacement = malloc(Newcapacity);
-	memcpy(Replacement, self, Oldsize - 1);
+	char* Replacement = (char*)malloc(Newcapacity);
+	memcpy(Replacement, self, Oldsize + 1);
 
 	self->str = Replacement;
 	self->len = Oldsize;
@@ -72,7 +84,7 @@ static void reallocate_for(String* self, size_t sz)
 void String_ctor(String* self, const char* str)
 {
 	memset(self->short_str, 0, sizeof(*self));
-	if (!str)return;
+	if (!str) { *last(self) = i_size(0); return; }
 	size_t sz = strlen(str);
 	if (sz < sizeof * self - 1)
 	{
@@ -80,16 +92,46 @@ void String_ctor(String* self, const char* str)
 		*last(self) = i_size(sz);
 		return;
 	}
-	self->str = malloc(sz);
-	memcpy(self->str, str, sz);
-	self->al_sz = sz + 1;
+	self->str = (char*)malloc(sz + 1);
+	memcpy(self->str, str, sz + 1);
+	self->al_sz = sz;
 	self->len = sz;
+	self->is_large = true;
 }
 
 void String_dtor(String* self)
 {
 	if (self->is_large)
 		free(self->str);
+}
+
+void String_move_ctor(String* self, String* other)
+{
+	*self = *other;
+	memset(other, 0, sizeof(*other));
+	*last(other) = i_size(0);
+}
+
+const char* c_str(const String* self)
+{
+	if (self->is_large)
+		return self->str;
+	return self->short_str;
+}
+
+char at_str(const String* self, size_t pos)
+{
+	if (pos > length_str(self))return '\0';
+	if (self->is_large)
+		return self->str[pos];
+	return self->short_str[pos];
+}
+
+bool empty_str(const String* self)
+{
+	if (self->is_large)
+		return self->len == 0;
+	return !self->short_str[0];
 }
 
 size_t length_str(const String* self)
@@ -99,6 +141,7 @@ size_t length_str(const String* self)
 	return sizeof(String) - 1 - (size_t)*last_c(self);
 }
 
+//add character to end of string
 void push_back_str(String* self, char c)
 {
 	if (!self->is_large && *last_c(self))
@@ -111,6 +154,26 @@ void push_back_str(String* self, char c)
 	reallocate_for(self, 1);
 	self->str[self->len++] = c;
 	self->str[self->len] = '\0';
+}
+
+//sets lenght to 0, but doesn't free string
+void clear_str(String* self)
+{
+	if (self->is_large)
+	{
+		self->len = 0;
+		self->str[0] = '\0';
+		return;
+	}
+	*last(self) = i_size(0);
+	self->short_str[0] = '\0';
+}
+
+StringView substr_b(const String* self, size_t offset_back)
+{
+	size_t len = length_str(self);
+	if (offset_back > len)return (StringView) { "", 0 };
+	return (StringView) { .data = c_str(self) + len - offset_back, .len = offset_back};
 }
 
 
