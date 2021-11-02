@@ -1,7 +1,14 @@
 #pragma once
-#include <stdint.h>
-#define EXIT_BAD_USAGE 64
 
+//Ok		running state of scanner
+//e_eof		end of file
+//e_invalid_token
+typedef enum Error
+{
+	Ok,
+	e_eof,
+	e_invalid_token
+}Error;
 
 void usage(char* prgName);
 
