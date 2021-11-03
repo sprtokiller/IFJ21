@@ -163,7 +163,7 @@ TEST_F(ProgramTest, scan_1)
 	const char* TestPathCor = SOURCE_DIR"/test/r/" NAME;
 	TestOutput(TestPathOut, TestPathCor);
 }
-#undef Name
+#undef NAME
 
 #define NAME "prg_1.tl"
 TEST_F(ProgramTest, prg_1)
@@ -178,7 +178,7 @@ TEST_F(ProgramTest, prg_1)
 	const char* TestPathCor = SOURCE_DIR"/test/r/" NAME;
 	TestOutput(TestPathOut, TestPathCor);
 }
-#undef Name
+#undef NAME
 
 #define NAME "prg_2.tl"
 TEST_F(ProgramTest, prg_2)
@@ -193,7 +193,7 @@ TEST_F(ProgramTest, prg_2)
 	const char* TestPathCor = SOURCE_DIR"/test/r/" NAME;
 	TestOutput(TestPathOut, TestPathCor);
 }
-#undef Name
+#undef NAME
 
 #define NAME "prg_3.tl"
 TEST_F(ProgramTest, prg_3)
@@ -208,4 +208,4 @@ TEST_F(ProgramTest, prg_3)
 	const char* TestPathCor = SOURCE_DIR"/test/r/" NAME;
 	TestOutput(TestPathOut, TestPathCor);
 }
-#undef Name
+#undef NAME
