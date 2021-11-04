@@ -15,7 +15,7 @@ foreach(file ${tests})
   add_executable("${name}_tests"
     ${sources}
     ${file}
-    "${PROJECT_SOURCE_DIR}/test/main.cpp")
+    "${PROJECT_SOURCE_DIR}/test/main.cpp" "Symtable.cpp")
   target_link_libraries("${name}_tests" gtest_main)
   add_test(NAME ${name} COMMAND "${name}_tests")
 endforeach()

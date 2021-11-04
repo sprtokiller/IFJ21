@@ -1,5 +1,7 @@
-#include "scanner.h"
+#include "symtable.h"
 #include "common.h"
+#include "token.h"
+#include <stdlib.h>
 
 int main(int argc, char* argv[])
 {
@@ -37,15 +39,23 @@ int main(int argc, char* argv[])
 
 
 	//LLC_destroy(llc);
-	
-	FILE* fp = fopen(SOURCE_DIR"/examples/scan_1.tl", "r");
 
-	Scanner sc;
-	Scanner_ctor(&sc, fp);
-	Error e = Ok;
-	Scanner_print(&sc, &e);
-	Scanner_dtor(&sc);
+	Sym_table t = {0};
 
+	const char* in1 = "id1";
+
+	Sym_table_insert(&t, in1, tt_l, 0);
+
+	const char* in2 = "id2";
+
+	Sym_table_insert(&t, in2, tt_add, 0);
+
+	hashtable_item* item;
+
+	item = Sym_table_find(&t, in1);
+	item = Sym_table_find(&t, in2);
+
+	Sym_table_dtor(&t);
 
 	return 0;
 }
