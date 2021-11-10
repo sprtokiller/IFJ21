@@ -1,21 +1,31 @@
 #pragma once
+#include "error.h"
 
-//Ok		running state of scanner
-//e_eof		end of file
-//e_invalid_token
-typedef enum Error
-{
-	Ok,
-	e_eof,
-	e_invalid_token
-}Error;
+#define SWITCH_TEXT(tt, str) case tt: return str
+
+///Color change on tests for better readability
+#ifdef RAW_OUTPUT
+#define RED     ""
+#define GREEN   ""
+#define YELLOW  ""
+#define RESET   ""
+#else
+#define RED     "\x1b[31m"
+#define GREEN   "\x1b[32m"
+#define YELLOW  "\x1b[33m"
+#define RESET   "\x1b[0m"
+#endif // RAW_OUTPUT
 
 void usage(char* prgName);
 
-//prints debug in stderr
+/// @briefprints debug in stderr
+/// @param fmt format string
+/// @param variables
 void d_msg(const char* fmt, ...);
 
-//prints warning in stderr
+/// @briefprints warning in stderr
+/// @param fmt format string
+/// @param variables
 void w_msg(const char* fmt, ...);
 
 /// @brief prints error in stderr

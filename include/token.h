@@ -2,18 +2,21 @@
 #include "XString.h"
 
 #define ENUM_TOKEN_TYPES \
-	X(do) X(else) X(elseif) X(boolean) X(end) X(function) X(global) X(if) X(integer) X(local) X(nil) X(number) X(require) X(return) X(string) X(then) X(while)\
+X(err) X(do) X(else) X(elseif) X(boolean) X(end) X(function) X(global) X(if) X(integer) X(local) X(nil) X(number) X(require) X(return) X(string) X(then) X(while)\
 X(identifier)\
 X(int_literal) X(double_literal) X(string_literal) X(true) X(false)\
 X(length) X(multiply) X(divide) X(int_divide) X(add) X(subtract) X(concatenate) X(l) X(le) X(g) X(ge) X(e) X(ee) X(ne) X(modulo) X(power) X(not) X(and) X(or)\
 X(left_parenthese) X(right_parenthese) X(comma) X(semicolon) X(colon)\
-X(eof) X(err) X(u_plus) X(u_minus)
+X(eof) X(u_plus) X(u_minus)
 
 typedef enum token_type {
 #define X(a) tt_##a,
 	ENUM_TOKEN_TYPES
 #undef X
 }token_type;
+
+const char* token_type_name(token_type type);
+
 typedef struct token token;
 
 enum val_ty { v_none, v_str, v_flt, v_int };

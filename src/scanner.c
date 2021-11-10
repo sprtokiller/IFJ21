@@ -45,6 +45,28 @@ void Scanner_dtor(Scanner* self)
 	Vector_token_dtor(&self->tk_stream);
 }
 
+void Scanner_run(Scanner* self, Error* e) {
+	while (true)
+	{
+		token* tk = push_back_Vector_token(&(self->tk_stream));
+
+		*e = _get_token(self, tk);
+		if (*e != e_ok) {
+			e_msg("Scanner error %d", *e);
+			break;
+		}if (tk->type == tt_eof) {
+			break;
+		}
+	}
+}
+
+void Scanner_print(Scanner* self) {
+	for (size_t i = 0; i < size_Vector_token(&(self->tk_stream)); i++)
+	{
+		print_tk(at_Vector_token(&(self->tk_stream), i));
+	}
+}
+
 //returns first symbol
 int fetch_symbol(Scanner* self)
 {
@@ -336,7 +358,7 @@ Error _get_token(Scanner* self, token* tk)
 	sg.state_from = &state;
 
 
-	Error e = Ok;
+	Error e = e_ok;
 	bool valid = false;
 	uint8_t escape_cnt = 0;
 
@@ -423,7 +445,6 @@ Error _get_token(Scanner* self, token* tk)
 			case '\v':
 				continue;
 			case EOF:
-				e = e_eof;
 				predict = tt_eof;
 				token_ctor(tk, predict, NULL);
 				tk->line = self->line;
@@ -667,21 +688,5 @@ Error _get_token(Scanner* self, token* tk)
 			return e;
 		}
 	}
-	return e_eof;
-}
-
-void Scanner_print(Scanner* self, Error* e) {
-	token tk;
-
-	while (true)
-	{
-		*e = _get_token(self, &tk);
-		if (*e == e_eof)break;
-		if (*e != Ok) {
-			e_msg(" %d", *e);
-			break;
-		}
-		print_tk(&tk);
-		token_dtor(&tk);
-	}
+	return e_invalid_token;
 }
