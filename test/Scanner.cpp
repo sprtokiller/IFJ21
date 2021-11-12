@@ -39,7 +39,7 @@ private:
 private:
 	void SetUp() override
 	{
-		e = Ok;
+		e = e_ok;
 		current_out = "";
 	}
 	void TearDown() override
@@ -65,10 +65,12 @@ public:
 		if (state != 1)
 			e_exit("Wrong calling order in tests! %i!=1", state);
 
+		Scanner_run(&sc, &e);
+
 		//record text in stderr
 		testing::internal::CaptureStderr();
 
-		Scanner_print(&sc, &e);
+		Scanner_print(&sc);
 
 		//saves log to string
 		current_out = testing::internal::GetCapturedStderr();
@@ -100,8 +102,7 @@ public:
 		current << current_out;
 		current.close();
 
-		//Checks if scanner is at end of file
-		ASSERT_EQ(e,e_eof);
+		ASSERT_EQ(e,e_ok);
 
 		//writes rule file to folder test/o if file doesn't exists
 		//but only if error didn't occurred

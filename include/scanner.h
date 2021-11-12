@@ -16,7 +16,9 @@ struct Scanner
 };
 
 void Scanner_ctor(Scanner* self, FILE* source);
-void Scanner_print(Scanner* self, Error* e);
+/// Fills scanner with tokens
+void Scanner_run(Scanner* self, Error* e);
+void Scanner_print(Scanner* self);
 void Scanner_dtor(Scanner* self);
 
 Error _get_token(Scanner* self, token* tk);

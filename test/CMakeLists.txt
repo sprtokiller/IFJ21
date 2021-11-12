@@ -9,13 +9,15 @@ list(REMOVE_ITEM tests "${PROJECT_SOURCE_DIR}/test/main.cpp")
 
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
+add_compile_definitions(RAW_OUTPUT)
+
 foreach(file ${tests})
   set(name)
   get_filename_component(name ${file} NAME_WE)
   add_executable("${name}_tests"
     ${sources}
     ${file}
-    "${PROJECT_SOURCE_DIR}/test/main.cpp" "Symtable.cpp")
+    "${PROJECT_SOURCE_DIR}/test/main.cpp")
   target_link_libraries("${name}_tests" gtest_main)
   add_test(NAME ${name} COMMAND "${name}_tests")
 endforeach()
