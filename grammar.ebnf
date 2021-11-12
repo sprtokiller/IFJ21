@@ -36,7 +36,6 @@ OptElsifsBlocks:      /* eps */ | "elsif" EXPRESSION "then" Block OptElsifsBlock
 WhileBlock:           "while" EXPRESSION "do" Block "end";
 ReturnBlock:          "return" OptExprList;
 
-ForBlock:			  "for" IDENTIFIER "=" EXPRESSION "," EXPRESION OptInc "do" Block "end";
+ForBlock:			  "for" IDENTIFIER "=" EXPRESSION "," EXPRESSION OptInc "do" Block "end";
 OptInc:				  /* eps */ | EXPRESSION;
-RepBlock:			  "repeat" block "until" EXPRESSION;
-
+RepBlock:			  "repeat" Block "until" EXPRESSION;
