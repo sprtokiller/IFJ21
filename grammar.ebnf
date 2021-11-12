@@ -22,7 +22,7 @@ OptEqStmt:            /* eps */ | "=" EXPRESSION;
 OptResult:            /* eps */ | ":" TYPE OptMoreTypes;
 
 
-Block:                /* eps */ | EXPRESSION Block | AssBlock Block | LocalDecl Block | IfBlock Block | WhileBlock Block | ReturnBlock Block;
+Block:                /* eps */ | EXPRESSION Block | AssBlock Block | LocalDecl Block | IfBlock Block | WhileBlock Block | ReturnBlock Block | ForBlock Block | RepBlock;
 
 AssBlock:             IDENTIFIER OptIdList "=" EXPRESSION OptExprList;
 OptIdList:            /* eps */ | "," IDENTIFIER OptIdList;
