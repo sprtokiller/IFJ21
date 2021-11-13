@@ -17,11 +17,14 @@ typedef struct ExpressionAnalyzer ExpressionAnalyzer;
 
 struct ExpressionAnalyzer
 {
+	bool function;
 	Vector(Node) ast;
 };
 
-void Constructor(ExpressionAnalyzer* self, struct Scanner* scanner);
+void Constructor(ExpressionAnalyzer* self);
 void Destructor(ExpressionAnalyzer* self);
+
+Error Execute(ExpressionAnalyzer* self, struct Scanner* scanner);
 
 #ifndef EXPRA_IMPL
 #pragma pop_macro("c_class")

@@ -425,7 +425,7 @@ Error _get_token(Scanner* self, token* tk)
 				goto cont_scan;
 			case '=':
 				state = s_cmp;
-				predict = tt_e;
+				predict = tt_assign;
 				goto cont_scan;
 			case '.':
 				state = s_cat;
