@@ -19,6 +19,21 @@ const char* token_type_name(token_type type);
 
 typedef struct token token;
 
+typedef struct
+{
+	//the data we actually care about
+	token_type type : sizeof(token_type) * 8 - 2;
+
+	uint8_t var : 2;
+	union
+	{
+		String sval;
+		double dval;
+		int64_t ival;
+	};
+}token_core;
+
+
 enum val_ty { v_none, v_str, v_flt, v_int };
 
 struct token {
