@@ -574,7 +574,7 @@ Error _get_token(Scanner* self, token* tk)
 			{
 				state = s_esc;
 			}
-			else if (sym == EOF)
+			else if (sym == EOF || sym == '\n')
 			{
 				return e_invalid_token;
 			}

@@ -13,6 +13,7 @@ void Destructor(selfptr);
 
 struct Node {
 	bool valid;
+	bool expression;
 	token core;
 	Node* left, *right;           /**< Left and right subtree */
 };

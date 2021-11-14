@@ -22,7 +22,9 @@ OptEqStmt:            /* eps */ | "=" EXPRESSION;
 OptResult:            /* eps */ | ":" TYPE OptMoreTypes;
 
 
-Block:                /* eps */ | EXPRESSION Block | AssBlock Block | LocalDecl Block | IfBlock Block | WhileBlock Block | ReturnBlock Block | ForBlock Block | RepBlock;
+Block:                /* eps */ | FuncCallBlock Block | AssBlock Block | LocalDecl Block | IfBlock Block | WhileBlock Block | ReturnBlock Block | ForBlock Block | RepBlock;
+
+FuncCallBlock:        IDENTIFIER "(" ")" | IDENTIFIER "(" EXPRESSION OptExprList ")";
 
 AssBlock:             IDENTIFIER OptIdList "=" EXPRESSION OptExprList;
 OptIdList:            /* eps */ | "," IDENTIFIER OptIdList;
@@ -36,7 +38,6 @@ OptElsifsBlocks:      /* eps */ | "elsif" EXPRESSION "then" Block OptElsifsBlock
 WhileBlock:           "while" EXPRESSION "do" Block "end";
 ReturnBlock:          "return" OptExprList;
 
-ForBlock:			  "for" IDENTIFIER "=" EXPRESSION "," EXPRESSION OptInc "do" Block "end";
-OptInc:				  /* eps */ | EXPRESSION;
-RepBlock:			  "repeat" Block "until" EXPRESSION;
-
+ForBlock:             "for" IDENTIFIER "=" EXPRESSION "," EXPRESSION OptInc "do" Block "end";
+OptInc:               /* eps */ | EXPRESSION;
+RepBlock:             "repeat" Block "until" EXPRESSION;

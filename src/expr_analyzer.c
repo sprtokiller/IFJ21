@@ -42,7 +42,6 @@ static int table_column(const token* t) {
 		return 8;
 	case tt_or:
 		return 9;
-		//TODO: do we need 10?
 	case tt_identifier:case tt_double_literal:case tt_string_literal:case tt_int_literal:case tt_true: case tt_false:
 		return 11;
 	case tt_comma:
@@ -53,7 +52,7 @@ static int table_column(const token* t) {
 			return 7;
 		break;
 	}
-	return invalid_i;
+	return 10;
 }
 
 
@@ -68,21 +67,64 @@ void Destructor(ExpressionAnalyzer* self)
 	Vector_Node_dtor(&self->ast);
 }
 
+
+Node* LastNT(ExpressionAnalyzer* self)
+{
+	Node* rbeg = back_Vector_Node(&self->ast);
+	Node* rend = front_Vector_Node(&self->ast) - 1;
+
+	while (rbeg-- != rend){
+		if (!rbeg->expression)return rbeg;
+	}
+	return NULL; //it should never go here
+}
+
 Error Execute(ExpressionAnalyzer* self, Scanner* scanner)
 {
 	Error e = e_ok;
+	Node* end = push_back_Vector_Node(&self->ast);
+	Node_ctor(end);
+	token_ctor(Node_emplace(end), tt_err, NULL); //push $
 
 	Node* node = push_back_Vector_Node(&self->ast);
 	Node_ctor(node);
 	ERR_CHECK(_get_token(scanner, Node_emplace(node)));
 
-	int input_i = table_column(&node->core);
-	if (input_i == invalid_i)
-		input_i = 10; //$
+	Node* last_e = NULL;
+
 
 	while (e == e_ok)
 	{
+		Node* last_nt = LastNT(self); //node to kill
 
+		int input_i = table_column(&node->core);
+		int last_i = table_column(last_nt);
+
+		ExprAction rule = precedence_table[last_i][input_i];
+
+		switch (rule)
+		{
+		case S:
+			node = push_back_Vector_Node(&self->ast);
+			Node_ctor(node);
+			ERR_CHECK(_get_token(scanner, Node_emplace(node)));
+			continue;
+		case E:
+
+		case X:
+		case R:
+			if (last_i == 1) //unary
+			{
+				last_nt->left = last_e;
+				last_e = last_nt;
+			}
+			if (last_i == 11)
+			{
+
+			}
+		default:
+			break;
+		}
 
 	}
 	return e;
