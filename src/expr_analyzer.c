@@ -68,13 +68,13 @@ void Destructor(ExpressionAnalyzer* self)
 }
 
 
-Node* LastNT(ExpressionAnalyzer* self)
+PNode* LastNT(Vector(PNode)* tree)
 {
-	Node* rbeg = back_Vector_Node(&self->ast);
-	Node* rend = front_Vector_Node(&self->ast) - 1;
+	PNode* rbeg = back_Vector_PNode(tree);
+	PNode* rend = front_Vector_PNode(tree) - 1;
 
 	while (rbeg-- != rend){
-		if (!rbeg->expression)return rbeg;
+		if (!(*rbeg)->expression)return rbeg;
 	}
 	return NULL; //it should never go here
 }
@@ -82,23 +82,27 @@ Node* LastNT(ExpressionAnalyzer* self)
 Error Execute(ExpressionAnalyzer* self, Scanner* scanner)
 {
 	Error e = e_ok;
+
+	unique_vector(PNode) tree; // unsafe
+	Vector_PNode_ctor(&tree);
+
 	Node* end = push_back_Vector_Node(&self->ast);
 	Node_ctor(end);
 	token_ctor(Node_emplace(end), tt_err, NULL); //push $
+	*push_back_Vector_PNode(&tree) = end;
 
 	Node* node = push_back_Vector_Node(&self->ast);
 	Node_ctor(node);
 	ERR_CHECK(_get_token(scanner, Node_emplace(node)));
-
-	Node* last_e = NULL;
+	*push_back_Vector_PNode(&tree) = node;
 
 
 	while (e == e_ok)
 	{
-		Node* last_nt = LastNT(self); //node to kill
+		PNode* last_nt = LastNT(&tree); //node to kill
 
 		int input_i = table_column(&node->core);
-		int last_i = table_column(last_nt);
+		int last_i = table_column(&(*last_nt)->core);
 
 		ExprAction rule = precedence_table[last_i][input_i];
 
@@ -108,20 +112,21 @@ Error Execute(ExpressionAnalyzer* self, Scanner* scanner)
 			node = push_back_Vector_Node(&self->ast);
 			Node_ctor(node);
 			ERR_CHECK(_get_token(scanner, Node_emplace(node)));
+			*push_back_Vector_PNode(&tree) = node;
 			continue;
 		case E:
 
 		case X:
 		case R:
-			if (last_i == 1) //unary
-			{
-				last_nt->left = last_e;
-				last_e = last_nt;
+			(*last_nt)->expression = true;
+			if (last_i == 1) {//unary
+				(*last_nt)->left = last_nt[1];
+				pop_back_Vector_PNode(&tree);
 			}
-			if (last_i == 11)
-			{
+			if (last_i == 5) {
 
 			}
+			break;
 		default:
 			break;
 		}

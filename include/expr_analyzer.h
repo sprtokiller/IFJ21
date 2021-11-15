@@ -1,5 +1,6 @@
 #pragma once
 #include "Templates.h"
+#include "error.h"
 
 struct Scanner;
 
