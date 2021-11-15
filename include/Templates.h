@@ -9,6 +9,5 @@
 #define VECTOR_T Node
 #include "VLib/Vector_T.h"
 
-typedef Node* PNode;
-#define VECTOR_T PNode
+#define VECTOR_T ptrdiff_t
 #include "VLib/Vector_T.h"

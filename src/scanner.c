@@ -654,6 +654,7 @@ Error _get_token(Scanner* self, token* tk)
 		case s_kw:
 			if (sym == EOF || (!isalnum(sym) && sym != '_')) {
 				predict = tt_identifier;
+				state = s_id;
 				goto make_token;
 			}
 			if (!_parse_kw(self, &xtoken, &sym, &predict))

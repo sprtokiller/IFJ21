@@ -15,7 +15,8 @@ int main(int argc, char* argv[])
 	ExpressionAnalyzer ea;
 	ExpressionAnalyzer_ctor(&ea);
 
-	Execute(&ea, &scan);
+	Error e = e_ok;
+	if (e = Execute(&ea, &scan) != e_ok) { printf("error"); return 1; };
 	print_tree(front_Vector_Node(&ea.ast));
 
 	return 0;

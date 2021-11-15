@@ -54,7 +54,10 @@ static int table_column(const token* t) {
 	}
 	return 10;
 }
-
+bool is_binary(int index)
+{
+	return (index == 0 || (index > 1 && index < 5) || index == 8 || index == 9 || index == 12);
+}
 
 
 void Constructor(ExpressionAnalyzer* self)
@@ -68,69 +71,99 @@ void Destructor(ExpressionAnalyzer* self)
 }
 
 
-PNode* LastNT(Vector(PNode)* tree)
+ptrdiff_t* LastNT(Vector(ptrdiff_t)* tree, Node* st_beg)
 {
-	PNode* rbeg = back_Vector_PNode(tree);
-	PNode* rend = front_Vector_PNode(tree) - 1;
+	ptrdiff_t* rbeg = back_Vector_ptrdiff_t(tree);
+	ptrdiff_t* rend = front_Vector_ptrdiff_t(tree) - 1;
 
-	while (rbeg-- != rend) {
-		if (!(*rbeg)->expression)return rbeg;
+	while (rbeg != rend) {
+		if (!(rbeg[0] + st_beg)->expression)return rbeg;
+		rbeg--;
 	}
 	return NULL; //it should never go here
 }
+ptrdiff_t* LastE(Vector(ptrdiff_t)* tree, Node* st_beg)
+{
+	ptrdiff_t* rbeg = back_Vector_ptrdiff_t(tree);
+	ptrdiff_t* rend = front_Vector_ptrdiff_t(tree) - 1;
+
+	while (rbeg != rend) {
+		if ((rbeg[0] + st_beg)->expression)return rbeg;
+		rbeg--;
+	}
+	return NULL; //it should never go here
+}
+
+#define v(a) ((*a) + self->ast.data_)
+#define r(a) (a - self->ast.data_)
 
 Error Execute(ExpressionAnalyzer* self, Scanner* scanner)
 {
 	Error e = e_ok;
 
-	unique_vector(PNode) tree; // unsafe
-	Vector_PNode_ctor(&tree);
+	unique_vector(ptrdiff_t) tree; // unsafe
+	Vector_ptrdiff_t_ctor(&tree);
 
 	Node* end = push_back_Vector_Node(&self->ast);
 	Node_ctor(end);
 	token_ctor(Node_emplace(end), tt_err, NULL); //push $
-	*push_back_Vector_PNode(&tree) = end;
+	*push_back_Vector_ptrdiff_t(&tree) = r(end);
 
 	Node* node = push_back_Vector_Node(&self->ast);
 	Node_ctor(node);
 	ERR_CHECK(_get_token(scanner, Node_emplace(node)));
-	*push_back_Vector_PNode(&tree) = node;
 
 
 	while (e == e_ok)
 	{
-		PNode* last_nt = LastNT(&tree); //node to kill
+		ptrdiff_t* last_nt = LastNT(&tree, self->ast.data_); //node to kill
 
 		int input_i = table_column(&node->core);
-		int last_i = table_column(&(*last_nt)->core);
+		int last_i = table_column(&v(last_nt)->core);
 
 		ExprAction rule = precedence_table[last_i][input_i];
+
+		if (input_i == 10 && last_i == 10)
+		{
+			if (size_Vector_ptrdiff_t(&tree) != 2)
+				return e_invalid_syntax;
+			v(last_nt)->left = v(back_Vector_ptrdiff_t(&tree));
+			pop_back_Vector_Node(&self->ast);
+			return e_ok;
+		}
 
 		switch (rule)
 		{
 		case S:
+			*push_back_Vector_ptrdiff_t(&tree) = r(node);
 			node = push_back_Vector_Node(&self->ast);
 			Node_ctor(node);
 			ERR_CHECK(_get_token(scanner, Node_emplace(node)));
-			*push_back_Vector_PNode(&tree) = node;
 			continue;
 		case E:
 		{
-			(*last_nt)->expression = true;
-			PNode* br_o = LastNT(&tree);
-			if ((*br_o)->core.type != tt_left_parenthese)
-				e = e_invalid_syntax;
-			erase_Vector_PNode(&tree, br_o);
-			erase_Vector_Node(&self->ast, *br_o);//remove parens from stack
+			v(last_nt)->expression = true;
+			erase_Vector_ptrdiff_t(&tree, last_nt);
+			node = push_back_Vector_Node(&self->ast);
+			Node_ctor(node);
+			ERR_CHECK(_get_token(scanner, Node_emplace(node)));
 			break;
 		}
 		case X:
+			return e_invalid_syntax;
 		case R:
-			(*last_nt)->expression = true;
 			if (last_i == 1) {//unary
-				(*last_nt)->left = last_nt[1];
-				pop_back_Vector_PNode(&tree);
+				v(last_nt)->left = v(LastE(&tree, self->ast.data_));
+				pop_back_Vector_ptrdiff_t(&tree);
+			}else if (is_binary(last_i)) {//binary
+				v(last_nt)->right = v(LastE(&tree, self->ast.data_));
+				pop_back_Vector_ptrdiff_t(&tree);
+				ptrdiff_t* xleft = LastE(&tree, self->ast.data_);
+				v(last_nt)->left = v(xleft);
+				erase_Vector_ptrdiff_t(&tree, xleft);
 			}
+			v(last_nt)->expression = true;
+
 			break;
 		default:
 			break;
