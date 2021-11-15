@@ -19,6 +19,7 @@ struct Node {
 };
 
 token* Node_emplace(selfptr);
+void print_tree(const selfptr);
 
 
 #ifndef NODE_IMPL

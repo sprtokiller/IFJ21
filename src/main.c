@@ -1,4 +1,4 @@
-#include "common.h"
+﻿#include "common.h"
 #include "expr_analyzer.h"
 #include "scanner.h"
 #include <stdio.h>
@@ -16,6 +16,7 @@ int main(int argc, char* argv[])
 	ExpressionAnalyzer_ctor(&ea);
 
 	Execute(&ea, &scan);
+	print_tree(front_Vector_Node(&ea.ast));
 
 	return 0;
 }

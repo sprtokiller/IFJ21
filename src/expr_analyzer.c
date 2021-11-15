@@ -73,7 +73,7 @@ PNode* LastNT(Vector(PNode)* tree)
 	PNode* rbeg = back_Vector_PNode(tree);
 	PNode* rend = front_Vector_PNode(tree) - 1;
 
-	while (rbeg-- != rend){
+	while (rbeg-- != rend) {
 		if (!(*rbeg)->expression)return rbeg;
 	}
 	return NULL; //it should never go here
@@ -115,16 +115,21 @@ Error Execute(ExpressionAnalyzer* self, Scanner* scanner)
 			*push_back_Vector_PNode(&tree) = node;
 			continue;
 		case E:
-
+		{
+			(*last_nt)->expression = true;
+			PNode* br_o = LastNT(&tree);
+			if ((*br_o)->core.type != tt_left_parenthese)
+				e = e_invalid_syntax;
+			erase_Vector_PNode(&tree, br_o);
+			erase_Vector_Node(&self->ast, *br_o);//remove parens from stack
+			break;
+		}
 		case X:
 		case R:
 			(*last_nt)->expression = true;
 			if (last_i == 1) {//unary
 				(*last_nt)->left = last_nt[1];
 				pop_back_Vector_PNode(&tree);
-			}
-			if (last_i == 5) {
-
 			}
 			break;
 		default:
