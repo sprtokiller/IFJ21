@@ -1,8 +1,7 @@
-#include "token.h"
-#include "common.h"
 #include <stdlib.h>
 
-#define SWITCH_TEXT(tt, str) case tt: return str
+#include "token.h"
+#include "common.h"
 
 const char* token_types_str[] =
 {
@@ -22,7 +21,7 @@ const char* token_type_name(token_type type) {
 		SWITCH_TEXT(tt_le, "less or equal then comparison");
 		SWITCH_TEXT(tt_g, "greater then comparison");
 		SWITCH_TEXT(tt_ge, "greater or equal then comparison");
-		SWITCH_TEXT(tt_e, "assignment");
+		SWITCH_TEXT(tt_assign, "assignment");
 		SWITCH_TEXT(tt_ne, "not equality");
 		SWITCH_TEXT(tt_ee, "equality");
 		SWITCH_TEXT(tt_not, "logical not");
@@ -30,6 +29,7 @@ const char* token_type_name(token_type type) {
 		SWITCH_TEXT(tt_or, "logical or");
 		SWITCH_TEXT(tt_left_parenthese, "left parenthese");
 		SWITCH_TEXT(tt_right_parenthese, "right parenthese");
+		SWITCH_TEXT(tt_err, RED "Err" RESET);
 	default:
 		return token_types_str[type];
 	}
@@ -68,13 +68,13 @@ void print_tk(token* self)
 	switch (self->var)
 	{
 	case v_int:
-		d_msg("Val: %d", self->ival);
+		d_msg(" Val: %d", self->ival);
 		break;
 	case v_flt:
-		d_msg("Val: %.9lf", self->dval);
+		d_msg(" Val: %.9lf", self->dval);
 		break;
 	case v_str:
-		d_msg("Val: %s", c_str(&self->sval));
+		d_msg(" Val: %s", c_str(&self->sval));
 		break;
 	default:
 		break;

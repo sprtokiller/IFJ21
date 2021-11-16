@@ -88,6 +88,7 @@ inline void Template(_Destroy_single)(VECTOR_T* element)
 /// @return reference to an element at certain position
 NODISCARD VECTOR_T* Template(at)(const selfptr, size_t n);
 
+
 /// @brief 
 /// @param [in]self -> pointer to valid vector
 /// @return current vector size
@@ -145,4 +146,6 @@ void Template(pop_back)(selfptr);
 
 #undef IsClass
 #undef VECTOR_T
+#undef c_class
 #endif
+

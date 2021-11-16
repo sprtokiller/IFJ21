@@ -2,17 +2,22 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
+#include "common.h"
+
 // TODO: keep technique DRY alive
 // i didnt know how to pass va_list to function
 
-#define RED     "\x1b[31m"
-#define GREEN   "\x1b[32m"
-#define YELLOW  "\x1b[33m"
-#define RESET   "\x1b[0m"
+void usage(char* prgName)
+{
+	printf("Usage: %s [-h] < input_tl_prg > output_ifj21_prg\n", prgName);
+}
 
-//prints debug in stderr
 void d_msg(const char* fmt, ...) {
+#ifdef RAW_OUTPUT
+	fprintf(stderr, "D:");
+#else
 	fprintf(stderr, GREEN "Debug: " RESET);
+#endif // RAW_OUTPUT
 	va_list args;
 	va_start(args, fmt);
 	vfprintf(stderr, fmt, args);
@@ -20,9 +25,12 @@ void d_msg(const char* fmt, ...) {
 	fprintf(stderr, "\n");
 }
 
-//prints warning in stderr
 void w_msg(const char* fmt, ...) {
-	fprintf(stderr, YELLOW "Warn:  " RESET);
+#ifdef RAW_OUTPUT
+	fprintf(stderr, "W:");
+#else
+	fprintf(stderr, YELLOW "Warn : " RESET);
+#endif // RAW_OUTPUT
 	va_list args;
 	va_start(args, fmt);
 	vfprintf(stderr, fmt, args);
@@ -30,9 +38,12 @@ void w_msg(const char* fmt, ...) {
 	fprintf(stderr, "\n");
 }
 
-//prints error in stderr
 void e_msg(const char* fmt, ...) {
+#ifdef RAW_OUTPUT
+	fprintf(stderr, "E:");
+#else
 	fprintf(stderr, RED "Error: " RESET);
+#endif // RAW_OUTPUT
 	va_list args;
 	va_start(args, fmt);
 	vfprintf(stderr, fmt, args);
@@ -40,10 +51,12 @@ void e_msg(const char* fmt, ...) {
 	fprintf(stderr, "\n");
 }
 
-//prints error in stderr
-//and shuts down program
 void e_exit(const char* fmt, ...) {
+#ifdef RAW_OUTPUT
+	fprintf(stderr, "F:");
+#else
 	fprintf(stderr, RED "Fatal: " RESET);
+#endif // RAW_OUTPUT
 	va_list args;
 	va_start(args, fmt);
 	vfprintf(stderr, fmt, args);
@@ -52,7 +65,17 @@ void e_exit(const char* fmt, ...) {
 	exit(1);
 }
 
-void usage(char* prgName)
+#ifdef _WIN32
+#include <Windows.h>
+void SetupTerminal(void)
 {
-	printf("Usage: %s [-h] < input_tl_prg > output_ifj21_prg\n", prgName);
+	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+	DWORD dwMode = 0;
+	GetConsoleMode(hOut, &dwMode);
+	dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+	SetConsoleMode(hOut, dwMode);
 }
+#else
+void SetupTerminal(void)
+{}
+#endif // _WIN32

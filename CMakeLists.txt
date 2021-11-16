@@ -10,6 +10,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 message(STATUS "${CMAKE_C_COMPILER_ID} detected, adding compile flags")
 if (CMAKE_C_COMPILER_ID STREQUAL "Clang")
   # using Clang
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wno-ignored-pragmas")
 elseif (CMAKE_C_COMPILER_ID STREQUAL "GNU")
   # using GCC
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -Wall -Wextra -Werror -g")

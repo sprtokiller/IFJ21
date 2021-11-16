@@ -25,6 +25,7 @@ mono_crash.*
 
 # Test Output
 test/o/*
+test/[Oo]ut/*
 
 # Visual Studio 2017 auto generated files
 Generated\ Files/
