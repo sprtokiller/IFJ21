@@ -3,6 +3,11 @@
 
 #define SWITCH_TEXT(tt, str) case tt: return str
 #define ERR_CHECK(call) if((e = call)>0) return e;
+#ifndef NDEBUG
+#define DEBUG_ZERO(ptr) memset(ptr, 0, sizeof(*ptr))
+#else
+#define DEBUG_ZERO(ptr)
+#endif
 
 ///Color change on tests for better readability
 #ifdef RAW_OUTPUT

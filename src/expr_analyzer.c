@@ -42,7 +42,7 @@ static int table_column(const token* t) {
 		return 8;
 	case tt_or:
 		return 9;
-	case tt_identifier:case tt_double_literal:case tt_string_literal:case tt_int_literal:case tt_true: case tt_false:
+	case tt_identifier:case tt_double_literal:case tt_string_literal:case tt_int_literal:case tt_true: case tt_false: case tt_fcall:
 		return 11;
 	case tt_comma:
 		return 12;
@@ -62,7 +62,6 @@ bool is_binary(int index)
 
 void Constructor(ExpressionAnalyzer* self)
 {
-	self->function = false;
 	Vector_Node_ctor(&self->ast);
 }
 void Destructor(ExpressionAnalyzer* self)
@@ -111,7 +110,7 @@ Error Execute(ExpressionAnalyzer* self, Scanner* scanner)
 
 	Node* node = push_back_Vector_Node(&self->ast);
 	Node_ctor(node);
-	ERR_CHECK(_get_token(scanner, Node_emplace(node)));
+	ERR_CHECK(get_token(scanner, Node_emplace(node)));
 
 
 	while (e == e_ok)
@@ -121,9 +120,16 @@ Error Execute(ExpressionAnalyzer* self, Scanner* scanner)
 		int input_i = table_column(&node->core);
 		int last_i = table_column(&v(last_nt)->core);
 
+		if (input_i == 11 && node->core.type == tt_identifier && last_i == 11)// id id means its time to stop
+		{
+			unget_token(scanner, &node->core);
+			input_i = 10;
+			node->core.type = tt_err;
+		}
+
 		ExprAction rule = precedence_table[last_i][input_i];
 
-		if (input_i == 10 && last_i == 10)
+		if (input_i == 10 && last_i == 10)//handle closure $$
 		{
 			if (size_Vector_ptrdiff_t(&tree) != 2)
 				return e_invalid_syntax;
@@ -132,30 +138,51 @@ Error Execute(ExpressionAnalyzer* self, Scanner* scanner)
 			return e_ok;
 		}
 
+
+
 		switch (rule)
 		{
 		case S:
 			*push_back_Vector_ptrdiff_t(&tree) = r(node);
 			node = push_back_Vector_Node(&self->ast);
 			Node_ctor(node);
-			ERR_CHECK(_get_token(scanner, Node_emplace(node)));
+			ERR_CHECK(get_token(scanner, Node_emplace(node)));
 			continue;
 		case E:
 		{
-			v(last_nt)->expression = true;
+			Node* id_last = v(last_nt - 1);
+			Node* last_ = v(last_nt);
+			bool is_func = id_last->core.type == tt_identifier;
+			if (last_->core.type == tt_left_parenthese && !is_func)
+				return e_invalid_syntax;
+
+			if (is_func)
+			{
+				id_last->core.type = tt_fcall;
+				if (v(back_Vector_ptrdiff_t(&tree))->core.type != tt_left_parenthese)
+				{
+					id_last->left = v(LastE(&tree, self->ast.data_));
+					DEBUG_ZERO(back_Vector_ptrdiff_t(&tree));
+					pop_back_Vector_ptrdiff_t(&tree);
+				}
+			}
+			last_->expression = true;
+			DEBUG_ZERO(last_nt);
 			erase_Vector_ptrdiff_t(&tree, last_nt);
+
 			node = push_back_Vector_Node(&self->ast);
 			Node_ctor(node);
-			ERR_CHECK(_get_token(scanner, Node_emplace(node)));
+			ERR_CHECK(get_token(scanner, Node_emplace(node)));
+
 			break;
 		}
-		case X:
-			return e_invalid_syntax;
+
 		case R:
 			if (last_i == 1) {//unary
 				v(last_nt)->left = v(LastE(&tree, self->ast.data_));
 				pop_back_Vector_ptrdiff_t(&tree);
-			}else if (is_binary(last_i)) {//binary
+			}
+			else if (is_binary(last_i)) {//binary
 				v(last_nt)->right = v(LastE(&tree, self->ast.data_));
 				pop_back_Vector_ptrdiff_t(&tree);
 				ptrdiff_t* xleft = LastE(&tree, self->ast.data_);
@@ -166,7 +193,7 @@ Error Execute(ExpressionAnalyzer* self, Scanner* scanner)
 
 			break;
 		default:
-			break;
+			return e_invalid_syntax;
 		}
 
 	}

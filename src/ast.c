@@ -5,8 +5,8 @@
 
 void Constructor(selfptr)
 {
-	self->valid = 0;
-	self->expression = 0;
+	self->valid = false;
+	self->expression = false;
 	self->left = self->right = NULL;
 }
 void Destructor(selfptr)
@@ -57,6 +57,8 @@ void PrintNodeVal(const selfptr)
 		print = "//"; break;
 	case tt_power:
 		print = "^"; break;
+	case tt_comma:
+		print = ","; break;
 		//TODO: add more
 	default:
 		break;

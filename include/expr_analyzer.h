@@ -18,7 +18,6 @@ typedef struct ExpressionAnalyzer ExpressionAnalyzer;
 
 struct ExpressionAnalyzer
 {
-	bool function;
 	Vector(Node) ast;
 };
 

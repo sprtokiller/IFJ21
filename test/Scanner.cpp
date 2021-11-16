@@ -23,7 +23,7 @@ public:
 	}
 	Error get_token(token& tk)
 	{
-		return _get_token(&s, &tk);
+		return ::get_token(&s, &tk);
 	}
 };
 
@@ -65,12 +65,12 @@ public:
 		if (state != 1)
 			e_exit("Wrong calling order in tests! %i!=1", state);
 
-		Scanner_run(&sc, &e);
+		_Scanner_run(&sc, &e);
 
 		//record text in stderr
 		testing::internal::CaptureStderr();
 
-		Scanner_print(&sc);
+		_Scanner_print(&sc);
 
 		//saves log to string
 		current_out = testing::internal::GetCapturedStderr();
