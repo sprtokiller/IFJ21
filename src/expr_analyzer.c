@@ -183,11 +183,18 @@ Error Execute(ExpressionAnalyzer* self, Scanner* scanner)
 				pop_back_Vector_ptrdiff_t(&tree);
 			}
 			else if (is_binary(last_i)) {//binary
-				v(last_nt)->right = v(LastE(&tree, self->ast.data_));
+				ptrdiff_t* expr = LastE(&tree, self->ast.data_);
+
+				if (!expr || expr < last_nt)
+					return e_invalid_syntax;
+				v(last_nt)->right = v(expr);
+
 				pop_back_Vector_ptrdiff_t(&tree);
-				ptrdiff_t* xleft = LastE(&tree, self->ast.data_);
-				v(last_nt)->left = v(xleft);
-				erase_Vector_ptrdiff_t(&tree, xleft);
+				expr = LastE(&tree, self->ast.data_);
+				if(!expr)return e_invalid_syntax;
+
+				v(last_nt)->left = v(expr);
+				erase_Vector_ptrdiff_t(&tree, expr);
 			}
 			v(last_nt)->expression = true;
 
