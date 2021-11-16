@@ -2,8 +2,6 @@
 #include "expr_analyzer.h"
 #include "scanner.h"
 
-#define invalid_i -1
-
 const ExprAction precedence_table[][13] =
 {
 	{S,R,R,R,R,S,R,R,R,R,R,S,R},
@@ -138,8 +136,6 @@ Error Execute(ExpressionAnalyzer* self, Scanner* scanner)
 			return e_ok;
 		}
 
-
-
 		switch (rule)
 		{
 		case S:
@@ -162,12 +158,10 @@ Error Execute(ExpressionAnalyzer* self, Scanner* scanner)
 				if (v(back_Vector_ptrdiff_t(&tree))->core.type != tt_left_parenthese)
 				{
 					id_last->left = v(LastE(&tree, self->ast.data_));
-					DEBUG_ZERO(back_Vector_ptrdiff_t(&tree));
 					pop_back_Vector_ptrdiff_t(&tree);
 				}
 			}
 			last_->expression = true;
-			DEBUG_ZERO(last_nt);
 			erase_Vector_ptrdiff_t(&tree, last_nt);
 
 			node = push_back_Vector_Node(&self->ast);
@@ -179,7 +173,10 @@ Error Execute(ExpressionAnalyzer* self, Scanner* scanner)
 
 		case R:
 			if (last_i == 1) {//unary
-				v(last_nt)->left = v(LastE(&tree, self->ast.data_));
+				ptrdiff_t* expr = LastE(&tree, self->ast.data_);
+				if (!expr || expr < last_nt)
+					return e_invalid_syntax;
+				v(last_nt)->left = v(expr);
 				pop_back_Vector_ptrdiff_t(&tree);
 			}
 			else if (is_binary(last_i)) {//binary
