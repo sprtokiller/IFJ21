@@ -25,6 +25,7 @@ typedef enum
 	s_commentary_ml,
 	s_kw,
 	s_id,
+	s_clpar,
 
 	s_float = 1 << 13,
 	s_expf,
@@ -132,7 +133,7 @@ int skip_space(Scanner* self, int sym)
  */
 bool is_operand(uint32_t state)
 {
-	return state == s_int || (state & 1 << 13) > 0 || state == s_id;
+	return state == s_int || (state & 1 << 13) > 0 || state == s_id || state == s_clpar;
 }
 
 /*!
@@ -400,6 +401,7 @@ Error _get_token(Scanner* self, token* tk)
 				predict = tt_left_parenthese;
 				goto simple_tk;
 			case ')':
+				state = s_clpar;
 				predict = tt_right_parenthese;
 				goto simple_tk;
 			case '^':
