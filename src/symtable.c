@@ -81,7 +81,7 @@ void Sym_table_fill(Sym_table* self, FILE* stream) {
 	Scanner sc;
 	Error e;
 	Scanner_ctor(&sc, stream);
-	Scanner_run(&sc, &e);
+	_Scanner_run(&sc, &e);
 	for (size_t i = 0; i < size_Vector_token(&(sc.tk_stream)); i++) {
 		char s[20];
 		sprintf(s, "%llu", i);

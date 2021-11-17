@@ -13,6 +13,7 @@ typedef enum token_type {
 #define X(a) tt_##a,
 	ENUM_TOKEN_TYPES
 #undef X
+	T0, T68 = T0 + 68
 }token_type;
 
 const char* token_type_name(token_type type);
@@ -55,5 +56,10 @@ struct token {
 
 void token_ctor(token* self, token_type ty, String* val);
 void token_dtor(token* self);
+inline void token_move_ctor(token* self, token* other)
+{
+	*self = *other;
+	other->var = v_none;
+}
 
 void print_tk(token* self);

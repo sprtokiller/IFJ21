@@ -28,7 +28,7 @@ void PrintNodeVal(const selfptr)
 	switch (self->core.var)
 	{
 	case v_int:
-		printf("(%d)", self->core.ival); return;
+		printf("(%lld)", self->core.ival); return;
 	case v_flt:
 		printf("(%.9lf)", self->core.dval); return;
 	case v_str:
@@ -59,6 +59,12 @@ void PrintNodeVal(const selfptr)
 		print = "^"; break;
 	case tt_comma:
 		print = ","; break;
+	case tt_not:
+		print = "not"; break;
+	case tt_or:
+		print = "or"; break;
+	case tt_and:
+		print = "and"; break;
 		//TODO: add more
 	default:
 		break;

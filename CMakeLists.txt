@@ -37,7 +37,7 @@ add_subdirectory("test")
 
 # include header files
 include_directories(include)
-file(GLOB INCLUDE "include/*.h")
+file(GLOB INCLUDE "include/*.h" "include/*.inl")
 
 # include source files
 file(GLOB SOURCES "src/*.c")

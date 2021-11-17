@@ -1,1 +1,1 @@
-not a
+not a or b and c

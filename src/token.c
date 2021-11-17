@@ -62,6 +62,8 @@ void token_dtor(token* self)
 		String_dtor(&self->sval);
 }
 
+extern inline void token_move_ctor(token* self, token* other);
+
 void print_tk(token* self)
 {
 	d_msg("Token at [%d, %d]: %s", self->line, self->column, token_type_name(self->type));
