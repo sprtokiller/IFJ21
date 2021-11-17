@@ -1,50 +1,23 @@
-#include <stdlib.h>
-#include <stdio.h>
-
-#include "symtable.h"
-#include "common.h"
-#include "token.h"
+﻿#include "common.h"
+#include "expr_analyzer.h"
 #include "scanner.h"
-#include "syntax.h"
+#include <stdio.h>
 
 int main(int argc, char* argv[])
 {
 	SetupTerminal();
 
-	bool verbose = false;
-	FILE* stream = stdin;
+	FILE* stream = fopen(SOURCE_DIR "/examples/testnum.tl","r");
 
-	size_t argIndex;
-	for (argIndex = 1; argIndex < argc && argv[argIndex][0] == '-'; argIndex++) {
-		switch (argv[argIndex][1]) {
-		case 'v': verbose = true; break;
-		case 'h': usage(argv[0]); exit(1); break;
-		case 's':
-			Scanner sc;
-			Scanner_ctor(&sc, stream);
-			Error e;
-			Scanner_run(&sc, &e);
-			Scanner_print(&sc);
-			Scanner_dtor(&sc);
-			return 0;
-		case 't':
-			Sym_table st = { 0 };
-			Sym_table_fill(&st, stream);
-			Sym_table_print(&st);
-			Sym_table_dtor(&st);
-			return 0;
-		default: usage(argv[0]); exit(64); break;
-		}
-	}
+	Scanner scan;
+	Scanner_ctor(&scan, stream);
 
-	stream = fopen(SOURCE_DIR"/examples/prg_2.tl",'r');
+	ExpressionAnalyzer ea;
+	ExpressionAnalyzer_ctor(&ea);
 
-	Sym_table st = { 0 };
-	Sym_table_fill(&st, stream);
-	rule Rules[50][50] = {};
-	Syntax_init(&Rules);
-	Syntax_run(&Rules,&st);
-	Sym_table_dtor(&st);
+	Error e = e_ok;
+	if (e = Execute(&ea, &scan) != e_ok) { printf("error"); return 1; };
+	print_tree(front_Vector_Node(&ea.ast));
 
 	return 0;
 }

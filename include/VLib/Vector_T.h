@@ -146,5 +146,6 @@ void Template(pop_back)(selfptr);
 
 #undef IsClass
 #undef VECTOR_T
+#undef c_class
 #endif
 

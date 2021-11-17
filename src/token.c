@@ -21,7 +21,7 @@ const char* token_type_name(token_type type) {
 		SWITCH_TEXT(tt_le, "less or equal then comparison");
 		SWITCH_TEXT(tt_g, "greater then comparison");
 		SWITCH_TEXT(tt_ge, "greater or equal then comparison");
-		SWITCH_TEXT(tt_e, "assignment");
+		SWITCH_TEXT(tt_assign, "assignment");
 		SWITCH_TEXT(tt_ne, "not equality");
 		SWITCH_TEXT(tt_ee, "equality");
 		SWITCH_TEXT(tt_not, "logical not");

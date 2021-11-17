@@ -25,6 +25,7 @@ typedef enum
 	s_commentary_ml,
 	s_kw,
 	s_id,
+	s_clpar,
 
 	s_float = 1 << 13,
 	s_expf,
@@ -45,7 +46,9 @@ void Scanner_dtor(Scanner* self)
 	Vector_token_dtor(&self->tk_stream);
 }
 
-void Scanner_run(Scanner* self, Error* e) {
+
+//UNUSED
+void _Scanner_run(Scanner* self, Error* e) {
 	while (true)
 	{
 		token* tk = push_back_Vector_token(&(self->tk_stream));
@@ -59,8 +62,8 @@ void Scanner_run(Scanner* self, Error* e) {
 		}
 	}
 }
-
-void Scanner_print(Scanner* self) {
+//UNUSED
+void _Scanner_print(Scanner* self) {
 	for (size_t i = 0; i < size_Vector_token(&(self->tk_stream)); i++)
 	{
 		print_tk(at_Vector_token(&(self->tk_stream), i));
@@ -130,7 +133,7 @@ int skip_space(Scanner* self, int sym)
  */
 bool is_operand(uint32_t state)
 {
-	return state == s_int || (state & 1 << 13) > 0 || state == s_id;
+	return state == s_int || (state & 1 << 13) > 0 || state == s_id || state == s_clpar;
 }
 
 /*!
@@ -398,6 +401,7 @@ Error _get_token(Scanner* self, token* tk)
 				predict = tt_left_parenthese;
 				goto simple_tk;
 			case ')':
+				state = s_clpar;
 				predict = tt_right_parenthese;
 				goto simple_tk;
 			case '^':
@@ -425,7 +429,7 @@ Error _get_token(Scanner* self, token* tk)
 				goto cont_scan;
 			case '=':
 				state = s_cmp;
-				predict = tt_e;
+				predict = tt_assign;
 				goto cont_scan;
 			case '.':
 				state = s_cat;
@@ -574,7 +578,7 @@ Error _get_token(Scanner* self, token* tk)
 			{
 				state = s_esc;
 			}
-			else if (sym == EOF)
+			else if (sym == EOF || sym == '\n')
 			{
 				return e_invalid_token;
 			}
@@ -654,6 +658,7 @@ Error _get_token(Scanner* self, token* tk)
 		case s_kw:
 			if (sym == EOF || (!isalnum(sym) && sym != '_')) {
 				predict = tt_identifier;
+				state = s_id;
 				goto make_token;
 			}
 			if (!_parse_kw(self, &xtoken, &sym, &predict))
@@ -689,4 +694,23 @@ Error _get_token(Scanner* self, token* tk)
 		}
 	}
 	return e_invalid_token;
+}
+
+
+Error get_token(Scanner* self, token* tk)
+{
+	if (empty_Vector_token(&self->tk_stream))
+		return _get_token(self, tk);
+	token* xtk = back_Vector_token(&self->tk_stream); //token is moved
+	*tk = *xtk;
+	xtk->var = v_none;
+	DEBUG_ZERO(xtk);
+	pop_back_Vector_token(&self->tk_stream);
+	return e_ok;
+}
+void unget_token(Scanner* self, token* tk)
+{
+	*push_back_Vector_token(&self->tk_stream) = *tk;
+	tk->var = v_none;
+	DEBUG_ZERO(tk);
 }
