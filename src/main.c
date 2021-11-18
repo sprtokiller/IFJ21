@@ -1,6 +1,5 @@
 ﻿#include "common.h"
-#include "expr_analyzer.h"
-#include "scanner.h"
+#include "../include/parser.h"
 #include <stdio.h>
 
 int main(int argc, char* argv[])
@@ -9,15 +8,11 @@ int main(int argc, char* argv[])
 
 	FILE* stream = fopen(SOURCE_DIR "/examples/testnum.tl","r");
 
-	Scanner scan;
-	Scanner_ctor(&scan, stream);
+	Parser parser;
+	Parser_ctor(&parser, stream);
+	Start(&parser);
 
-	ExpressionAnalyzer ea;
-	ExpressionAnalyzer_ctor(&ea);
-
-	Error e = e_ok;
-	if (e = Execute(&ea, &scan) != e_ok) { printf("error"); return 1; };
-	print_tree(front_Vector_Node(&ea.ast));
+	Parser_dtor(&parser);
 
 	return 0;
 }

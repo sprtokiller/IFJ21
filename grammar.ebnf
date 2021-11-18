@@ -3,7 +3,7 @@
 
 Program:              "require" STRLIT Chunk;
 
-Chunk:                /* eps */ | FuncDecl Chunk | GlobalDecl Chunk | EXPRESSION Chunk;
+Chunk:                /* eps */ | FuncDecl Chunk | GlobalDecl Chunk | IDENTIFIER FuncBlock Chunk;
 
 
 FuncDecl:             "function" IDENTIFIER "(" OptParamList ")" OptResult Block "end";
@@ -22,11 +22,16 @@ OptEqStmt:            /* eps */ | "=" EXPRESSION;
 OptResult:            /* eps */ | ":" TYPE OptMoreTypes;
 
 
-Block:                /* eps */ | FuncCallBlock Block | AssBlock Block | LocalDecl Block | IfBlock Block | WhileBlock Block | ReturnBlock Block | ForBlock Block | RepBlock;
+Block:                /* eps */ | FuncOrAss Block | LocalDecl Block | IfBlock Block | WhileBlock Block | ReturnBlock Block | ForBlock Block | RepBlock Block;
 
-FuncCallBlock:        IDENTIFIER "(" ")" | IDENTIFIER "(" EXPRESSION OptExprList ")";
 
-AssBlock:             IDENTIFIER OptIdList "=" EXPRESSION OptExprList;
+FuncOrAss:            IDENTIFIER FuncOrAssSel;
+FuncOrAssSel:         FuncBlock | AssBlock;
+FuncBlock:            "(" FuncSel;
+FuncSel:              ")" | EXPRESSION OptExprList ")";
+AssBlock:             OptIdList "=" EXPRESSION OptExprList;
+
+
 OptIdList:            /* eps */ | "," IDENTIFIER OptIdList;
 OptExprList:          /* eps */ | "," EXPRESSION OptExprList;
 
@@ -38,6 +43,6 @@ OptElsifsBlocks:      /* eps */ | "elsif" EXPRESSION "then" Block OptElsifsBlock
 WhileBlock:           "while" EXPRESSION "do" Block "end";
 ReturnBlock:          "return" OptExprList;
 
-ForBlock:			  "for" IDENTIFIER "=" EXPRESSION "," EXPRESSION OptInc "do" Block "end";
-OptInc:				  /* eps */ | EXPRESSION;
-RepBlock:			  "repeat" Block "until" EXPRESSION;
+ForBlock:             "for" IDENTIFIER "=" EXPRESSION "," EXPRESSION OptInc "do" Block "end";
+OptInc:               /* eps */ | EXPRESSION;
+RepBlock:             "repeat" Block "until" EXPRESSION;

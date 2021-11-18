@@ -1,1 +1,2 @@
-not a or b and c
+require "ifj21"
+

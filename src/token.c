@@ -63,6 +63,7 @@ void token_dtor(token* self)
 }
 
 extern inline void token_move_ctor(token* self, token* other);
+extern inline bool is_type(token_type tt);
 
 void print_tk(token* self)
 {

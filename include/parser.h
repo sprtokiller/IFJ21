@@ -14,7 +14,7 @@ struct Parser
 	Scanner scan;
 };
 
-void Constructor(selfptr);
+void Constructor(selfptr, FILE* file);
 void Destructor(selfptr);
 
 Error Start(selfptr);
