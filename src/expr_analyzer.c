@@ -98,7 +98,7 @@ Error Execute(ExpressionAnalyzer* self, Scanner* scanner)
 {
 	Error e = e_ok;
 
-	unique_vector(ptrdiff_t) tree; // unsafe
+	unique_vector(ptrdiff_t) tree;
 	Vector_ptrdiff_t_ctor(&tree);
 
 	Node* end = push_back_Vector_Node(&self->ast);
@@ -197,6 +197,12 @@ Error Execute(ExpressionAnalyzer* self, Scanner* scanner)
 
 			break;
 		default:
+			if (node->core.type == tt_comma && v(last_nt)->core.type == tt_err) //comma can be a separator
+			{
+				unget_token(scanner, &node->core);
+				node->core.type = tt_err;
+				continue;
+			}
 			return e_invalid_syntax;
 		}
 

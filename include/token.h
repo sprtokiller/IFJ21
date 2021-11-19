@@ -67,5 +67,9 @@ inline bool is_type(token_type tt)
 {
 	return tt >= tt_integer && tt <= tt_string;
 }
+inline token_type to_type(token_type tt)
+{
+	return tt >= tt_integer && tt <= tt_string?tt_type:tt;
+}
 
 void print_tk(token* self);

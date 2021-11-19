@@ -19,11 +19,6 @@ Error require_f(Vector(token_type)* stack, token_type top_tt)
 	return e_ok;
 }
 
-Error string_litera_f(Vector(token_type)* stack, token_type top_tt)
-{
-	return e_invalid_syntax;
-}
-
 Error identifier_f(Vector(token_type)* stack, token_type top_tt)
 {
 	switch ((int)top_tt)
@@ -847,7 +842,6 @@ Error LLTable(Vector(token_type)* stack, token_type input_tt, token_type top_tt)
 	switch (input_tt)
 	{
 	case tt_require:			return require_f(stack, top_tt);
-	case tt_string_literal:		return string_litera_f(stack, top_tt);
 	case tt_identifier:			return identifier_f(stack, top_tt);
 	case tt_function:			return function_f(stack, top_tt);
 	case tt_left_parenthese:	return left_parenthese_f(stack, top_tt);

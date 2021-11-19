@@ -30,14 +30,19 @@ Error Start(selfptr)
 		current_tt = *back_Vector_token_type(&self->stack);
 		if (current_tt >= T0 && current_tt <= T70) {
 			pop_back_Vector_token_type(&self->stack);
-			ERR_CHECK(LLTable(&self->stack,t.type, current_tt));
+			ERR_CHECK(LLTable(&self->stack, to_type(t.type), current_tt));
 			continue;
 		}
-		if (current_tt == t.type || (current_tt == tt_type && is_type(t.type)))
+		if (current_tt == t.type || (current_tt == tt_type && is_type(t.type)) || current_tt == tt_expression)
 		{
 			//1. make actions
 			//2. semantics
 			//3. pop from stack
+			
+			if (current_tt == tt_expression)
+				Execute(&self->exp, &self->scan);
+
+			DEBUG_ZERO(back_Vector_token_type(&self->stack));
 			pop_back_Vector_token_type(&self->stack);
 			if (current_tt == tt_eof)return e_ok;
 			token_dtor(&t);
