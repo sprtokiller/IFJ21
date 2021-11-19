@@ -1,6 +1,7 @@
 #define PARSER_IMPL
 #include "../include/parser.h"
 #include "../include/Grammar.inl"
+#include "syntax.h"
 
 void Constructor(selfptr, FILE* file)
 {
@@ -23,6 +24,7 @@ Error Start(selfptr)
 
 	token t;
 	ERR_CHECK(get_token(&self->scan, &t));
+	IASTElement** x = NULL;
 
 	token_type current_tt = tt_err;
 	while (!empty_Vector_token_type(&self->stack))
@@ -35,6 +37,11 @@ Error Start(selfptr)
 		}
 		if (current_tt == t.type || (current_tt == tt_type && is_type(t.type)) || current_tt == tt_expression)
 		{
+			if (!x)
+				x = MakeStatement(t.type);
+			else 
+				if ((*x)->append(x, &t)) { (*x)->print(x); (*x)->dtor(x); free(x); x = NULL; }
+
 			//1. make actions
 			//2. semantics
 			//3. pop from stack
