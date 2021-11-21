@@ -2,6 +2,7 @@
 #include "../include/parser.h"
 #include "../include/Grammar.inl"
 #include "syntax.h"
+#include <malloc.h>
 
 void Constructor(selfptr, FILE* file)
 {
@@ -40,7 +41,7 @@ Error Start(selfptr)
 			if (!x)
 				x = MakeStatement(t.type);
 			else 
-				if ((*x)->append(x, &t)) { (*x)->print(x); (*x)->dtor(x); free(x); x = NULL; }
+				if ((*x)->append(x, &t)) { (*x)->print(x); putchar('\n'); (*x)->dtor(x); free(x); x = NULL; }
 
 			//1. make actions
 			//2. semantics

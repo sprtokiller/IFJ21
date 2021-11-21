@@ -14,3 +14,8 @@
 
 #define VECTOR_T token_type
 #include "VLib/Vector_T.h"
+
+#include "syntax.h"
+#define IsClass
+#define VECTOR_T pIASTElement
+#include "VLib/Vector_T.h"
