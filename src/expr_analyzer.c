@@ -133,7 +133,9 @@ Error Execute(ExpressionAnalyzer* self, Scanner* scanner)
 				return e_invalid_syntax;
 
 			v(last_nt)->left = v(back_Vector_ptrdiff_t(&tree));
-			unget_token(scanner, &back_Vector_Node(&self->ast)->core);
+			token* t = &back_Vector_Node(&self->ast)->core;
+			if (t->type != tt_err)
+				unget_token(scanner, t);
 			pop_back_Vector_Node(&self->ast);
 			return e_ok;
 		}
@@ -190,7 +192,7 @@ Error Execute(ExpressionAnalyzer* self, Scanner* scanner)
 
 				pop_back_Vector_ptrdiff_t(&tree);
 				expr = LastE(&tree, self->ast.data_);
-				if(!expr)return e_invalid_syntax;
+				if (!expr)return e_invalid_syntax;
 
 				v(last_nt)->left = v(expr);
 				erase_Vector_ptrdiff_t(&tree, expr);

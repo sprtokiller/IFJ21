@@ -21,4 +21,5 @@ inline void ppIASTElement_dtor(ppIASTElement*self)
 }
 
 IASTElement** MakeStatement(token_type type);
+IASTElement** MakeProgram();
 

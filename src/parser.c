@@ -6,6 +6,7 @@
 
 void Constructor(selfptr, FILE* file)
 {
+	self->program = MakeProgram();
 	Vector_token_type_ctor(&self->stack);
 	ExpressionAnalyzer_ctor(&self->exp);
 	Scanner_ctor(&self->scan, file);
@@ -15,6 +16,7 @@ void Destructor(selfptr)
 	Scanner_dtor(&self->scan);
 	ExpressionAnalyzer_dtor(&self->exp);
 	Vector_token_type_ctor(&self->stack);
+	ppIASTElement_dtor(&self->program);
 } 
 
 Error Start(selfptr)
@@ -44,28 +46,8 @@ Error Start(selfptr)
 				Execute(&self->exp, &self->scan);
 				token_exp_ctor(&t, &self->exp.ast);
 			}
-
-			if (!x)
-				x = MakeStatement(t.type);
-			else
-			{
-				switch ((*x)->append(x, &t))
-				{
-				case s_refused:
-					(*x)->print(x); putchar('\n'); (*x)->dtor(x); free(x); 
-					x = MakeStatement(t.type);
-					break;
-				case s_accept:
-					(*x)->print(x); putchar('\n'); (*x)->dtor(x); free(x); x = NULL;
-				default:
-					break;
-				}
-			}
-
-			//1. make actions
-			//2. semantics
-			//3. pop from stack
-			
+			if ((*self->program)->append(self->program, &t) == s_accept)
+				break;
 
 			DEBUG_ZERO(back_Vector_token_type(&self->stack));
 			pop_back_Vector_token_type(&self->stack);
@@ -76,6 +58,6 @@ Error Start(selfptr)
 		}
 		return e_invalid_syntax;
 	}
-
+	(*self->program)->print(self->program);
 	return e;
 }

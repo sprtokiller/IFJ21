@@ -8,5 +8,7 @@ function main()
 	local b:number
 	local c:boolean
 	local d:boolean = false
+
+	a,b,c,d = a+5, 22+a, true, not c
 end
 main()

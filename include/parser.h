@@ -7,8 +7,11 @@
 #define c_class Parser
 typedef struct c_class c_class;
 
+typedef struct IASTElement IASTElement;
+
 struct Parser
 {
+	IASTElement** program;
 	Vector(token_type) stack;
 	ExpressionAnalyzer exp;
 	Scanner scan;
