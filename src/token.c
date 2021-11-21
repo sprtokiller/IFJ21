@@ -35,6 +35,14 @@ const char* token_type_name(token_type type) {
 	}
 }
 
+void token_exp_ctor(token* self, void* expression)
+{
+	self->line = 0;
+	self->column = 0;
+	self->var = v_expr;
+	self->type = tt_expression;
+	self->expression = expression;
+}
 void token_ctor(token* self, token_type ty, String* val)
 {
 	self->line = 0;

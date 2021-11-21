@@ -25,19 +25,20 @@ typedef struct token token;
 typedef struct
 {
 	//the data we actually care about
-	token_type type : sizeof(token_type) * 8 - 2;
+	token_type type : sizeof(token_type) * 8 - 3;
 
-	uint8_t var : 2;
+	uint8_t var : 3;
 	union
 	{
 		String sval;
 		double dval;
 		int64_t ival;
+		void* expression;
 	};
 }token_core;
 
 
-enum val_ty { v_none, v_str, v_flt, v_int };
+enum val_ty { v_none, v_str, v_flt, v_int, v_bool, v_expr };
 
 struct token {
 	//for debugging
@@ -45,19 +46,22 @@ struct token {
 	uint32_t column;
 
 	//the data we actually care about
-	token_type type : sizeof(token_type) * 8 - 2;
+	token_type type : sizeof(token_type) * 8 - 3;
 
-	uint8_t var : 2;
+	uint8_t var : 3;
 	union
 	{
 		String sval;
 		double dval;
 		int64_t ival;
+		void* expression;
 	};
 };
 
+void token_exp_ctor(token* self, void* expression);
 void token_ctor(token* self, token_type ty, String* val);
 void token_dtor(token* self);
+
 inline void token_move_ctor(token* self, token* other)
 {
 	*self = *other;
@@ -65,11 +69,11 @@ inline void token_move_ctor(token* self, token* other)
 }
 inline bool is_type(token_type tt)
 {
-	return tt >= tt_integer && tt <= tt_string;
+	return tt >= tt_boolean && tt <= tt_string;
 }
 inline token_type to_type(token_type tt)
 {
-	return tt >= tt_integer && tt <= tt_string?tt_type:tt;
+	return tt >= tt_boolean && tt <= tt_string?tt_type:tt;
 }
 
 void print_tk(token* self);

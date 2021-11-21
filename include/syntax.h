@@ -1,17 +1,24 @@
 #pragma once
 #include "token.h"
 
+typedef enum
+{
+	s_await,
+	s_accept,
+	s_refused
+}RetState;
+
 typedef struct IASTElement
 {
-	bool(*append)(struct IASTElement** self, token* tk);
+	RetState(*append)(struct IASTElement** self, token* tk);
 	void(*print)(struct IASTElement** self);
 	void(*dtor)(struct IASTElement** self);
-}IASTElement,*pIASTElement;
+}IASTElement,**ppIASTElement;
 
-inline void pIASTElement_dtor(pIASTElement*self)
+inline void ppIASTElement_dtor(ppIASTElement*self)
 {
-	(*self)->dtor(self);
+	(**self)->dtor(*self);
 }
 
-IASTElement* MakeStatement(token_type type);
+IASTElement** MakeStatement(token_type type);
 

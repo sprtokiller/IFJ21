@@ -38,17 +38,34 @@ Error Start(selfptr)
 		}
 		if (current_tt == t.type || (current_tt == tt_type && is_type(t.type)) || current_tt == tt_expression)
 		{
+			if (current_tt == tt_expression)
+			{
+				unget_token(&self->scan, &t);
+				Execute(&self->exp, &self->scan);
+				token_exp_ctor(&t, &self->exp.ast);
+			}
+
 			if (!x)
 				x = MakeStatement(t.type);
-			else 
-				if ((*x)->append(x, &t)) { (*x)->print(x); putchar('\n'); (*x)->dtor(x); free(x); x = NULL; }
+			else
+			{
+				switch ((*x)->append(x, &t))
+				{
+				case s_refused:
+					(*x)->print(x); putchar('\n'); (*x)->dtor(x); free(x); 
+					x = MakeStatement(t.type);
+					break;
+				case s_accept:
+					(*x)->print(x); putchar('\n'); (*x)->dtor(x); free(x); x = NULL;
+				default:
+					break;
+				}
+			}
 
 			//1. make actions
 			//2. semantics
 			//3. pop from stack
 			
-			if (current_tt == tt_expression)
-				Execute(&self->exp, &self->scan);
 
 			DEBUG_ZERO(back_Vector_token_type(&self->stack));
 			pop_back_Vector_token_type(&self->stack);

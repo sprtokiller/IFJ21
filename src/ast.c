@@ -67,6 +67,7 @@ void PrintNodeVal(const selfptr)
 		print = "and"; break;
 		//TODO: add more
 	default:
+		print = token_type_name(self->core.type);
 		break;
 	}
 	printf("(%s)", print);

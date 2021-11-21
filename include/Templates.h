@@ -17,5 +17,5 @@
 
 #include "syntax.h"
 #define IsClass
-#define VECTOR_T pIASTElement
+#define VECTOR_T ppIASTElement
 #include "VLib/Vector_T.h"

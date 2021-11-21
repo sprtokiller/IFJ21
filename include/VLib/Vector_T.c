@@ -14,15 +14,17 @@
 
 extern inline void Template(_Destroy)(VECTOR_T* _First, VECTOR_T* _Last);
 extern inline void Template(_Destroy_single)(VECTOR_T* element);
+extern inline void __rcat2(c_class, _move_ctor)(selfptr, c_class* other);
 
 void Constructor(selfptr)
 {
-	self->capacity_ = 32;
-	ALLOC_CHECK(self->data_ = calloc(32, sizeof(VECTOR_T)));
+	self->capacity_ = 16;
+	ALLOC_CHECK(self->data_ = calloc(16, sizeof(VECTOR_T)));
 	self->end_ = self->data_;
 }
 void Destructor(selfptr)
 {
+	if (!self->data_)return;
 	Template(clear)(self);
 	free(self->data_);
 }

@@ -131,7 +131,9 @@ Error Execute(ExpressionAnalyzer* self, Scanner* scanner)
 		{
 			if (size_Vector_ptrdiff_t(&tree) != 2)
 				return e_invalid_syntax;
+
 			v(last_nt)->left = v(back_Vector_ptrdiff_t(&tree));
+			unget_token(scanner, &back_Vector_Node(&self->ast)->core);
 			pop_back_Vector_Node(&self->ast);
 			return e_ok;
 		}
