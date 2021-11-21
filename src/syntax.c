@@ -433,11 +433,11 @@ void afc_print(AssOrFCall* self)
 	{
 	case ass_ass:
 		for (size_t i = 0; i < size_Vector_token(&self->idents); i++) {
-			if(i)putchar(', ');
+			if(i)putchar(',');
 			token* el = at_Vector_token(&self->idents, i);
 			printf("%s", c_str(&el->sval));
 		}
-		puts(" = ");
+		printf(" = ");
 		//make explist print
 		break;
 	case ass_fcall:
