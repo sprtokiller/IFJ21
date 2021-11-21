@@ -4,15 +4,10 @@
 require "ifj21"
 
 function main()
-	local a:number = 212
-	local b:number
-	local c:boolean
-	local d:boolean = false
-
-	a,b,c,d = a+5, 22+a, true, not c
-
-	while a do
-		local x:number = 0.5
+	repeat
+		s = 5
+	until i<10
+	for i = 10, i<10 do
 	end
 end
 main()

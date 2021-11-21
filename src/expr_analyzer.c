@@ -54,7 +54,7 @@ static int table_column(const token* t) {
 }
 bool is_binary(int index)
 {
-	return (index == 0 || (index > 1 && index < 5) || index == 8 || index == 9 || index == 12);
+	return (index == 0 || (index > 1 && index < 5) || (index > 6 && index < 10) || index == 12);
 }
 
 

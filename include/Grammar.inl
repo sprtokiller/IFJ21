@@ -737,7 +737,7 @@ Error for_f(Vector(token_type)* stack, token_type top_tt)
 		break;
 	case T(7):
 		PUSH T(7);
-		PUSH T(17);
+		PUSH T(18);
 		break;
 	case T(18):
 	case T(42):

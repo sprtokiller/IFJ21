@@ -25,7 +25,7 @@ Error Start(selfptr)
 	*push_back_Vector_token_type(&self->stack) = tt_eof; //$ stack begin
 	*push_back_Vector_token_type(&self->stack) = T0; //$ stack begin
 
-	token t;
+	UNIQUE(token) t;
 	ERR_CHECK(get_token(&self->scan, &t));
 	IASTElement** x = NULL;
 
@@ -43,7 +43,7 @@ Error Start(selfptr)
 			if (current_tt == tt_expression)
 			{
 				unget_token(&self->scan, &t);
-				Execute(&self->exp, &self->scan);
+				ERR_CHECK(Execute(&self->exp, &self->scan));
 				token_exp_ctor(&t, &self->exp.ast);
 			}
 			if ((*self->program)->append(self->program, &t) == s_accept)

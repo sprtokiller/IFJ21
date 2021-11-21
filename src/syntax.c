@@ -224,6 +224,7 @@ void funcDecl_ctor(funcDecl* self)
 }
 void funcDecl_dtor(funcDecl* self)
 {
+	token_dtor(&self->name);
 	blockPart_dtor(&self->block);
 	Vector_token_type_dtor(&self->ret);
 	Vector_token_type_dtor(&self->types);
@@ -303,9 +304,11 @@ void localStmt_ctor(localStmt* self)
 {
 	self->method = &vfptr_ls;
 	self->valid = self->has_value = 0;
+	String_ctor(&self->id, NULL);
 }
 void localStmt_dtor(localStmt* self)
 {
+	String_dtor(&self->id);
 	Vector_Node_dtor(&self->value);
 }
 #pragma endregion
@@ -380,6 +383,7 @@ RetState afc_append(AssOrFCall* self, token* tk)
 			token_move_ctor(ptr, tk);
 			break;
 		}
+		case tt_assign:
 		case tt_comma:
 			self->op = ass_ass;
 			break;
@@ -442,7 +446,7 @@ void afc_print(AssOrFCall* self)
 	{
 	case ass_ass:
 		for (size_t i = 0; i < size_Vector_token(&self->idents); i++) {
-			if(i)putchar(',');
+			if (i)putchar(',');
 			token* el = at_Vector_token(&self->idents, i);
 			printf("%s", c_str(&el->sval));
 		}
@@ -533,7 +537,7 @@ void Program_dtor(Program* self)
 typedef struct While
 {
 	Implements(IASTElement);
-	bool valid:1;
+	bool valid : 1;
 	bool fills_block : 1;
 	Vector(Node) expr;
 	blockPart block;
@@ -589,6 +593,172 @@ void While_dtor(While* self)
 	Vector_Node_dtor(&self->expr);
 }
 #pragma endregion
+///////////////////////////////////////////////////////
+#pragma region For
+typedef struct For
+{
+	Implements(IASTElement);
+	bool valid : 1;
+	bool has_increment : 1;
+	bool fills_block : 1;
+	bool has_terminus : 1;
+	bool has_expr : 1;
+	token id;
+	Vector(Node) expr;
+	Vector(Node) terminus;
+	Vector(Node) increment;
+	blockPart block;
+}For;
+
+void For_ctor(For* self);
+void For_dtor(For* self);
+
+RetState for_append(For* self, token* tk)
+{
+	if (self->fills_block)
+		return blk_append(&self->block, tk);
+
+	switch (tk->type)
+	{
+	case tt_identifier:
+		token_move_ctor(&self->id, tk);
+		return s_await;
+	case tt_comma:
+	case tt_assign:
+	case tt_for:return s_await;
+	case tt_expression:
+		if (!self->has_expr)
+		{
+			Vector_Node_move_ctor(&self->expr,
+				(Vector(Node)*)tk->expression);
+			self->has_expr = true;
+			return s_await;
+		}
+		if (!self->has_terminus)
+		{
+			Vector_Node_move_ctor(&self->terminus,
+				(Vector(Node)*)tk->expression);
+			self->has_terminus = true;
+			return s_await;
+		}
+		if (!self->has_increment)
+		{
+			Vector_Node_move_ctor(&self->terminus,
+				(Vector(Node)*)tk->expression);
+			self->has_increment = true;
+			return s_await;
+		}
+		return s_await;
+	case tt_do:
+		self->fills_block = true;
+	default:break;
+	}
+}
+void for_print(For* self)
+{
+	printf("for %s = ", c_str(&self->id.sval));
+	PrintExpression(&self->expr);
+	putchar(',');
+	PrintExpression(&self->terminus);
+	if (self->has_increment)
+	{
+		putchar(',');
+		PrintExpression(&self->increment);
+	}
+
+	blk_print(&self->block);
+}
+
+static const struct IASTElement vfptr_for = (IASTElement)
+{
+	for_append,
+	for_print,
+	For_dtor
+};
+void For_ctor(For* self)
+{
+	self->method = &vfptr_for;
+	self->valid = false;
+}
+void For_dtor(For* self)
+{
+	token_dtor(&self->id);
+	Vector_Node_dtor(&self->expr);
+	Vector_Node_dtor(&self->terminus);
+	Vector_Node_dtor(&self->increment);
+	blockPart_dtor(&self->block);
+}
+#pragma endregion
+///////////////////////////////////////////////////////
+#pragma region Repeat
+typedef struct Repeat
+{
+	Implements(IASTElement);
+	bool valid : 1;
+	bool fills_block : 1;
+	Vector(Node) expr;
+	blockPart block;
+}Repeat;
+
+void Repeat_ctor(Repeat* self);
+void Repeat_dtor(Repeat* self);
+
+RetState req_append(Repeat* self, token* tk)
+{
+	if (self->fills_block)
+	{
+		switch (tk->type)
+		{
+		case tt_until:
+			self->block.valid = true;
+			self->fills_block = false;
+			return s_await;
+		case tt_repeat:
+			return s_await;
+		default:
+			break;
+		}
+		return blk_append(&self->block, tk);
+	}
+
+	switch (tk->type)
+	{
+	case tt_expression:
+		Vector_Node_move_ctor(&self->expr,
+			(Vector(Node)*)tk->expression);
+		return s_accept;
+	default:
+		return s_await;
+	}
+}
+void req_print(Repeat* self)
+{
+	printf("repeat\n");
+	blk_print(&self->block);
+	printf("until");
+	PrintExpression(&self->expr);
+}
+
+static const struct IASTElement vfptr_req = (IASTElement)
+{
+	req_append,
+	req_print,
+	Repeat_dtor
+};
+void Repeat_ctor(Repeat* self)
+{
+	self->method = &vfptr_req;
+	self->valid = false;
+	self->fills_block = true;
+	blockPart_ctor(&self->block);
+}
+void Repeat_dtor(Repeat* self)
+{
+	blockPart_dtor(&self->block);
+	Vector_Node_dtor(&self->expr);
+}
+#pragma endregion
+///////////////////////////////////////////////////////
 
 IASTElement** MakeStatement(token_type type)
 {
@@ -610,6 +780,14 @@ IASTElement** MakeStatement(token_type type)
 	case tt_while:
 		out = calloc(sizeof(While), 1);
 		While_ctor(out);
+		break;
+	case tt_for:
+		out = calloc(sizeof(For), 1);
+		For_ctor(out);
+		break;
+	case tt_repeat:
+		out = calloc(sizeof(Repeat), 1);
+		Repeat_ctor(out);
 		break;
 	default:
 		break;
