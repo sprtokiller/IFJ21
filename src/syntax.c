@@ -759,7 +759,68 @@ void Repeat_dtor(Repeat* self)
 }
 #pragma endregion
 ///////////////////////////////////////////////////////
+#pragma region Return
+typedef struct Return
+{
+	Implements(IASTElement);
+	bool valid : 1;
+	bool ret : 1;
+	List_exp retlist;
+}Return;
 
+void Return_ctor(Return* self);
+void Return_dtor(Return* self);
+
+RetState ret_append(Return* self, token* tk)
+{
+	switch (tk->type)
+	{
+	case tt_return:
+		if (!self->ret)
+		{
+			self->ret = true;
+			return s_await;
+		}
+		return s_refused;
+	case tt_comma:
+		return s_await;
+	case tt_expression:
+		Vector_Node_move_ctor(push(&self->retlist),
+			(Vector(Node)*)tk->expression);
+		return s_await;
+	default:
+		self->valid = true;
+		return s_refused;
+	}
+}
+void ret_print(Return* self)
+{
+	printf("return ");
+}
+
+static const struct IASTElement vfptr_ret = (IASTElement)
+{
+	ret_append,
+	ret_print,
+	Return_dtor
+};
+void Return_ctor(Return* self)
+{
+	self->method = &vfptr_ret;
+	self->valid = false; List_exp_dtor(&self->retlist);
+}
+void Return_dtor(Return* self)
+{
+	List_exp_dtor(&self->retlist);
+}
+#pragma endregion
+
+
+void ppIASTElement_dtor(ppIASTElement* self)
+{
+	(**self)->dtor(*self);
+	free(*self);
+}
 IASTElement** MakeStatement(token_type type)
 {
 	IASTElement** out = NULL;
@@ -788,6 +849,10 @@ IASTElement** MakeStatement(token_type type)
 	case tt_repeat:
 		out = calloc(sizeof(Repeat), 1);
 		Repeat_ctor(out);
+		break;
+	case tt_return:
+		out = calloc(sizeof(Return), 1);
+		Return_ctor(out);
 		break;
 	default:
 		break;
