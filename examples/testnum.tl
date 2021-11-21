@@ -10,5 +10,9 @@ function main()
 	local d:boolean = false
 
 	a,b,c,d = a+5, 22+a, true, not c
+
+	while a do
+		local x:number = 0.5
+	end
 end
 main()

@@ -3,6 +3,15 @@
 #include <stdio.h>
 #include <malloc.h>
 
+static void PrintExpression(const Vector(Node)* vec)
+{
+	for (size_t i = 1; i < size_Vector_Node(vec); i++)
+	{
+		PrintNodeVal(at_Vector_Node(vec, i));
+		putchar(' ');
+	}
+}
+
 
 typedef struct reqStmt
 {
@@ -519,6 +528,67 @@ void Program_dtor(Program* self)
 	reqStmt_dtor(&self->req);
 }
 #pragma endregion
+///////////////////////////////////////////////////////
+#pragma region While
+typedef struct While
+{
+	Implements(IASTElement);
+	bool valid:1;
+	bool fills_block : 1;
+	Vector(Node) expr;
+	blockPart block;
+}While;
+
+void While_ctor(While* self);
+void While_dtor(While* self);
+
+RetState wh_append(While* self, token* tk)
+{
+	if (self->fills_block)
+		return blk_append(&self->block, tk);
+
+	switch (tk->type)
+	{
+	case tt_do:
+		self->fills_block = true;
+		return s_await;
+	case tt_expression:
+		Vector_Node_move_ctor(&self->expr,
+			(Vector(Node)*)tk->expression);
+		return s_await;
+	case tt_while:
+	default:
+		return s_await;
+	}
+	return s_await;
+}
+void wh_print(While* self)
+{
+	printf("while ");
+	PrintExpression(&self->expr);
+	blk_print(&self->block);
+	printf("end");
+}
+
+static const struct IASTElement vfptr_wh = (IASTElement)
+{
+	wh_append,
+	wh_print,
+	While_dtor
+};
+void While_ctor(While* self)
+{
+	self->method = &vfptr_wh;
+	self->valid = false;
+	self->fills_block = false;
+	blockPart_ctor(&self->block);
+}
+void While_dtor(While* self)
+{
+	blockPart_dtor(&self->block);
+	Vector_Node_dtor(&self->expr);
+}
+#pragma endregion
 
 IASTElement** MakeStatement(token_type type)
 {
@@ -536,6 +606,10 @@ IASTElement** MakeStatement(token_type type)
 	case tt_identifier:
 		out = calloc(sizeof(AssOrFCall), 1);
 		AssOrFCall_ctor(out);
+		break;
+	case tt_while:
+		out = calloc(sizeof(While), 1);
+		While_ctor(out);
 		break;
 	default:
 		break;
