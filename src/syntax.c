@@ -820,6 +820,49 @@ void Return_dtor(Return* self)
 	List_exp_dtor(&self->retlist);
 }
 #pragma endregion
+///////////////////////////////////////////////////////
+#pragma region Branch
+typedef struct Branch
+{
+	Implements(IASTElement);
+	bool valid;
+	token arg;
+}Branch;
+
+void Branch_ctor(Branch* self);
+void Branch_dtor(Branch* self);
+
+RetState br_append(Branch* self, token* tk)
+{
+	if (tk->type == tt_require)
+		return s_await;
+	token_move_ctor(&self->arg, tk);
+	self->valid = true;
+	return s_accept;
+}
+void br_print(Branch* self)
+{
+	printf("require %s", c_str(&self->arg.sval));
+}
+
+static const struct IASTElement vfptr_br = (IASTElement)
+{
+	br_append,
+	br_print,
+	Branch_dtor
+};
+void Branch_ctor(Branch* self)
+{
+	self->method = &vfptr_rq;
+	self->valid = false;
+}
+void Branch_dtor(Branch* self)
+{
+	if (self->valid)
+		token_dtor(&self->arg);
+}
+#pragma endregion
+///////////////////////////////////////////////////////
 
 
 void ppIASTElement_dtor(ppIASTElement* self)
