@@ -5,7 +5,8 @@ typedef enum
 {
 	s_await,
 	s_accept,
-	s_refused
+	s_refused,
+	s_await_e
 }RetState;
 
 typedef struct IASTElement

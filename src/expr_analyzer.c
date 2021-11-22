@@ -130,7 +130,12 @@ Error Execute(ExpressionAnalyzer* self, Scanner* scanner)
 		if (input_i == 10 && last_i == 10)//handle closure $$
 		{
 			if (size_Vector_ptrdiff_t(&tree) != 2)
+			{
+				token* t = &back_Vector_Node(&self->ast)->core;
+				if (t->type != tt_err)
+					unget_token(scanner, t);
 				return e_invalid_syntax;
+			}
 
 			v(last_nt)->left = v(back_Vector_ptrdiff_t(&tree));
 			token* t = &back_Vector_Node(&self->ast)->core;

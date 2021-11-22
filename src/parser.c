@@ -17,7 +17,7 @@ void Destructor(selfptr)
 	ExpressionAnalyzer_dtor(&self->exp);
 	Vector_token_type_ctor(&self->stack);
 	ppIASTElement_dtor(&self->program);
-} 
+}
 
 Error Start(selfptr)
 {
@@ -27,32 +27,41 @@ Error Start(selfptr)
 
 	UNIQUE(token) t;
 	ERR_CHECK(get_token(&self->scan, &t));
-	IASTElement** x = NULL;
 
 	token_type current_tt = tt_err;
+	RetState rs = s_await;
+
 	while (!empty_Vector_token_type(&self->stack))
 	{
 		current_tt = *back_Vector_token_type(&self->stack);
-		if (current_tt >= T0 && current_tt <= T70) {
+		if (current_tt >= T0 && current_tt <= T73) {
 			pop_back_Vector_token_type(&self->stack);
 			ERR_CHECK(LLTable(&self->stack, to_type(t.type), current_tt));
 			continue;
 		}
 		if (current_tt == t.type || (current_tt == tt_type && is_type(t.type)) || current_tt == tt_expression)
 		{
-			if (current_tt == tt_expression)
+			if (current_tt == tt_expression && rs != s_await_e)
 			{
 				unget_token(&self->scan, &t);
 				ERR_CHECK(Execute(&self->exp, &self->scan));
 				token_exp_ctor(&t, &self->exp.ast);
 			}
-			if ((*self->program)->append(self->program, &t) == s_accept)
+			rs = (*self->program)->append(self->program, &t);
+			if (rs == s_accept)
 				break;
 
 			DEBUG_ZERO(back_Vector_token_type(&self->stack));
 			pop_back_Vector_token_type(&self->stack);
 			if (current_tt == tt_eof)return e_ok;
 			token_dtor(&t);
+			if (rs == s_await_e)
+			{
+				Error ec = Execute(&self->exp, &self->scan);
+				token_exp_ctor(&t, &self->exp.ast);
+				t.ec = ec;
+				continue;
+			}
 			ERR_CHECK(get_token(&self->scan, &t));
 			continue;
 		}

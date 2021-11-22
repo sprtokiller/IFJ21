@@ -82,7 +82,8 @@ begin:
 	case s_refused: self->active = NULL; goto begin;
 	case s_accept:
 		self->active = NULL;
-		/* fallthrough */
+		break;
+	case s_await_e:return s_await_e;
 	case s_await:
 	default:
 		break;
@@ -138,7 +139,11 @@ void funcDecl_dtor(funcDecl* self);
 RetState fd_append(funcDecl* self, token* tk)
 {
 	if (self->fills_block)
-		return self->valid = blk_append(&self->block, tk);
+	{
+		RetState rs = blk_append(&self->block, tk);
+		if (rs == s_accept || rs == s_refused) self->valid = true;
+		return rs;
+	}
 
 	switch (tk->type)
 	{
@@ -779,12 +784,13 @@ RetState ret_append(Return* self, token* tk)
 		if (!self->ret)
 		{
 			self->ret = true;
-			return s_await;
+			return s_await_e;
 		}
 		return s_refused;
 	case tt_comma:
-		return s_await;
+		return s_await_e;
 	case tt_expression:
+		if (tk->ec != 0)return s_accept;
 		Vector_Node_move_ctor(push(&self->retlist),
 			(Vector(Node)*)tk->expression);
 		return s_await;

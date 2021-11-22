@@ -15,7 +15,7 @@ typedef enum token_type {
 #define X(a) tt_##a,
 	ENUM_TOKEN_TYPES
 #undef X
-	T0, T70 = T0 + 70
+	T0, T73 = T0 + 73
 }token_type;
 
 const char* token_type_name(token_type type);
@@ -33,7 +33,11 @@ typedef struct
 		String sval;
 		double dval;
 		int64_t ival;
-		void* expression;
+		struct
+		{
+			void* expression;
+			int ec;
+		};
 	};
 }token_core;
 
@@ -54,7 +58,11 @@ struct token {
 		String sval;
 		double dval;
 		int64_t ival;
-		void* expression;
+		struct
+		{
+			void* expression;
+			int ec;
+		};
 	};
 };
 

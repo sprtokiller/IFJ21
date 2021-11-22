@@ -9,6 +9,6 @@ function main()
 	until i<10
 	for i = 10, i<10 do
 	end
-	return a, c
+	return
 end
 main()
