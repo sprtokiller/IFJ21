@@ -77,18 +77,17 @@ begin:
 	}
 	if (!*self->active) return s_await;
 
-	switch ((*self->active)->append(self->active, tk))
+	RetState rs = (*self->active)->append(self->active, tk);
+
+	switch (rs)
 	{
 	case s_refused: self->active = NULL; goto begin;
 	case s_accept:
 		self->active = NULL;
-		break;
-	case s_await_e:return s_await_e;
-	case s_await:
+		return s_await;
 	default:
-		break;
+		return rs;
 	}
-	return s_await;
 }
 void blk_print(blockPart* self)
 {
@@ -367,9 +366,16 @@ typedef struct AssOrFCall
 		ass_none, ass_ass, ass_fcall
 	} op : 3; // 0-fcall 1-ass
 	bool eq : 1;
+	union
+	{
+		struct
+		{
+			Vector(token) idents;
+			List_exp expressions;
+		};
+		Vector(Node) fcall;
+	};
 
-	Vector(token) idents;
-	List_exp expressions;
 }AssOrFCall;
 
 void AssOrFCall_ctor(AssOrFCall* self);
@@ -393,28 +399,22 @@ RetState afc_append(AssOrFCall* self, token* tk)
 			self->op = ass_ass;
 			break;
 		case tt_left_parenthese:
+			*tk = *back_Vector_token(&self->idents);
 			self->op = ass_fcall;
+			return s_fcall;
 			break;
 		default:
 			break;
 		}
 		return s_await;
 	case ass_fcall:
-		switch (tk->type)
+		if (tk->type == tt_expression)
 		{
-		case tt_comma:
-			break;
-		case tt_expression:
-			Vector_Node_move_ctor(push(&self->expressions),
+			Vector_Node_move_ctor(&self->fcall,
 				(Vector(Node)*)tk->expression);
-			break;
-		case tt_right_parenthese:
-			self->valid = true;
-			return s_accept;
-		default:
-			return s_refused;
+			return s_accept_fcall;
 		}
-		return s_await;
+		return s_refused;
 	case ass_ass:
 		switch (tk->type)
 		{
@@ -459,9 +459,7 @@ void afc_print(AssOrFCall* self)
 		//make explist print
 		break;
 	case ass_fcall:
-		token* el = at_Vector_token(&self->idents, 0);
-		printf("%s(", c_str(&el->sval));
-		putchar(')');
+		PrintExpression(&self->fcall);
 		break;
 	default:
 		break;

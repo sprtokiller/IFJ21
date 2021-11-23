@@ -41,7 +41,7 @@ Error Start(selfptr)
 		}
 		if (current_tt == t.type || (current_tt == tt_type && is_type(t.type)) || current_tt == tt_expression)
 		{
-			if (current_tt == tt_expression && rs != s_await_e)
+			if (current_tt == tt_expression && rs != s_await_e && rs != s_fcall)
 			{
 				unget_token(&self->scan, &t);
 				ERR_CHECK(Execute(&self->exp, &self->scan));
@@ -54,7 +54,20 @@ Error Start(selfptr)
 			DEBUG_ZERO(back_Vector_token_type(&self->stack));
 			pop_back_Vector_token_type(&self->stack);
 			if (current_tt == tt_eof)return e_ok;
+
+			if (rs == s_fcall)
+			{
+				token p = {0};
+				p.type = tt_left_parenthese;
+
+				unget_token(&self->scan, &p);
+				unget_token(&self->scan, &t);
+				ERR_CHECK(Execute(&self->exp, &self->scan));
+				token_exp_ctor(&t, &self->exp.ast);
+				continue;
+			}
 			token_dtor(&t);
+
 			if (rs == s_await_e)
 			{
 				Error ec = Execute(&self->exp, &self->scan);
@@ -63,6 +76,12 @@ Error Start(selfptr)
 				continue;
 			}
 			ERR_CHECK(get_token(&self->scan, &t));
+			if (rs == s_accept_fcall)
+			{
+				pop_back_Vector_token_type(&self->stack); // 
+				pop_back_Vector_token_type(&self->stack); // )
+			}
+
 			continue;
 		}
 		return e_invalid_syntax;

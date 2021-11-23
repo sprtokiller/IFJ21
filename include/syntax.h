@@ -6,7 +6,9 @@ typedef enum
 	s_await,
 	s_accept,
 	s_refused,
-	s_await_e
+	s_await_e,
+	s_fcall,
+	s_accept_fcall
 }RetState;
 
 typedef struct IASTElement
