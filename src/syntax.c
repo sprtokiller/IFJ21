@@ -71,6 +71,7 @@ begin:
 	if (!self->active)
 	{
 		if (tk->type == tt_end) { self->valid = true; return s_accept; }
+		if (tk->type == tt_elseif || tk->type == tt_else) { self->valid = true; return s_refused; }
 		*push_back_Vector_ppIASTElement(&self->block) =
 			MakeStatement(tk->type);
 		self->active = *back_Vector_ppIASTElement(&self->block);
@@ -170,6 +171,8 @@ RetState fd_append(funcDecl* self, token* tk)
 		if (self->finished_args)
 			self->has_ret = true;
 		break;
+	case tt_comma:
+		break;
 	default:
 		if (is_type(tk->type)) {
 			if (!self->finished_args) {
@@ -185,7 +188,7 @@ RetState fd_append(funcDecl* self, token* tk)
 		blk_append(&self->block, tk);
 		break;
 	}
-	return false;
+	return s_await;
 }
 void fd_print(funcDecl* self)
 {
@@ -355,7 +358,7 @@ List_exp* push(List_exp* self)
 		return self->first = self->last = calloc(sizeof(List_Node), 1);
 	}
 	self->n++;
-	return self->last->next = self->last = calloc(sizeof(List_Node), 1);
+	return  self->last = self->last->next = calloc(sizeof(List_Node), 1);
 }
 
 typedef struct AssOrFCall
@@ -820,11 +823,71 @@ void Return_dtor(Return* self)
 #pragma endregion
 ///////////////////////////////////////////////////////
 #pragma region Branch
+
+typedef struct Node_elseif
+{
+	Vector(Node) expr;
+	blockPart block;
+	struct Node_elseif* next;
+}Node_elseif;
+typedef struct List_elseif
+{
+	Node_elseif* first;
+	Node_elseif* last;
+	size_t n;
+}List_elseif;
+
+void Node_elseif_dtor(Node_elseif* self)
+{
+	if (!self)return;
+	Vector_Node_dtor(&self->expr);
+	Node_elseif_dtor(self->next);
+}
+
+void List_elseif_ctor(List_elseif* self)
+{
+	self->first = self->last = NULL;
+	self->n = 0;
+}
+void List_elseif_dtor(List_elseif* self)
+{
+	Node_elseif_dtor(self->first);
+}
+static Node_elseif* push_elseif(List_elseif* self)
+{
+	if (!self->last)
+	{
+		self->n = 1;
+		return self->first = self->last = calloc(sizeof(Node_elseif), 1);
+	}
+	self->n++;
+	return  self->last = self->last->next = calloc(sizeof(Node_elseif), 1);
+}
+static void Print_elseif_node(Node_elseif* self)
+{
+	PrintExpression(&self->expr);
+	blk_print(&self->block);
+}
+static void Print_elseif(List_elseif* self)
+{
+	for (Node_elseif* i = self->first; i != NULL; i = i->next)
+	{
+		if (i == self->first) printf("if ");
+		else if (i == self->last)printf("else ");
+		else printf("elseif ");
+
+		Print_elseif_node(i);
+	}
+}
+
+
 typedef struct Branch
 {
 	Implements(IASTElement);
-	bool valid;
-	token arg;
+	bool valid : 1;
+	bool has_if : 1;
+	bool fills_block : 1;
+	List_elseif blocks;
 }Branch;
 
 void Branch_ctor(Branch* self);
@@ -832,15 +895,53 @@ void Branch_dtor(Branch* self);
 
 RetState br_append(Branch* self, token* tk)
 {
-	if (tk->type == tt_require)
-		return s_await;
-	token_move_ctor(&self->arg, tk);
-	self->valid = true;
-	return s_accept;
+	if (self->fills_block)
+	{
+		RetState rs = blk_append(&self->blocks.last->block, tk);
+		switch (rs)
+		{
+		case s_refused:
+			self->fills_block = false;
+			break;
+		case s_accept:
+			self->fills_block = false;
+			self->valid = true;
+			return s_accept;
+		default:
+			return rs;
+		}
+	}
+
+
+	switch (tk->type)
+	{
+	case tt_if:
+		if (self->has_if)
+			return s_refused;
+		self->has_if = true;
+		push_elseif(&self->blocks);
+		break;
+	case tt_expression:
+		Vector_Node_move_ctor(&self->blocks.last->expr, (Vector(Node)*)tk->expression);
+		break;
+	case tt_then:
+		self->fills_block = true;
+		break;
+	case tt_elseif:
+		push_elseif(&self->blocks);
+		break;
+	case tt_else:
+		push_elseif(&self->blocks);
+		self->fills_block = true;
+		break;
+	default:
+		break;
+	}
+	return s_await;
 }
 void br_print(Branch* self)
 {
-	printf("require %s", c_str(&self->arg.sval));
+	Print_elseif(&self->blocks);
 }
 
 static const struct IASTElement vfptr_br = (IASTElement)
@@ -851,13 +952,12 @@ static const struct IASTElement vfptr_br = (IASTElement)
 };
 void Branch_ctor(Branch* self)
 {
-	self->method = &vfptr_rq;
+	self->method = &vfptr_br;
 	self->valid = false;
 }
 void Branch_dtor(Branch* self)
 {
-	if (self->valid)
-		token_dtor(&self->arg);
+	List_elseif_dtor(&self->blocks);
 }
 #pragma endregion
 ///////////////////////////////////////////////////////
@@ -900,6 +1000,10 @@ IASTElement** MakeStatement(token_type type)
 	case tt_return:
 		out = calloc(sizeof(Return), 1);
 		Return_ctor(out);
+		break;
+	case tt_if:
+		out = calloc(sizeof(Branch), 1);
+		Branch_ctor(out);
 		break;
 	default:
 		break;
