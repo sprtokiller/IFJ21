@@ -32,8 +32,9 @@ add_subdirectory(${CMAKE_BINARY_DIR}/googletest-src
 
 enable_testing()
 add_compile_definitions(SOURCE_DIR="${CMAKE_SOURCE_DIR}")
-add_subdirectory("test")
 
+add_subdirectory("test")
+add_subdirectory("gen")
 
 # include header files
 include_directories(include)
