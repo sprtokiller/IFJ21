@@ -39,7 +39,7 @@ LocalDecl:            "local" IDENTIFIER ":" UnknownDeclThing;
 
 IfBlock:              "if" EXPRESSION "then" Block OptElsifsBlocks OptElseBlock "end";
 OptElseBlock:         /* eps */ | "else" Block;
-OptElsifsBlocks:      /* eps */ | "elsif" EXPRESSION "then" Block OptElsifsBlocks;
+OptElsifsBlocks:      /* eps */ | "elseif" EXPRESSION "then" Block OptElsifsBlocks;
 WhileBlock:           "while" EXPRESSION "do" Block "end";
 ReturnBlock:          "return" OptExpression;
 
