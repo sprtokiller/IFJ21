@@ -272,6 +272,7 @@ RetState ls_append(localStmt* self, token* tk)
 			String_move_ctor(&self->id, &tk->sval);
 			break;
 		}
+		return s_refused;
 	case tt_colon:return s_await;
 	case tt_assign:
 		self->has_value = true;
@@ -961,7 +962,137 @@ void Branch_dtor(Branch* self)
 }
 #pragma endregion
 ///////////////////////////////////////////////////////
+#pragma region Global
+typedef struct globalStmt
+{
+	Implements(IASTElement);
+	bool valid : 1;
+	bool has_value : 1;
+	bool fills_ret : 1;
+	String id;
+	token_type type;
+	Vector(token_type) fargs;
+	Vector(token_type) fretargs;
+	Vector(Node) value;
+}globalStmt;
 
+void globalStmt_ctor(globalStmt* self);
+void globalStmt_dtor(globalStmt* self);
+
+RetState gs_append(globalStmt* self, token* tk)
+{
+	if (is_type(tk->type))
+	{
+		if (self->type != tt_function)
+		{
+			self->type = tk->type;
+			return s_await;
+		}
+		if (self->fills_ret)
+		{
+			*push_back_Vector_token_type(&self->fretargs) = tk->type;
+			return s_await;
+		}
+		*push_back_Vector_token_type(&self->fargs) = tk->type;
+		return s_await;
+	}
+	switch (tk->type)
+	{
+	case tt_function:
+		if (self->valid)return s_refused;
+		self->type = tt_function;
+		break;
+	case tt_global:
+		if (!empty_str(&self->id))
+		{
+			self->valid = true;
+			return s_refused;
+		}
+		break;
+	case tt_identifier:
+		if (empty_str(&self->id))
+		{
+			String_move_ctor(&self->id, &tk->sval);
+			break;
+		}
+		return s_refused;
+	case tt_colon:
+		if (self->type == tt_err)
+			break;
+		self->fills_ret = true;
+		break;
+
+	case tt_left_parenthese:
+	case tt_right_parenthese:
+	case tt_comma:
+		break;
+
+	case tt_assign:
+		self->has_value = true;
+		break;
+	case tt_expression:
+		Vector_Node_move_ctor(&self->value, (Vector(Node)*)tk->expression);
+		self->valid = true;
+		return s_accept;
+	default:
+		self->valid = true;
+		return s_refused;
+	}
+	return s_await;
+}
+void gs_print(globalStmt* self)
+{
+	printf("global %s:%s", c_str(&self->id), token_type_name(self->type));
+	if (self->type == tt_function)
+	{
+		putchar(' ');
+		for (size_t i = 0; i < size_Vector_token_type(&self->fargs); i++)
+		{
+			printf("%s", token_type_name(*at_Vector_token_type(&self->fargs, i)));
+			putchar(' ');
+		}
+		for (size_t i = 0; i < size_Vector_token_type(&self->fretargs); i++)
+		{
+			printf("%s", token_type_name(*at_Vector_token_type(&self->fretargs, i)));
+			putchar(' ');
+		}
+		return;
+	}
+	if (self->has_value)
+	{
+		putchar(' ');
+		putchar('=');
+		for (size_t i = 1; i < size_Vector_Node(&self->value); i++)
+		{
+			putchar(' ');
+			PrintNodeVal(at_Vector_Node(&self->value, i));
+			putchar(' ');
+		}
+	}
+}
+
+static const struct IASTElement vfptr_gs = (IASTElement)
+{
+	gs_append,
+	gs_print,
+	globalStmt_dtor
+};
+void globalStmt_ctor(globalStmt* self)
+{
+	self->method = &vfptr_gs;
+	self->valid = self->has_value = 0;
+	String_ctor(&self->id, NULL);
+}
+void globalStmt_dtor(globalStmt* self)
+{
+	String_dtor(&self->id);
+	Vector_Node_dtor(&self->value);
+	Vector_token_type_dtor(&self->fargs);
+	Vector_token_type_dtor(&self->fretargs);
+}
+
+#pragma endregion
+///////////////////////////////////////////////////////
 
 void ppIASTElement_dtor(ppIASTElement* self)
 {
@@ -980,6 +1111,10 @@ IASTElement** MakeStatement(token_type type)
 	case tt_local:
 		out = calloc(sizeof(localStmt), 1);
 		localStmt_ctor(out);
+		break;
+	case tt_global:
+		out = calloc(sizeof(globalStmt), 1);
+		globalStmt_ctor(out);
 		break;
 	case tt_identifier:
 		out = calloc(sizeof(AssOrFCall), 1);
