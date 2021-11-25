@@ -864,10 +864,14 @@ static Node_elseif* push_elseif(List_elseif* self)
 	if (!self->last)
 	{
 		self->n = 1;
-		return self->first = self->last = calloc(sizeof(Node_elseif), 1);
+		self->first = self->last = calloc(sizeof(Node_elseif), 1);
+		blockPart_ctor(&self->first->block);
+		return self->first;
 	}
 	self->n++;
-	return  self->last = self->last->next = calloc(sizeof(Node_elseif), 1);
+	self->last = self->last->next = calloc(sizeof(Node_elseif), 1);
+	blockPart_ctor(&self->last->block);
+	return self->last;
 }
 static void Print_elseif_node(Node_elseif* self)
 {
