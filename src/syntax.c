@@ -484,8 +484,13 @@ void AssOrFCall_ctor(AssOrFCall* self)
 }
 void AssOrFCall_dtor(AssOrFCall* self)
 {
-	Vector_token_dtor(&self->idents);
-	List_exp_dtor(&self->expressions);
+	if (self->eq)
+	{
+		Vector_token_dtor(&self->idents);
+		List_exp_dtor(&self->expressions);
+		return;
+	}
+	Vector_Node_dtor(&self->fcall);
 }
 #pragma endregion
 ///////////////////////////////////////////////////////
@@ -525,7 +530,7 @@ static const struct IASTElement vfptr_prg = (IASTElement)
 {
 	prg_append,
 	prg_print,
-	reqStmt_dtor
+	Program_dtor
 };
 void Program_ctor(Program* self)
 {
@@ -710,7 +715,7 @@ typedef struct Repeat
 void Repeat_ctor(Repeat* self);
 void Repeat_dtor(Repeat* self);
 
-RetState req_append(Repeat* self, token* tk)
+RetState rep_append(Repeat* self, token* tk)
 {
 	if (self->fills_block)
 	{
@@ -738,7 +743,7 @@ RetState req_append(Repeat* self, token* tk)
 		return s_await;
 	}
 }
-void req_print(Repeat* self)
+void rep_print(Repeat* self)
 {
 	printf("repeat\n");
 	blk_print(&self->block);
@@ -746,15 +751,15 @@ void req_print(Repeat* self)
 	PrintExpression(&self->expr);
 }
 
-static const struct IASTElement vfptr_req = (IASTElement)
+static const struct IASTElement vfptr_rep = (IASTElement)
 {
-	req_append,
-	req_print,
+	rep_append,
+	rep_print,
 	Repeat_dtor
 };
 void Repeat_ctor(Repeat* self)
 {
-	self->method = &vfptr_req;
+	self->method = &vfptr_rep;
 	self->valid = false;
 	self->fills_block = true;
 	blockPart_ctor(&self->block);

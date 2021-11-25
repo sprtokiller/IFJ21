@@ -84,7 +84,7 @@ void Sym_table_fill(Sym_table* self, FILE* stream) {
 	_Scanner_run(&sc, &e);
 	for (size_t i = 0; i < size_Vector_token(&(sc.tk_stream)); i++) {
 		char s[20];
-		sprintf(s, "%llu", i);
+		sprintf(s, "%zu", i);
 		token* t = at_Vector_token(&(sc.tk_stream), i);
 		Sym_table_insert(self, s, t->type, t->column);
 	}

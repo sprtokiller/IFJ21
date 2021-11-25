@@ -13,7 +13,7 @@ if (CMAKE_C_COMPILER_ID STREQUAL "Clang")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wno-ignored-pragmas")
 elseif (CMAKE_C_COMPILER_ID STREQUAL "GNU")
   # using GCC
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -Wall -Wextra -Werror -g")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -Wall -Wextra -g")
 elseif (CMAKE_C_COMPILER_ID STREQUAL "MSVC")
   # using Visual Studio C++
   message(DEPRECATION "Pls don't use pure MSVC")

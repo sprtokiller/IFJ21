@@ -15,7 +15,7 @@ void Destructor(selfptr)
 {
 	Scanner_dtor(&self->scan);
 	ExpressionAnalyzer_dtor(&self->exp);
-	Vector_token_type_ctor(&self->stack);
+	Vector_token_type_dtor(&self->stack);
 	ppIASTElement_dtor(&self->program);
 }
 

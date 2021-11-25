@@ -1,6 +1,7 @@
 ﻿#define NODE_IMPL
 #include "ast.h"
 #include <stdio.h>
+#include <inttypes.h>
 
 
 void Constructor(selfptr)
@@ -28,7 +29,7 @@ void PrintNodeVal(const selfptr)
 	switch (self->core.var)
 	{
 	case v_int:
-		printf("(%lld)", self->core.ival); return;
+		printf("(" PRId64 ")", self->core.ival); return;
 	case v_flt:
 		printf("(%.9lf)", self->core.dval); return;
 	case v_str:

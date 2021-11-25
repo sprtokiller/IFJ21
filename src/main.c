@@ -1,7 +1,7 @@
 ﻿#include "common.h"
 #include "../include/parser.h"
 #include <stdio.h>
-
+	
 int main(int argc, char* argv[])
 {
 	SetupTerminal();
@@ -13,6 +13,5 @@ int main(int argc, char* argv[])
 	Start(&parser);
 
 	Parser_dtor(&parser);
-
 	return 0;
 }
