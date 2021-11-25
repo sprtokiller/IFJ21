@@ -333,6 +333,7 @@ void List_Node_dtor(List_Node* self)
 	if (!self)return;
 	Vector_Node_dtor(&self->expression);
 	List_Node_dtor(self->next);
+	free(self);
 }
 
 typedef struct List_exp
@@ -404,6 +405,7 @@ RetState afc_append(AssOrFCall* self, token* tk)
 			break;
 		case tt_left_parenthese:
 			*tk = *back_Vector_token(&self->idents);
+			Vector_token_dtor(&self->idents);
 			self->op = ass_fcall;
 			return s_fcall;
 			break;
@@ -847,7 +849,9 @@ void Node_elseif_dtor(Node_elseif* self)
 {
 	if (!self)return;
 	Vector_Node_dtor(&self->expr);
+	blockPart_dtor(&self->block);
 	Node_elseif_dtor(self->next);
+	free(self);
 }
 
 void List_elseif_ctor(List_elseif* self)
