@@ -1,5 +1,6 @@
 #pragma once
 #include "error.h"
+#include "memory.h"
 
 #define SWITCH_TEXT(tt, str) case tt: return str
 #define ERR_CHECK(call) if((e = call)>0) return e;

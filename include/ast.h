@@ -18,6 +18,7 @@ struct Node {
 	Node* left, *right;           /**< Left and right subtree */
 };
 
+void PrintNodeVal(const selfptr);
 token* Node_emplace(selfptr);
 void print_tree(const selfptr);
 

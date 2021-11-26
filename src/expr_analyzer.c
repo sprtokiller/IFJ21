@@ -54,7 +54,7 @@ static int table_column(const token* t) {
 }
 bool is_binary(int index)
 {
-	return (index == 0 || (index > 1 && index < 5) || index == 8 || index == 9 || index == 12);
+	return (index == 0 || (index > 1 && index < 5) || (index > 6 && index < 10) || index == 12);
 }
 
 
@@ -98,7 +98,7 @@ Error Execute(ExpressionAnalyzer* self, Scanner* scanner)
 {
 	Error e = e_ok;
 
-	unique_vector(ptrdiff_t) tree; // unsafe
+	unique_vector(ptrdiff_t) tree;
 	Vector_ptrdiff_t_ctor(&tree);
 
 	Node* end = push_back_Vector_Node(&self->ast);
@@ -130,8 +130,17 @@ Error Execute(ExpressionAnalyzer* self, Scanner* scanner)
 		if (input_i == 10 && last_i == 10)//handle closure $$
 		{
 			if (size_Vector_ptrdiff_t(&tree) != 2)
+			{
+				token* t = &back_Vector_Node(&self->ast)->core;
+				if (t->type != tt_err)
+					unget_token(scanner, t);
 				return e_invalid_syntax;
+			}
+
 			v(last_nt)->left = v(back_Vector_ptrdiff_t(&tree));
+			token* t = &back_Vector_Node(&self->ast)->core;
+			if (t->type != tt_err)
+				unget_token(scanner, t);
 			pop_back_Vector_Node(&self->ast);
 			return e_ok;
 		}
@@ -188,7 +197,7 @@ Error Execute(ExpressionAnalyzer* self, Scanner* scanner)
 
 				pop_back_Vector_ptrdiff_t(&tree);
 				expr = LastE(&tree, self->ast.data_);
-				if(!expr)return e_invalid_syntax;
+				if (!expr)return e_invalid_syntax;
 
 				v(last_nt)->left = v(expr);
 				erase_Vector_ptrdiff_t(&tree, expr);
@@ -197,6 +206,12 @@ Error Execute(ExpressionAnalyzer* self, Scanner* scanner)
 
 			break;
 		default:
+			if (node->core.type == tt_comma && v(last_nt)->core.type == tt_err) //comma can be a separator
+			{
+				unget_token(scanner, &node->core);
+				node->core.type = tt_err;
+				continue;
+			}
 			return e_invalid_syntax;
 		}
 

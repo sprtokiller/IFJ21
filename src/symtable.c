@@ -78,17 +78,16 @@ void Sym_table_print(Sym_table* self){
 }
 
 void Sym_table_fill(Sym_table* self, FILE* stream) {
-	//Scanner sc;
-	//Error e;
-	//Scanner_ctor(&sc, stream);
-	//Scanner_run(&sc, &e);
-	//for (size_t i = 0; i < size_Vector_token(&(sc.tk_stream)); i++) {
-	//	///@TODO: Fix this sprintf and implement proper frameCounter pls
-	//	static char s[20];
-	//	sprintf(s, "ReplaceMe %llu", i);
-	//	token* t = at_Vector_token(&(sc.tk_stream), i);
-	//	Sym_table_insert(self, s, t->type, t->column);
-	//}
-	////Scanner_print(&sc);
-	//Scanner_dtor(&sc);
+	Scanner sc;
+	Error e;
+	Scanner_ctor(&sc, stream);
+	_Scanner_run(&sc, &e);
+	for (size_t i = 0; i < size_Vector_token(&(sc.tk_stream)); i++) {
+		char s[20];
+		sprintf(s, "%zu", i);
+		token* t = at_Vector_token(&(sc.tk_stream), i);
+		Sym_table_insert(self, s, t->type, t->column);
+	}
+	//Scanner_print(&sc);
+	Scanner_dtor(&sc);
 }

@@ -176,8 +176,8 @@ bool esc_sym(int c)
  */
 bool maybe_kw(int c)
 {
-	static const char* str = "abdefgilnorstw";
-	return x_bsearch(str, 15, c);
+	static const char* str = "abdefgilnorstuw";
+	return x_bsearch(str, 16, c);
 }
 
 //Storage of pointers to new/old states and symbols
@@ -253,6 +253,7 @@ bool _parse_kw(Scanner* self, String* xtoken, int* xsym, token_type* tt)
 		{
 			case 'a': predict = "false"; *tt = tt_false; break;
 			case 'u': predict = "function"; *tt = tt_function; break;
+			case 'o': predict = "for"; *tt = tt_for; break;
 			default:return false;
 		}
 		break;
@@ -298,6 +299,7 @@ bool _parse_kw(Scanner* self, String* xtoken, int* xsym, token_type* tt)
 			{
 				case 'q': predict = "require"; *tt = tt_require; break;
 				case 't': predict = "return"; *tt = tt_return; break;
+				case 'p': predict = "repeat"; *tt = tt_repeat; break;
 				default: return false;
 			}
 			break;
@@ -313,6 +315,8 @@ bool _parse_kw(Scanner* self, String* xtoken, int* xsym, token_type* tt)
 		}
 		break;
 
+	case 'u':
+		predict = "until"; *tt = tt_until; break;
 	case 'w':
 		predict = "while"; *tt = tt_while; break;
 	default:

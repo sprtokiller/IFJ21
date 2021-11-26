@@ -35,6 +35,14 @@ const char* token_type_name(token_type type) {
 	}
 }
 
+void token_exp_ctor(token* self, void* expression)
+{
+	self->line = 0;
+	self->column = 0;
+	self->var = v_expr;
+	self->type = tt_expression;
+	self->expression = expression;
+}
 void token_ctor(token* self, token_type ty, String* val)
 {
 	self->line = 0;
@@ -61,6 +69,10 @@ void token_dtor(token* self)
 	if (self->var == v_str)
 		String_dtor(&self->sval);
 }
+
+extern inline void token_move_ctor(token* self, token* other);
+extern inline bool is_type(token_type tt);
+extern inline token_type to_type(token_type tt);
 
 void print_tk(token* self)
 {
