@@ -1,5 +1,6 @@
 #pragma once
 #include "XString.h"
+#include <stdint.h>
 
 #define ENUM_TOKEN_TYPES \
 X(err) X(do) X(else) X(elseif) X(boolean) X(integer) X(number) X(string) X(end) X(function) X(global) X(if)  X(local) X(nil)  X(require) X(return)  X(then) X(while)\

@@ -1,7 +1,10 @@
 #include "..\include\syntax.h"
 #include "Templates.h"
+#include "semantic.h"
 #include <stdio.h>
 #include <malloc.h>
+#include <string.h>
+#include "common.h"
 
 static void PrintExpression(const Vector(Node)* vec)
 {
@@ -35,12 +38,18 @@ void rq_print(reqStmt* self)
 {
 	printf("require %s", c_str(&self->arg.sval));
 }
+Error rq_analyze(reqStmt* self, struct SemanticAnalyzer* analyzer)
+{
+	if(strcmp(c_str(&self->arg.sval), "\"ifj21\"") || !SA_IsGlobal(analyzer))return e_semantic;
+	return e_ok;
+}
 
 static const struct IASTElement vfptr_rq = (IASTElement)
 {
 	rq_append,
 	rq_print,
-	reqStmt_dtor
+	reqStmt_dtor,
+	rq_analyze,
 };
 void reqStmt_ctor(reqStmt* self)
 {
@@ -527,12 +536,19 @@ void prg_print(Program* self)
 	putchar('\n');
 	blk_print(&self->global_block);
 }
+Error prg_analyze(Program* self, struct SemanticAnalyzer* analyzer)
+{
+	Error e = e_ok;
+	ERR_CHECK(rq_analyze(&self->req, analyzer));
+	return e;
+}
 
 static const struct IASTElement vfptr_prg = (IASTElement)
 {
 	prg_append,
 	prg_print,
-	Program_dtor
+	Program_dtor,
+	prg_analyze,
 };
 void Program_ctor(Program* self)
 {

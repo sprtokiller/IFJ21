@@ -19,3 +19,8 @@
 #define IsClass
 #define VECTOR_T ppIASTElement
 #include "VLib/Vector_T.h"
+
+#include "symtable.h"
+#define IsClass
+#define VECTOR_T Sym_table
+#include "VLib/Vector_T.h"
