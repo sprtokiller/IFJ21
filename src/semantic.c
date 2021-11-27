@@ -6,8 +6,9 @@ extern inline bool SA_IsGlobal(selfptr);
 void Constructor(selfptr)
 {
 	self->level = 0;
+	htab_FunctionDecl_ctor(&self->funcs);
 }
 void Destructor(selfptr)
 {
-	Vector_Sym_table_dtor(&self->symtab);
+	htab_FunctionDecl_dtor(&self->funcs);
 }

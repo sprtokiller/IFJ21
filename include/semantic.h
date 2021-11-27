@@ -12,7 +12,7 @@ void Destructor(selfptr);
 
 struct SemanticAnalyzer
 {
-	Vector(Sym_table) symtab; //variables and functions
+	HashMap(FunctionDecl) funcs; //functions
 	size_t level; //scope level
 };
 

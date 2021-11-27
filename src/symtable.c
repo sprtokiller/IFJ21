@@ -1,93 +1,91 @@
-#include <string.h>
+#pragma pop_macro("HASH_T")
 
-#include "symtable.h"
+#ifdef HASH_T 
 #include "common.h"
-#include "stdlib.h"
-#include "scanner.h"
+#include <string.h>
+#include <malloc.h>
+#include <memory.h>
 
+#undef c_class
+#define c_class HashMap(HASH_T)
+
+#ifndef __HASH_SINGLE
+#define __HASH_SINGLE
 //fake hash function
 static uint32_t hash(const char* id)
 {
 	uint32_t xhash = 0;
 	while (*id)
-		xhash+=*id++ * 7919 ^ 44;
+		xhash += *id++ * 7919 ^ 44;
 	return xhash % TABLE_SIZE;
 }
 
-static void list_collapse(hashtable_item* list)
+#endif // !__HASH_SINGLE
+
+extern inline void Template(_Destroy_single)(HASH_T* element);
+
+void Constructor(selfptr)
+{
+	memset(self, 0, sizeof(*self));
+}
+static void list_collapse(Template(item)* list)
 {
 	if (!list)return;
 	list_collapse(list->next_synonym);
 	String_dtor(&list->identifier);
+	Template(_Destroy_single)(&list->value);
 	free(list);
 }
-
-void Sym_table_dtor(Sym_table* self)
+void Destructor(selfptr)
 {
 	for (size_t i = 0; i < TABLE_SIZE; i++)
 		list_collapse((*self)[i]);
 }
-
-void Sym_table_insert(Sym_table* self, const char* id, token_type token_type, uint32_t frame_count)
+HASH_T* Template(emplace)(selfptr, const char* id)
 {
 	uint32_t index = hash(id);
-	hashtable_item** x = (*self) + index;
+	Template(item)** x = (*self) + index;
 	if (*x) {
 		do {
-			if (!strcmp(c_str(&(*x)->identifier), id))return;
+			if (!strcmp(c_str(&(*x)->identifier), id))
+				return NULL;
 		} while (*(x = &(*x)->next_synonym));
 	}
 
 	//root is empty or not in list
-	hashtable_item* item = (hashtable_item*)malloc(sizeof(hashtable_item));
-	if (!item)
-		e_exit("Hashable_item allocation failed!");
+	Template(item)* item = calloc(sizeof(Template(item)), 1);
+	ALLOC_CHECK(item);
 	String_ctor(&item->identifier, id);
-	item->token_type = token_type;
-	item->frame_count = frame_count;
-	item->next_synonym = NULL;
-
 	*x = item;
-}
 
-hashtable_item* Sym_table_find(Sym_table* self, const char* id)
+	return &item->value;
+}
+HASH_T* Template(find)(selfptr, const char* id)
 {
 	uint32_t index = hash(id);
-	hashtable_item* x = (*self)[index];
+	Template(item)* x = (*self)[index];
 
 	if (x) {
 		do {
-			if (!strcmp(c_str(&x->identifier), id))return x;
+			if (!strcmp(c_str(&x->identifier), id))return &x->value;
 		} while ((x = x->next_synonym));
 	}
 	return NULL;
 }
 
+//void Sym_table_print(Sym_table* self){
+//	for (size_t i = 0; i < TABLE_SIZE; i++) {
+//		hashtable_item* item = (*self)[i];
+//		while (item)
+//		{
+//			d_msg("Item id %s", item->identifier);
+//			d_msg("     tt %s", token_type_name(item->token_type));
+//			d_msg("     fc %i", item->frame_count);
+//			item = item->next_synonym;
+//		}
+//	}
+//}
 
-void Sym_table_print(Sym_table* self){
-	for (size_t i = 0; i < TABLE_SIZE; i++) {
-		hashtable_item* item = (*self)[i];
-		while (item)
-		{
-			d_msg("Item id %s", item->identifier);
-			d_msg("     tt %s", token_type_name(item->token_type));
-			d_msg("     fc %i", item->frame_count);
-			item = item->next_synonym;
-		}
-	}
-}
-
-void Sym_table_fill(Sym_table* self, FILE* stream) {
-	Scanner sc;
-	Error e;
-	Scanner_ctor(&sc, stream);
-	_Scanner_run(&sc, &e);
-	for (size_t i = 0; i < size_Vector_token(&(sc.tk_stream)); i++) {
-		char s[20];
-		sprintf(s, "%zu", i);
-		token* t = at_Vector_token(&(sc.tk_stream), i);
-		Sym_table_insert(self, s, t->type, t->column);
-	}
-	//Scanner_print(&sc);
-	Scanner_dtor(&sc);
-}
+#undef HASH_T
+#include "symtable.c"
+#endif
