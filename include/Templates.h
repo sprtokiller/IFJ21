@@ -25,3 +25,10 @@
 #define HASH_T FunctionDecl
 #include "symtable.h"
 
+#define HASH_T token_type
+#include "symtable.h"
+
+#define VECTOR_T HashMap(token_type)
+#define IsClass
+#include "VLib/Vector_T.h"
+

@@ -1,5 +1,8 @@
 require "ifj21"
 
+global x:function():integer
+global x:number = x()
+
 function main():string, boolean
 	if a>b then
 		return c

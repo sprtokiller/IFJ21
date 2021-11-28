@@ -28,10 +28,10 @@ void Constructor(selfptr)
 {
 	memset(self, 0, sizeof(*self));
 }
-static void list_collapse(Template(item)* list)
+static void Template(list_collapse)(Template(item)* list)
 {
 	if (!list)return;
-	list_collapse(list->next_synonym);
+	Template(list_collapse)(list->next_synonym);
 	String_dtor(&list->identifier);
 	Template(_Destroy_single)(&list->value);
 	free(list);
@@ -39,7 +39,7 @@ static void list_collapse(Template(item)* list)
 void Destructor(selfptr)
 {
 	for (size_t i = 0; i < TABLE_SIZE; i++)
-		list_collapse((*self)[i]);
+		Template(list_collapse)((*self)[i]);
 }
 HASH_T* Template(emplace)(selfptr, const char* id)
 {

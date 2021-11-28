@@ -1,6 +1,14 @@
 #define EXPRA_IMPL
 #include "expr_analyzer.h"
 #include "scanner.h"
+#include "semantic.h"
+
+typedef enum {
+	S,  // shift           (<)
+	R,  // reduce          (>)
+	E,  // equal           (=)
+	X   // nothing - error ( )
+}ExprAction;
 
 const ExprAction precedence_table[][13] =
 {
@@ -217,4 +225,89 @@ Error Execute(ExpressionAnalyzer* self, Scanner* scanner)
 
 	}
 	return e;
+}
+
+
+static bool numeric(token_type tt)
+{
+	return tt == tt_number || tt == tt_integer;
+}
+
+token_type GetNodeType(const Node* node, SemanticAnalyzer* analyzer, bool simple)
+{
+	token_type r = tt_eof, l = tt_eof;
+	if (node->right)r = GetNodeType(node->right, analyzer, false);
+	if (node->left)l = GetNodeType(node->left, analyzer, false);
+	if (r == tt_err || l == tt_err)return tt_err;
+
+	token_type res = literal_type(node->core.type);
+	if (res)return res;
+
+	switch (node->core.type)
+	{
+	case tt_identifier:
+		return SA_FindVariable(analyzer, c_str(&node->core.sval));
+	case tt_add:
+	case tt_subtract:
+	case tt_multiply:
+	case tt_power:
+		if (!numeric(r) || !numeric(l))
+			return tt_err;
+		if (r == tt_number || l == tt_number)
+			return tt_number;
+	case tt_modulo:
+	case tt_int_divide:
+		if (!numeric(r) || !numeric(l))
+			return tt_err;
+		return tt_integer;
+	case tt_divide:
+		if (!numeric(r) || !numeric(l))
+			return tt_err;
+		return tt_number;
+	case tt_g:
+	case tt_ge:
+	case tt_l:
+	case tt_le:
+		if (!numeric(r) || !numeric(l))
+			return tt_err;
+		return tt_boolean;
+	case tt_ne:
+	case tt_ee:
+		return tt_boolean;
+	case tt_length:
+		if (l != tt_string)
+			return tt_err;
+		return tt_integer;
+	case tt_concatenate:
+		if (l != tt_string || r != tt_string)
+			return tt_err;
+		return tt_string;
+	case tt_and:
+	case tt_or:
+		if (l != tt_boolean || r != tt_boolean)
+			return tt_err;
+	case tt_not:
+		if (l != tt_boolean)
+			return tt_err;
+		return tt_boolean;
+	case tt_u_minus:
+		if (!numeric(l))
+			return tt_err;
+		return l;
+	case tt_fcall:
+	{
+		FunctionDecl* fd = SA_FindFunction(analyzer, c_str(&node->core.sval));
+		if (!fd)return tt_err;
+		fd->called = true;
+		if (fd->ret.end - fd->ret.begin == 1) return *fd->ret.begin;
+		if (simple) return tt_fcall;
+		return tt_err;
+	}
+	default:
+		return tt_err;
+	}
+}
+token_type GetExpType(const Vector(Node)* ast, SemanticAnalyzer* analyzer)
+{
+	return GetNodeType(ast->data_->left, analyzer, true);
 }

@@ -84,5 +84,21 @@ inline token_type to_type(token_type tt)
 {
 	return tt >= tt_boolean && tt <= tt_string?tt_type:tt;
 }
+inline token_type literal_type(token_type tt)
+{
+	switch (tt)
+	{
+	case tt_string_literal:return tt_string;
+	case tt_true:
+	case tt_false:
+		return tt_boolean;
+	case tt_double_literal:
+		return tt_number;
+	case tt_int_literal:
+		return tt_integer;
+	default:
+		return tt_err;
+	}
+}
 
 void print_tk(token* self);

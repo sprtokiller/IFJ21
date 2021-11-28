@@ -40,7 +40,7 @@ void rq_print(reqStmt* self)
 }
 Error rq_analyze(reqStmt* self, struct SemanticAnalyzer* analyzer)
 {
-	if(strcmp(c_str(&self->arg.sval), "\"ifj21\"") || !SA_IsGlobal(analyzer))return e_semantic;
+	if (strcmp(c_str(&self->arg.sval), "\"ifj21\"") || !SA_IsGlobal(analyzer))return e_semantic;
 	return e_ok;
 }
 
@@ -110,14 +110,14 @@ void blk_print(blockPart* self)
 Error blk_analyze(blockPart* self, struct SemanticAnalyzer* analyzer)
 {
 	Error e = e_ok;
-	analyzer->level++; //add block
+	SA_AddScope(analyzer);
 	for (size_t i = 0; i < size_Vector_ppIASTElement(&self->block); i++)
 	{
 		IASTElement** pp = *at_Vector_ppIASTElement(&self->block, i);
 		if ((*pp)->analyze)
 			ERR_CHECK((*pp)->analyze(pp, analyzer));
 	}
-	analyzer->level--;
+	SA_ResignScope(analyzer);
 	return e;
 }
 
@@ -238,8 +238,8 @@ void fd_print(funcDecl* self)
 Error fd_analyze(funcDecl* self, struct SemanticAnalyzer* analyzer)
 {
 	Error e = e_ok;
-	if(!SA_IsGlobal(analyzer)||
-		!SA_AddFunction(analyzer, &self->types, 
+	if (!SA_IsGlobal(analyzer) ||
+		!SA_AddFunction(analyzer, &self->types,
 			&self->ret, c_str(&self->name.sval), false))return e_semantic;
 
 	return e;
@@ -566,8 +566,8 @@ Error prg_analyze(Program* self, struct SemanticAnalyzer* analyzer)
 {
 	Error e = e_ok;
 	ERR_CHECK(rq_analyze(&self->req, analyzer));
-	analyzer->level--; //global block
 	ERR_CHECK(blk_analyze(&self->global_block, analyzer));
+	if (!SA_Final(analyzer))return e_semantic;
 	return e;
 }
 
@@ -1129,11 +1129,17 @@ void gs_print(globalStmt* self)
 }
 Error gs_analyze(globalStmt* self, struct SemanticAnalyzer* analyzer)
 {
-	Error e = e_ok;
 	if (!SA_IsGlobal(analyzer))return e_semantic;
 	if (self->type == tt_function)
-		SA_AddFunction(analyzer, &self->fargs, &self->fretargs, c_str(&self->id), true);
-	return e;
+		return SA_AddFunction(analyzer, &self->fargs, &self->fretargs, c_str(&self->id), true) ? e_ok : e_semantic;
+	if (!SA_AddVariable(analyzer, c_str(&self->id), self->type))return e_semantic;
+	if (!self->has_value)return e_ok;
+
+	token_type tt = GetExpType(&self->value, analyzer);
+	if (!tt || tt == tt_fcall)return e_semantic;
+	if (tt != self->type)
+		if (self->type != tt_number || tt != tt_integer) return e_semantic; //no conversion for now
+	return e_ok;
 }
 
 

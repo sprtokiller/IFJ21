@@ -12,4 +12,5 @@ typedef struct FunctionDecl
 	Span_token_type types;
 	Span_token_type ret;
 	bool proto;
+	bool called;
 }FunctionDecl;
