@@ -1,16 +1,15 @@
 #pragma once
+#include "token.h"
 
-#define VECTOR_T token_type
-#include "VLib/Vector_T.h"
+typedef struct Span_token_type
+{
+	token_type* begin;
+	token_type* end;
+}Span_token_type;
 
 typedef struct FunctionDecl
 {
-	Vector(token_type) types;
-	Vector(token_type) ret;
+	Span_token_type types;
+	Span_token_type ret;
+	bool proto;
 }FunctionDecl;
-
-inline void FunctionDecl_dtor(FunctionDecl* self)
-{
-	Vector_token_type_dtor(&self->types);
-	Vector_token_type_dtor(&self->ret);
-}

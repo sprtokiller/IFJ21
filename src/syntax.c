@@ -107,12 +107,26 @@ void blk_print(blockPart* self)
 		putchar('\n');
 	}
 }
+Error blk_analyze(blockPart* self, struct SemanticAnalyzer* analyzer)
+{
+	Error e = e_ok;
+	analyzer->level++; //add block
+	for (size_t i = 0; i < size_Vector_ppIASTElement(&self->block); i++)
+	{
+		IASTElement** pp = *at_Vector_ppIASTElement(&self->block, i);
+		if ((*pp)->analyze)
+			ERR_CHECK((*pp)->analyze(pp, analyzer));
+	}
+	analyzer->level--;
+	return e;
+}
 
 static const struct IASTElement vfptr_blk = (IASTElement)
 {
 	blk_append,
 	blk_print,
-	blockPart_dtor
+	blockPart_dtor,
+	blk_analyze
 };
 void blockPart_ctor(blockPart* self)
 {
@@ -219,12 +233,22 @@ void fd_print(funcDecl* self)
 	blk_print(&self->block);
 	printf("end");
 }
+Error fd_analyze(funcDecl* self, struct SemanticAnalyzer* analyzer)
+{
+	Error e = e_ok;
+	if(!SA_IsGlobal(analyzer)||
+		!SA_AddFunction(analyzer, &self->types, 
+			&self->ret, c_str(&self->name.sval), false))return e_semantic;
+
+	return e;
+}
 
 static const struct IASTElement vfptr_fd = (IASTElement)
 {
 	fd_append,
 	fd_print,
-	funcDecl_dtor
+	funcDecl_dtor,
+	fd_analyze
 };
 void funcDecl_ctor(funcDecl* self)
 {
@@ -540,6 +564,8 @@ Error prg_analyze(Program* self, struct SemanticAnalyzer* analyzer)
 {
 	Error e = e_ok;
 	ERR_CHECK(rq_analyze(&self->req, analyzer));
+	analyzer->level--; //global block
+	ERR_CHECK(blk_analyze(&self->global_block, analyzer));
 	return e;
 }
 
@@ -1099,12 +1125,22 @@ void gs_print(globalStmt* self)
 		}
 	}
 }
+Error gs_analyze(globalStmt* self, struct SemanticAnalyzer* analyzer)
+{
+	Error e = e_ok;
+	if (!SA_IsGlobal(analyzer))return e_semantic;
+	if (self->type == tt_function)
+		SA_AddFunction(analyzer, &self->fargs, &self->fretargs, c_str(&self->id), true);
+	return e;
+}
+
 
 static const struct IASTElement vfptr_gs = (IASTElement)
 {
 	gs_append,
 	gs_print,
-	globalStmt_dtor
+	globalStmt_dtor,
+	gs_analyze
 };
 void globalStmt_ctor(globalStmt* self)
 {

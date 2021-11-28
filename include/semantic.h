@@ -21,6 +21,8 @@ inline bool SA_IsGlobal(selfptr)
 	return self->level == 0;
 }
 
+bool SA_AddFunction(selfptr, Vector(token_type)* args, Vector(token_type)* rets, const char* id, bool prototype);
+
 
 #ifndef SEMANTIC_IMPL
 #pragma pop_macro("c_class")

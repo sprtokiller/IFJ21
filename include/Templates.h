@@ -17,6 +17,9 @@
 #define VECTOR_T ppIASTElement
 #include "VLib/Vector_T.h"
 
+#define VECTOR_T token_type
+#include "VLib/Vector_T.h"
+
 #include "function.h"
 
 #define HASH_T FunctionDecl
