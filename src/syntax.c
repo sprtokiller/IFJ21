@@ -796,7 +796,8 @@ static const struct IASTElement vfptr_for = (IASTElement)
 {
 	for_append,
 	for_print,
-	For_dtor
+	For_dtor,
+	for_analyze
 };
 void For_ctor(For* self)
 {
