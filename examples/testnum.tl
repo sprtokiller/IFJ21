@@ -1,11 +1,4 @@
-
--- god comment
-
 require "ifj21"
-
-global x: function(string):number, boolean
-global x: number
-global x: boolean = true
 
 function main():string, boolean
 	if a>b then

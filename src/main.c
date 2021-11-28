@@ -16,7 +16,8 @@ int main(int argc, char* argv[])
 	UNIQUE(Parser) parser;
 	Parser_ctor(&parser, stream);
 	ERR_CHECK(Start(&parser));
-	ERR_CHECK((*parser.program)->analyze(parser.program, &semantic));
+	e = (*parser.program)->analyze(parser.program, &semantic);
+	printf(error_type_name(e));
 
 	return e;
 }

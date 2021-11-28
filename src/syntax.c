@@ -196,6 +196,8 @@ RetState fd_append(funcDecl* self, token* tk)
 		break;
 	case tt_comma:
 		break;
+	case tt_end:
+		return s_accept;
 	default:
 		if (is_type(tk->type)) {
 			if (!self->finished_args) {
@@ -1054,7 +1056,7 @@ RetState gs_append(globalStmt* self, token* tk)
 	switch (tk->type)
 	{
 	case tt_function:
-		if (self->valid)return s_refused;
+		if (self->type == tt_function)return s_refused;
 		self->type = tt_function;
 		break;
 	case tt_global:
