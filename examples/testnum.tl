@@ -1,13 +1,11 @@
 require "ifj21"
 
-global x:function():integer
-global x:number = x()
-
 function main():string, boolean
-	if a>b then
+	local y:string = ""
+	if true then
 		return c
-	elseif b>c then
-		if a<c then
+	elseif false then
+		if true then
 			return x
 		end
 	else 

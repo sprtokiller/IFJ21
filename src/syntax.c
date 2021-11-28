@@ -40,7 +40,11 @@ void rq_print(reqStmt* self)
 }
 Error rq_analyze(reqStmt* self, struct SemanticAnalyzer* analyzer)
 {
-	if (strcmp(c_str(&self->arg.sval), "\"ifj21\"") || !SA_IsGlobal(analyzer))return e_semantic;
+	if (strcmp(c_str(&self->arg.sval), "\"ifj21\"") || !SA_IsGlobal(analyzer))
+	{
+		e_msg("Require has unknown package or is not global");
+		return e_semantic;
+	}
 	return e_ok;
 }
 
@@ -241,7 +245,7 @@ Error fd_analyze(funcDecl* self, struct SemanticAnalyzer* analyzer)
 	if (!SA_IsGlobal(analyzer) ||
 		!SA_AddFunction(analyzer, &self->types,
 			&self->ret, c_str(&self->name.sval), false))return e_semantic;
-
+	ERR_CHECK(blk_analyze(&self->block, analyzer));
 	return e;
 }
 
@@ -336,12 +340,39 @@ void ls_print(localStmt* self)
 		}
 	}
 }
+Error ls_analyze(localStmt* self, struct SemanticAnalyzer* analyzer)
+{
+	if (SA_IsGlobal(analyzer))
+	{
+		e_msg("Local statement can't be in global scope!");
+		return e_semantic;
+	}
+	if (!SA_AddVariable(analyzer, c_str(&self->id), self->type)) {
+		e_msg("Variable already exists!");
+		return e_semantic;
+	}
+	if (!self->has_value)return e_ok;
+
+	token_type tt = GetExpType(&self->value, analyzer);
+	if (!tt || tt == tt_fcall) {
+		e_msg("Expression is invalid in this context");
+		return e_semantic;
+	}
+	if (tt != self->type)
+		if (self->type != tt_number || tt != tt_integer)
+		{
+			e_msg("Expression type is invalid");
+			return e_semantic; //no conversion for now
+		}
+	return e_ok;
+}
 
 static const struct IASTElement vfptr_ls = (IASTElement)
 {
 	ls_append,
 	ls_print,
-	localStmt_dtor
+	localStmt_dtor,
+	ls_analyze
 };
 void localStmt_ctor(localStmt* self)
 {
@@ -875,7 +906,6 @@ void Return_dtor(Return* self)
 #pragma endregion
 ///////////////////////////////////////////////////////
 #pragma region Branch
-
 typedef struct Node_elseif
 {
 	Vector(Node) expr;
@@ -937,7 +967,33 @@ static void Print_elseif(List_elseif* self)
 		Print_elseif_node(i);
 	}
 }
-
+static Error Check_elseif_node(Node_elseif* self, struct SemanticAnalyzer* analyzer, bool expr)
+{
+	Error e = e_ok;
+	if (expr && GetExpType(&self->expr, analyzer) != tt_boolean)
+	{
+		e_msg("Invalid expression type");
+		return e_semantic;
+	}
+	ERR_CHECK(blk_analyze(&self->block, analyzer));
+	return e;
+}
+static Error Check_elseif(List_elseif* self, struct SemanticAnalyzer* analyzer)
+{
+	Error e = e_ok;
+	for (Node_elseif* i = self->first; i != NULL; i = i->next) {
+		if (i == self->first) {
+			ERR_CHECK(Check_elseif_node(i, analyzer, true));
+			continue;
+		}
+		if (!i->next) {
+			ERR_CHECK(Check_elseif_node(i, analyzer, false));
+			continue;
+		}
+		ERR_CHECK(Check_elseif_node(i, analyzer, true));
+	}
+	return e;
+}
 
 typedef struct Branch
 {
@@ -1001,12 +1057,18 @@ void br_print(Branch* self)
 {
 	Print_elseif(&self->blocks);
 }
+Error br_analyze(Branch* self, struct SemanticAnalyzer* analyzer)
+{
+	if (SA_IsGlobal(analyzer))return e_semantic;
+	return Check_elseif(&self->blocks, analyzer);
+}
 
 static const struct IASTElement vfptr_br = (IASTElement)
 {
 	br_append,
 	br_print,
-	Branch_dtor
+	Branch_dtor,
+	br_analyze
 };
 void Branch_ctor(Branch* self)
 {
@@ -1129,16 +1191,27 @@ void gs_print(globalStmt* self)
 }
 Error gs_analyze(globalStmt* self, struct SemanticAnalyzer* analyzer)
 {
-	if (!SA_IsGlobal(analyzer))return e_semantic;
+	if (!SA_IsGlobal(analyzer)) {
+		e_msg("Global declaration is not in global scope");
+		return e_semantic;
+	}
 	if (self->type == tt_function)
 		return SA_AddFunction(analyzer, &self->fargs, &self->fretargs, c_str(&self->id), true) ? e_ok : e_semantic;
-	if (!SA_AddVariable(analyzer, c_str(&self->id), self->type))return e_semantic;
+	if (!SA_AddVariable(analyzer, c_str(&self->id), self->type)) {
+		e_msg("Variable already exists in this scope");
+		return e_semantic;
+	}
 	if (!self->has_value)return e_ok;
 
 	token_type tt = GetExpType(&self->value, analyzer);
-	if (!tt || tt == tt_fcall)return e_semantic;
+	if (!tt || tt == tt_fcall) {
+		e_msg("Expression is invalid in this context");
+		return e_semantic;
+	}
 	if (tt != self->type)
-		if (self->type != tt_number || tt != tt_integer) return e_semantic; //no conversion for now
+		if (self->type != tt_number || tt != tt_integer) {
+			e_msg("Expression type is invalid"); return e_semantic; //no conversion for now
+		}
 	return e_ok;
 }
 
