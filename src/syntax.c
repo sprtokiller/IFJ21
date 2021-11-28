@@ -71,6 +71,7 @@ typedef struct blockPart
 {
 	Implements(IASTElement);
 	bool valid : 1;
+	bool partial : 1;
 	IASTElement** active;
 	Vector(ppIASTElement) block;
 }blockPart;
@@ -114,7 +115,7 @@ void blk_print(blockPart* self)
 Error blk_analyze(blockPart* self, struct SemanticAnalyzer* analyzer)
 {
 	Error e = e_ok;
-	SA_AddScope(analyzer);
+	if (!self->partial)SA_AddScope(analyzer);
 	for (size_t i = 0; i < size_Vector_ppIASTElement(&self->block); i++)
 	{
 		IASTElement** pp = *at_Vector_ppIASTElement(&self->block, i);
@@ -668,7 +669,7 @@ Error wh_analyze(While* self, struct SemanticAnalyzer* analyzer)
 		e_msg("Invalid statement for global scope");
 		return e_semantic;
 	}
-	if (GetExpType(&self->expr, analyzer) != tt_boolean){
+	if (GetExpType(&self->expr, analyzer) != tt_boolean) {
 		e_msg("Invalid expression type");
 		return e_semantic;
 	}
@@ -770,6 +771,25 @@ void for_print(For* self)
 	}
 
 	blk_print(&self->block);
+}
+Error for_analyze(For* self, struct SemanticAnalyzer* analyzer)
+{
+	if (SA_IsGlobal(analyzer)) {
+		e_msg("Invalid statement for global scope");
+		return e_semantic;
+	}
+	SA_AddScope(analyzer);
+	SA_AddVariable(analyzer, c_str(&self->id), tt_integer);
+	if (GetExpType(&self->expr, analyzer) != tt_integer ||
+		GetExpType(&self->terminus, analyzer) != tt_integer)
+		return e_semantic;
+
+	if(self->has_increment && 
+		GetExpType(&self->increment, analyzer) != tt_integer)
+		return e_semantic;
+
+	self->block.partial = true;
+	return blk_analyze(&self->block, analyzer);
 }
 
 static const struct IASTElement vfptr_for = (IASTElement)
@@ -1085,7 +1105,7 @@ void br_print(Branch* self)
 }
 Error br_analyze(Branch* self, struct SemanticAnalyzer* analyzer)
 {
-	if (SA_IsGlobal(analyzer)){
+	if (SA_IsGlobal(analyzer)) {
 		e_msg("Invalid statement for global scope");
 		return e_semantic;
 	}
