@@ -1289,6 +1289,51 @@ void globalStmt_dtor(globalStmt* self)
 
 #pragma endregion
 ///////////////////////////////////////////////////////
+#pragma region Break
+typedef struct Break
+{
+	Implements(IASTElement);
+}Break;
+
+void Break_ctor(Break* self);
+void Break_dtor(Break* self);
+
+RetState brk_append(Break* self, token* tk)
+{
+	if (tk->type == tt_break)
+		return s_accept;
+	return s_refused;
+}
+void brk_print(Break* self)
+{
+	printf("break");
+}
+Error brk_analyze(Break* self, struct SemanticAnalyzer* analyzer)
+{
+	if (SA_IsGlobal(analyzer)) {
+		e_msg("");
+		return e_semantic;
+	}
+	return e_ok;
+}
+
+
+static const struct IASTElement vfptr_brk = (IASTElement)
+{
+	brk_append,
+	brk_print,
+	Break_dtor,
+	brk_analyze
+};
+void Break_ctor(Break* self)
+{
+	self->method = &vfptr_brk;
+}
+void Break_dtor(Break* self)
+{
+	unused_param(self);
+}
+#pragma endregion
 
 void ppIASTElement_dtor(ppIASTElement* self)
 {
@@ -1335,6 +1380,10 @@ IASTElement** MakeStatement(token_type type)
 	case tt_if:
 		out = calloc(sizeof(Branch), 1);
 		Branch_ctor(out);
+		break;
+	case tt_break:
+		out = calloc(sizeof(Break), 1);
+		Break_ctor(out);
 		break;
 	default:
 		break;

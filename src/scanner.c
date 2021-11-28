@@ -221,8 +221,13 @@ bool _parse_kw(Scanner* self, String* xtoken, int* xsym, token_type* tt)
 		predict = "and"; *tt = tt_and; break;
 
 	case 'b':
-		predict = "boolean"; *tt = tt_boolean; break;
-
+		switch (nsym)
+		{
+		case 'r': predict = "break"; *tt = tt_break; break;
+		case 'o': predict = "boolean"; *tt = tt_boolean; break;
+		default:return false;
+		}
+		break;
 	case 'd':
 		predict = "do"; *tt = tt_do; break;
 
