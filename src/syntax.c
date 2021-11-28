@@ -662,12 +662,26 @@ void wh_print(While* self)
 	blk_print(&self->block);
 	printf("end");
 }
+Error wh_analyze(While* self, struct SemanticAnalyzer* analyzer)
+{
+	if (SA_IsGlobal(analyzer)) {
+		e_msg("Invalid statement for global scope");
+		return e_semantic;
+	}
+	if (GetExpType(&self->expr, analyzer) != tt_boolean){
+		e_msg("Invalid expression type");
+		return e_semantic;
+	}
+
+	return blk_analyze(&self->block, analyzer);
+}
 
 static const struct IASTElement vfptr_wh = (IASTElement)
 {
 	wh_append,
 	wh_print,
-	While_dtor
+	While_dtor,
+	wh_analyze
 };
 void While_ctor(While* self)
 {
@@ -827,12 +841,26 @@ void rep_print(Repeat* self)
 	printf("until");
 	PrintExpression(&self->expr);
 }
+Error rep_analyze(Repeat* self, struct SemanticAnalyzer* analyzer)
+{
+	if (SA_IsGlobal(analyzer)) {
+		e_msg("Invalid statement for global scope");
+		return e_semantic;
+	}
+	if (GetExpType(&self->expr, analyzer) != tt_boolean) {
+		e_msg("Invalid expression type");
+		return e_semantic;
+	}
+
+	return blk_analyze(&self->block, analyzer);
+}
 
 static const struct IASTElement vfptr_rep = (IASTElement)
 {
 	rep_append,
 	rep_print,
-	Repeat_dtor
+	Repeat_dtor,
+	rep_analyze
 };
 void Repeat_ctor(Repeat* self)
 {
@@ -969,14 +997,12 @@ static void Print_elseif(List_elseif* self)
 }
 static Error Check_elseif_node(Node_elseif* self, struct SemanticAnalyzer* analyzer, bool expr)
 {
-	Error e = e_ok;
 	if (expr && GetExpType(&self->expr, analyzer) != tt_boolean)
 	{
 		e_msg("Invalid expression type");
 		return e_semantic;
 	}
-	ERR_CHECK(blk_analyze(&self->block, analyzer));
-	return e;
+	return blk_analyze(&self->block, analyzer);
 }
 static Error Check_elseif(List_elseif* self, struct SemanticAnalyzer* analyzer)
 {
@@ -1059,7 +1085,10 @@ void br_print(Branch* self)
 }
 Error br_analyze(Branch* self, struct SemanticAnalyzer* analyzer)
 {
-	if (SA_IsGlobal(analyzer))return e_semantic;
+	if (SA_IsGlobal(analyzer)){
+		e_msg("Invalid statement for global scope");
+		return e_semantic;
+	}
 	return Check_elseif(&self->blocks, analyzer);
 }
 
