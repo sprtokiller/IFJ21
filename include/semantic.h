@@ -15,6 +15,7 @@ struct SemanticAnalyzer
 	HashMap(FunctionDecl) funcs; //functions
 	Vector(HashMap(Variable)) scopes;
 	HashMap(Variable)* current;
+	FunctionDecl* curr_func;
 	size_t level; //scope level
 };
 
@@ -27,6 +28,7 @@ void SA_AddScope(selfptr);
 void SA_ResignScope(selfptr);
 
 bool SA_AddFunction(selfptr, Vector(token_type)* args, Vector(token_type)* rets, const char* id, bool prototype);
+void SA_LeaveFunction(selfptr);
 bool SA_AddVariable(selfptr, const char* id, token_type type, bool has_value);
 Variable* SA_FindVariable(selfptr, const char* id);
 FunctionDecl* SA_FindFunction(selfptr, const char* id);

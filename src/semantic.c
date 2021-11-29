@@ -54,7 +54,13 @@ bool SA_AddFunction(selfptr, Vector(token_type)* args, Vector(token_type)* rets,
 	fdec->proto = prototype;
 	fdec->types = (Span_token_type){ args->data_, args->end_ };
 	fdec->ret = (Span_token_type){ rets->data_, rets->end_ };
+	self->curr_func = fdec;
 	return true;
+}
+
+void SA_LeaveFunction(selfptr)
+{
+	self->curr_func = NULL;
 }
 
 bool SA_AddVariable(selfptr, const char* id, token_type type, bool has_value)

@@ -249,6 +249,7 @@ Error fd_analyze(funcDecl* self, struct SemanticAnalyzer* analyzer)
 		!SA_AddFunction(analyzer, &self->types,
 			&self->ret, c_str(&self->name.sval), false))return e_semantic;
 	ERR_CHECK(blk_analyze(&self->block, analyzer));
+	SA_LeaveFunction(analyzer);
 	return e;
 }
 
@@ -1004,12 +1005,63 @@ void ret_print(Return* self)
 {
 	printf("return ");
 }
+Error ret_analyze(Return* self, struct SemanticAnalyzer* analyzer)
+{
+	if (!analyzer->curr_func)return e_semantic;
+	Span_token_type rets = analyzer->curr_func->ret;
+	List_Node* node = self->retlist.first;
+	token_type tt = tt_err;
+	if (empty_Span_token_type(&rets) && (tt = GetExpType(&node->expression, analyzer)) == tt_fcall)
+	{
+		FunctionDecl* fp = SA_FindFunction(analyzer, c_str(&node->expression.data_[0].left->core.sval));
+		if (!empty_Span_token_type(&fp->ret)) {
+			e_msg("Function does not return void");
+			return e_semantic;
+		}
+	}
+
+	for (token_type* i = rets.begin; i != rets.end; i++)
+	{
+		//if (!node)return e_ok;
+		//tt = GetExpType(&node->expression, analyzer);
+		//if (tt == tt_fcall)
+		//{
+		//	FunctionDecl* fp = SA_FindFunction(analyzer, c_str(&node->expression.data_[0].left->core.sval));
+		//	if (empty_Span_token_type(&fp->ret)) {
+		//		e_msg("Function returns void");
+		//		return e_semantic;
+		//	}
+
+		//	for (size_t j = 0; j < size_Span_token_type(&fp->ret); j++)
+		//	{
+		//		if (!FitsType())
+		//		{
+
+		//		}
+		//	}
+		//	exp = exp->next;
+		//	continue;
+		//}
+		//if (tt != v->type) {
+		//	if (v->type != tt_number || tt != tt_integer) {
+		//		e_msg("Expression and variable types do not match");
+		//		return e_semantic;
+		//	}
+		//}
+		//exp = exp->next;
+	}
+	if (node) {
+		e_msg("Return count mismatch"); return e_semantic;
+	}
+	return e_ok;
+}
 
 static const struct IASTElement vfptr_ret = (IASTElement)
 {
 	ret_append,
 	ret_print,
-	Return_dtor
+	Return_dtor,
+	ret_analyze
 };
 void Return_ctor(Return* self)
 {
