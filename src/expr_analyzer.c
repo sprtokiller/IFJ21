@@ -166,7 +166,7 @@ Error Execute(ExpressionAnalyzer* self, Scanner* scanner)
 			Node* id_last = v(last_nt - 1);
 			Node* last_ = v(last_nt);
 			bool is_func = id_last->core.type == tt_identifier;
-			if (last_->core.type == tt_left_parenthese && !is_func)
+			if (self->ast.end_[-2].core.type == tt_left_parenthese && !is_func) //empty closures
 				return e_invalid_syntax;
 
 			if (is_func)
@@ -233,8 +233,27 @@ static bool numeric(token_type tt)
 	return tt == tt_number || tt == tt_integer;
 }
 
+token_type GetNodeType(const Node* node, SemanticAnalyzer* analyzer, bool simple);
+
+
+bool MatchFunctionIns(const Node* node, SemanticAnalyzer* analyzer, Span_token_type subsp)
+{
+	token_type l = GetNodeType(node->left, analyzer, false);
+	token_type r = GetNodeType(node->right, analyzer, false);
+
+	if (r == tt_err || l == tt_err)return false;
+
+	if (node->core.type == tt_fcall)return MatchFunctionIns(node->left, analyzer, subsp);
+
+	if (!FitsType(l, *subsp.begin))return false;
+	if (r == tt_comma)return MatchFunctionIns(node->left, analyzer, (Span_token_type) { subsp.begin + 1, subsp.end });
+	if (!FitsType(r, *(subsp.begin + 1)))return false;
+	return true;
+}
+
 token_type GetNodeType(const Node* node, SemanticAnalyzer* analyzer, bool simple)
 {
+	if (!node)return tt_eof;
 	token_type r = tt_eof, l = tt_eof;
 	if (node->right)r = GetNodeType(node->right, analyzer, false);
 	if (node->left)l = GetNodeType(node->left, analyzer, false);
@@ -246,7 +265,14 @@ token_type GetNodeType(const Node* node, SemanticAnalyzer* analyzer, bool simple
 	switch (node->core.type)
 	{
 	case tt_identifier:
-		return SA_FindVariable(analyzer, c_str(&node->core.sval));
+	{
+		Variable* x = SA_FindVariable(analyzer, c_str(&node->core.sval));
+		if (!x || !x->has_value) {
+			if (!x->has_value) e_msg("nil value in variable %s", c_str(&node->core.sval));
+			return tt_err;
+		}
+		return x->type;
+	}
 	case tt_add:
 	case tt_subtract:
 	case tt_multiply:
@@ -294,10 +320,17 @@ token_type GetNodeType(const Node* node, SemanticAnalyzer* analyzer, bool simple
 		if (!numeric(l))
 			return tt_err;
 		return l;
+	case tt_comma:
+		return tt_comma;
 	case tt_fcall:
 	{
 		FunctionDecl* fd = SA_FindFunction(analyzer, c_str(&node->core.sval));
 		if (!fd)return tt_err;
+		if (!MatchFunctionIns(node, analyzer, fd->types))
+		{
+			e_msg("Bad function call");
+			return tt_err;
+		}
 		fd->called = true;
 		if (fd->ret.end - fd->ret.begin == 1) return *fd->ret.begin;
 		if (simple) return tt_fcall;

@@ -25,10 +25,16 @@
 #define HASH_T FunctionDecl
 #include "symtable.h"
 
-#define HASH_T token_type
+typedef struct
+{
+	token_type type;
+	bool has_value;
+}Variable;
+
+#define HASH_T Variable
 #include "symtable.h"
 
-#define VECTOR_T HashMap(token_type)
+#define VECTOR_T HashMap(Variable)
 #define IsClass
 #include "VLib/Vector_T.h"
 

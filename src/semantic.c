@@ -7,12 +7,12 @@ void Constructor(selfptr)
 {
 	self->level = (size_t)-1;
 	htab_FunctionDecl_ctor(&self->funcs);
-	self->scopes = (Vector(HashMap(token_type))){ 0 };
+	self->scopes = (Vector(HashMap(Variable))){ 0 };
 }
 void Destructor(selfptr)
 {
 	htab_FunctionDecl_dtor(&self->funcs);
-	Vector_htab_token_type_dtor(&self->scopes);
+	Vector_htab_Variable_dtor(&self->scopes);
 }
 
 bool Span_EQ(Span_token_type a, Span_token_type b)
@@ -27,16 +27,16 @@ bool Span_EQ(Span_token_type a, Span_token_type b)
 void SA_AddScope(selfptr)
 {
 	self->level++;
-	self->current = push_back_Vector_htab_token_type(&self->scopes);
-	htab_token_type_ctor(self->current);
+	self->current = push_back_Vector_htab_Variable(&self->scopes);
+	htab_Variable_ctor(self->current);
 }
 
 void SA_ResignScope(selfptr)
 {
 	self->level--;
-	pop_back_Vector_htab_token_type(&self->scopes);
-	if (empty_Vector_htab_token_type(&self->scopes)) { self->current = NULL; return; }
-	self->current = back_Vector_htab_token_type(&self->scopes);
+	pop_back_Vector_htab_Variable(&self->scopes);
+	if (empty_Vector_htab_Variable(&self->scopes)) { self->current = NULL; return; }
+	self->current = back_Vector_htab_Variable(&self->scopes);
 }
 
 bool SA_AddFunction(selfptr, Vector(token_type)* args, Vector(token_type)* rets, const char* id, bool prototype)
@@ -57,20 +57,20 @@ bool SA_AddFunction(selfptr, Vector(token_type)* args, Vector(token_type)* rets,
 	return true;
 }
 
-bool SA_AddVariable(selfptr, const char* id, token_type type)
+bool SA_AddVariable(selfptr, const char* id, token_type type, bool has_value)
 {
-	token_type* tok = emplace_htab_token_type(self->current, id);
+	Variable* tok = emplace_htab_Variable(self->current, id);
 	if (!tok)return false;
-	*tok = type;
+	*tok = (Variable){ type, has_value };
 	return true;
 }
 
-token_type SA_FindVariable(selfptr, const char* id)
+Variable* SA_FindVariable(selfptr, const char* id)
 {
-	token_type* tok = NULL;
-	for (htab_token_type* i = self->current; i < self->scopes.data_; i--)
-		if (tok = find_htab_token_type(i, id))return *tok;
-	return tt_err;
+	Variable* tok = NULL;
+	for (htab_Variable* i = self->current; i > self->scopes.data_; i--)
+		if ((tok = find_htab_Variable(i, id)))return tok;
+	return NULL;
 }
 
 FunctionDecl* SA_FindFunction(selfptr, const char* id)
@@ -93,3 +93,5 @@ bool SA_Final(const selfptr)
 	if (!ret) printf("Some function implementation is missing\n");
 	return ret;
 }
+
+extern inline bool FitsType(token_type t1, token_type t2);

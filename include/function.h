@@ -7,6 +7,16 @@ typedef struct Span_token_type
 	token_type* end;
 }Span_token_type;
 
+inline bool size_Span_token_type(Span_token_type* self)
+{
+	return (self->end - self->begin);
+}
+inline bool empty_Span_token_type(Span_token_type* self)
+{
+	return !(self->end - self->begin);
+}
+
+
 typedef struct FunctionDecl
 {
 	Span_token_type types;

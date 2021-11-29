@@ -13,8 +13,8 @@ void Destructor(selfptr);
 struct SemanticAnalyzer
 {
 	HashMap(FunctionDecl) funcs; //functions
-	Vector(HashMap(token_type)) scopes;
-	HashMap(token_type)* current;
+	Vector(HashMap(Variable)) scopes;
+	HashMap(Variable)* current;
 	size_t level; //scope level
 };
 
@@ -27,10 +27,14 @@ void SA_AddScope(selfptr);
 void SA_ResignScope(selfptr);
 
 bool SA_AddFunction(selfptr, Vector(token_type)* args, Vector(token_type)* rets, const char* id, bool prototype);
-bool SA_AddVariable(selfptr, const char* id, token_type type);
-token_type SA_FindVariable(selfptr, const char* id);
+bool SA_AddVariable(selfptr, const char* id, token_type type, bool has_value);
+Variable* SA_FindVariable(selfptr, const char* id);
 FunctionDecl* SA_FindFunction(selfptr, const char* id);
 bool SA_Final(const selfptr);
+inline bool FitsType(token_type t1, token_type t2)
+{
+	return t1 == t2 || (t1 == tt_number && t2 == tt_integer);
+}
 
 token_type GetExpType(const Vector(Node)* ast, struct SemanticAnalyzer* analyzer);//convenience
 

@@ -6,6 +6,8 @@
 #include <string.h>
 #include "common.h"
 
+typedef Vector(Node) Expression;
+
 static void PrintExpression(const Vector(Node)* vec)
 {
 	for (size_t i = 1; i < size_Vector_Node(vec); i++)
@@ -348,16 +350,25 @@ Error ls_analyze(localStmt* self, struct SemanticAnalyzer* analyzer)
 		e_msg("Local statement can't be in global scope!");
 		return e_semantic;
 	}
-	if (!SA_AddVariable(analyzer, c_str(&self->id), self->type)) {
+	if (!SA_AddVariable(analyzer, c_str(&self->id), self->type, self->has_value)) {
 		e_msg("Variable already exists!");
 		return e_semantic;
 	}
 	if (!self->has_value)return e_ok;
 
 	token_type tt = GetExpType(&self->value, analyzer);
-	if (!tt || tt == tt_fcall) {
+	if (!tt) {
 		e_msg("Expression is invalid in this context");
 		return e_semantic;
+	}
+	if (tt == tt_fcall)
+	{
+		FunctionDecl* fp = SA_FindFunction(analyzer, c_str(&self->value.data_[0].left->core.sval));
+		if (empty_Span_token_type(&fp->ret)) {
+			e_msg("Function returns void");
+			return e_semantic;
+		}
+		tt = *fp->ret.begin; //Get first
 	}
 	if (tt != self->type)
 		if (self->type != tt_number || tt != tt_integer)
@@ -538,12 +549,69 @@ void afc_print(AssOrFCall* self)
 		break;
 	}
 }
+Error afc_analyze(AssOrFCall* self, struct SemanticAnalyzer* analyzer)
+{
+	if (!self->op) // fcall
+	{
+		if (GetExpType(&self->fcall, analyzer) == tt_err) {
+			e_msg("Invalid Expression");
+			return e_semantic;
+		}
+		if (!SA_FindFunction(analyzer, c_str(&self->fcall.data_[0].left->core.sval))) {
+			e_msg("Function not declared");
+			return e_semantic;
+		}
+		return e_ok;
+	}
+
+	List_Node* exp = self->expressions.first; //first always exists
+	for (token* i = self->idents.data_; i != self->idents.end_; i++)
+	{
+		Variable* v = SA_FindVariable(analyzer, c_str(&i->sval));
+		if (!v) {
+			e_msg("Variable %s does not exist", c_str(&i->sval));
+			return e_semantic;
+		}
+		if (!exp) continue;
+		token_type tt = GetExpType(exp, analyzer);
+		if (tt == tt_fcall)
+		{
+			FunctionDecl* fp = SA_FindFunction(analyzer, c_str(&exp->expression.data_[0].left->core.sval));
+			if (empty_Span_token_type(&fp->ret)) {
+				e_msg("Function returns void");
+				return e_semantic;
+			}
+			for (size_t j = 0; j < size_Span_token_type(&fp->ret); j++)
+			{
+				if (i + j >= self->idents.end_)break;
+				Variable* vi = SA_FindVariable(analyzer, c_str(&(i + j)->sval));
+				if (vi->type != fp->ret.begin[j])
+				{
+					e_msg("Variable and function return value types does not match");
+					return e_semantic;
+				}
+				vi->has_value = true;
+			}
+			exp = exp->next;
+			continue;
+		}
+		if (tt != v->type) {
+			if (v->type != tt_number || tt != tt_integer) {
+				e_msg("Expression and variable types do not match");
+				return e_semantic;
+			}
+		}
+		exp = exp->next;
+	}
+	return e_ok;
+}
 
 static const struct IASTElement vfptr_afc = (IASTElement)
 {
 	afc_append,
 	afc_print,
-	AssOrFCall_dtor
+	AssOrFCall_dtor,
+	afc_analyze
 };
 void AssOrFCall_ctor(AssOrFCall* self)
 {
@@ -779,12 +847,12 @@ Error for_analyze(For* self, struct SemanticAnalyzer* analyzer)
 		return e_semantic;
 	}
 	SA_AddScope(analyzer);
-	SA_AddVariable(analyzer, c_str(&self->id), tt_integer);
+	SA_AddVariable(analyzer, c_str(&self->id), tt_integer, true);
 	if (GetExpType(&self->expr, analyzer) != tt_integer ||
 		GetExpType(&self->terminus, analyzer) != tt_integer)
 		return e_semantic;
 
-	if(self->has_increment && 
+	if (self->has_increment &&
 		GetExpType(&self->increment, analyzer) != tt_integer)
 		return e_semantic;
 
@@ -1247,17 +1315,27 @@ Error gs_analyze(globalStmt* self, struct SemanticAnalyzer* analyzer)
 	}
 	if (self->type == tt_function)
 		return SA_AddFunction(analyzer, &self->fargs, &self->fretargs, c_str(&self->id), true) ? e_ok : e_semantic;
-	if (!SA_AddVariable(analyzer, c_str(&self->id), self->type)) {
+	if (!SA_AddVariable(analyzer, c_str(&self->id), self->type, self->has_value)) {
 		e_msg("Variable already exists in this scope");
 		return e_semantic;
 	}
 	if (!self->has_value)return e_ok;
 
 	token_type tt = GetExpType(&self->value, analyzer);
-	if (!tt || tt == tt_fcall) {
+	if (!tt) {
 		e_msg("Expression is invalid in this context");
 		return e_semantic;
 	}
+	if (tt == tt_fcall)
+	{
+		FunctionDecl* fp = SA_FindFunction(analyzer, c_str(&self->value.data_[0].left->core.sval));
+		if (empty_Span_token_type(&fp->ret)) {
+			e_msg("Function returns void");
+			return e_semantic;
+		}
+		tt = *fp->ret.begin; //Get first
+	}
+
 	if (tt != self->type)
 		if (self->type != tt_number || tt != tt_integer) {
 			e_msg("Expression type is invalid"); return e_semantic; //no conversion for now
@@ -1334,6 +1412,7 @@ void Break_dtor(Break* self)
 	unused_param(self);
 }
 #pragma endregion
+///////////////////////////////////////////////////////
 
 void ppIASTElement_dtor(ppIASTElement* self)
 {
