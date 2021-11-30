@@ -1010,7 +1010,10 @@ RetState ret_append(Return* self, token* tk)
 	case tt_comma:
 		return s_await_e;
 	case tt_expression:
-		if (tk->ec != 0)return s_accept;
+		if (tk->ec != 0) { 
+			clear_Vector_Node((Vector(Node)*)tk->expression);
+			return s_accept; 
+		}
 		Vector_Node_move_ctor(push(&self->retlist),
 			(Vector(Node)*)tk->expression);
 		return s_await;

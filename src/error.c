@@ -4,7 +4,7 @@ const char* error_types_str[] = {
 	"no error",
 	"lexical error or invalid token",
 	"syntax error",
-	"variable redefinition",
+	"variable redefinition or non-existence",
 	"assignment types mismatch",
 	"wrong count of return or input types",
 	"expresion type mismatch",
