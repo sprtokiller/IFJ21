@@ -1,6 +1,12 @@
 require "ifj21"
 
+
+function a(a:integer, b:boolean):integer, boolean
+	return 5, ""
+end
+
 function s(a:integer, b:boolean):integer
+	return a(5, true)
 end
 
 function main():string, boolean

@@ -217,8 +217,7 @@ RetState fd_append(funcDecl* self, token* tk)
 			}
 		}
 		self->fills_block = true;
-		blk_append(&self->block, tk);
-		break;
+		return blk_append(&self->block, tk);
 	}
 	return s_await;
 }
@@ -1011,7 +1010,7 @@ Error ret_analyze(Return* self, struct SemanticAnalyzer* analyzer)
 	Span_token_type rets = analyzer->curr_func->ret;
 	List_Node* node = self->retlist.first;
 	token_type tt = tt_err;
-	if (empty_Span_token_type(&rets) && (tt = GetExpType(&node->expression, analyzer)) == tt_fcall)
+	if (empty_Span_token_type(&rets) && (tt = GetExpType(&node->expression, analyzer)) == tt_fcall) //void function returns
 	{
 		FunctionDecl* fp = SA_FindFunction(analyzer, c_str(&node->expression.data_[0].left->core.sval));
 		if (!empty_Span_token_type(&fp->ret)) {
@@ -1022,33 +1021,33 @@ Error ret_analyze(Return* self, struct SemanticAnalyzer* analyzer)
 
 	for (token_type* i = rets.begin; i != rets.end; i++)
 	{
-		//if (!node)return e_ok;
-		//tt = GetExpType(&node->expression, analyzer);
-		//if (tt == tt_fcall)
-		//{
-		//	FunctionDecl* fp = SA_FindFunction(analyzer, c_str(&node->expression.data_[0].left->core.sval));
-		//	if (empty_Span_token_type(&fp->ret)) {
-		//		e_msg("Function returns void");
-		//		return e_semantic;
-		//	}
+		if (!node)return e_ok;
+		tt = GetExpType(&node->expression, analyzer);
+		if (tt == tt_fcall)
+		{
+			FunctionDecl* fp = SA_FindFunction(analyzer, c_str(&node->expression.data_[0].left->core.sval));
+			if (empty_Span_token_type(&fp->ret)) {
+				e_msg("Function returns void");
+				return e_semantic;
+			}
 
-		//	for (size_t j = 0; j < size_Span_token_type(&fp->ret); j++)
-		//	{
-		//		if (!FitsType())
-		//		{
-
-		//		}
-		//	}
-		//	exp = exp->next;
-		//	continue;
-		//}
-		//if (tt != v->type) {
-		//	if (v->type != tt_number || tt != tt_integer) {
-		//		e_msg("Expression and variable types do not match");
-		//		return e_semantic;
-		//	}
-		//}
-		//exp = exp->next;
+			for (size_t j = 0; j < size_Span_token_type(&fp->ret); j++)
+			{
+				if (i + j == rets.end)break;
+				if (!FitsType(i[j], fp->ret.begin[j]))
+				{
+					e_msg("Function return types do not match");
+					return e_semantic;
+				}
+			}
+			node = node->next;
+			continue;
+		}
+		if (!FitsType(tt, *i)) {
+			e_msg("Expression and variable types do not match");
+			return e_semantic;
+		}
+		node = node->next;
 	}
 	if (node) {
 		e_msg("Return count mismatch"); return e_semantic;
