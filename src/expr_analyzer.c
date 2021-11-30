@@ -48,7 +48,7 @@ static int table_column(const token* t) {
 		return 8;
 	case tt_or:
 		return 9;
-	case tt_identifier:case tt_double_literal:case tt_string_literal:case tt_int_literal:case tt_true: case tt_false: case tt_fcall:
+	case tt_identifier:case tt_nil:case tt_double_literal:case tt_string_literal:case tt_int_literal:case tt_true: case tt_false: case tt_fcall:
 		return 11;
 	case tt_comma:
 		return 12;
@@ -233,30 +233,35 @@ static bool numeric(token_type tt)
 	return tt == tt_number || tt == tt_integer;
 }
 
-token_type GetNodeType(const Node* node, SemanticAnalyzer* analyzer, bool simple);
+token_type GetNodeType(const Node* node, SemanticAnalyzer* analyzer, bool simple, Error* err);
 
 
-bool MatchFunctionIns(const Node* node, SemanticAnalyzer* analyzer, Span_token_type subsp)
+Error MatchFunctionIns(const Node* node, SemanticAnalyzer* analyzer, Span_token_type subsp)
 {
-	token_type l = GetNodeType(node->left, analyzer, false);
-	token_type r = GetNodeType(node->right, analyzer, false);
-
-	if (r == tt_err || l == tt_err)return false;
+	Error e = e_ok;
+	token_type l = GetNodeType(node->left, analyzer, false, &e);
+	token_type r = GetNodeType(node->right, analyzer, false, &e);
+	if (r == tt_err || l == tt_err)return e;
 
 	if (node->core.type == tt_fcall)return MatchFunctionIns(node->left, analyzer, subsp);
 
-	if (!FitsType(l, *subsp.begin))return false;
+	if (!FitsType(l, *subsp.begin))return e_count;
 	if (r == tt_comma)return MatchFunctionIns(node->left, analyzer, (Span_token_type) { subsp.begin + 1, subsp.end });
-	if (!FitsType(r, *(subsp.begin + 1)))return false;
-	return true;
+	if (!FitsType(r, *(subsp.begin + 1)))return e_count;
+	return e_ok;
 }
 
-token_type GetNodeType(const Node* node, SemanticAnalyzer* analyzer, bool simple)
+bool AnyNil(token_type a, token_type b)
+{
+	return a == tt_nil || b == tt_nil;
+}
+
+token_type GetNodeType(const Node* node, SemanticAnalyzer* analyzer, bool simple, Error* err)
 {
 	if (!node)return tt_eof;
 	token_type r = tt_eof, l = tt_eof;
-	if (node->right)r = GetNodeType(node->right, analyzer, false);
-	if (node->left)l = GetNodeType(node->left, analyzer, false);
+	if (node->right)r = GetNodeType(node->right, analyzer, false, err);
+	if (node->left)l = GetNodeType(node->left, analyzer, false, err);
 	if (r == tt_err || l == tt_err)return tt_err;
 
 	token_type res = literal_type(node->core.type);
@@ -267,66 +272,129 @@ token_type GetNodeType(const Node* node, SemanticAnalyzer* analyzer, bool simple
 	case tt_identifier:
 	{
 		Variable* x = SA_FindVariable(analyzer, c_str(&node->core.sval));
-		if (!x || !x->has_value) {
-			if (!x->has_value) e_msg("nil value in variable %s", c_str(&node->core.sval));
+		if (!x) {
+			*err = e_redefinition;
 			return tt_err;
 		}
+		if (!x->has_value)
+			return tt_nil;
 		return x->type;
 	}
 	case tt_add:
 	case tt_subtract:
 	case tt_multiply:
 	case tt_power:
-		if (!numeric(r) || !numeric(l))
+		if(AnyNil(r,l)){
+			*err = e_RTnil;
 			return tt_err;
+		}
+		if (!numeric(r) || !numeric(l))
+		{
+			*err = e_type;
+			return tt_err;
+		}
 		if (r == tt_number || l == tt_number)
 			return tt_number;
+		return l;
 	case tt_modulo:
 	case tt_int_divide:
-		if (!numeric(r) || !numeric(l))
+		if (AnyNil(r, l)) {
+			*err = e_RTnil;
 			return tt_err;
+		}
+		if (!numeric(r) || !numeric(l))
+		{
+			*err = e_type;
+			return tt_err;
+		}
+		if ((node->right->core.type == tt_int_literal ||
+			node->right->core.type == tt_double_literal) && node->right->core.ival == 0)
+		{
+			*err = e_RTzero;
+			return tt_err;
+		}
 		return tt_integer;
 	case tt_divide:
-		if (!numeric(r) || !numeric(l))
+		if (AnyNil(r, l)) {
+			*err = e_RTnil;
 			return tt_err;
+		}
+		if (!numeric(r) || !numeric(l))
+		{
+			*err = e_type;
+			return tt_err;
+		}
+		if ((node->right->core.type == tt_int_literal ||
+			node->right->core.type == tt_double_literal) && node->right->core.ival == 0)
+		{
+			*err = e_RTzero;
+			return tt_err;
+		}
 		return tt_number;
 	case tt_g:
 	case tt_ge:
 	case tt_l:
 	case tt_le:
-		if (!numeric(r) || !numeric(l))
+		if (AnyNil(r, l)) {
+			*err = e_RTnil;
 			return tt_err;
+		}
+		if (!FitsType(r, l) || r == tt_boolean || l == tt_boolean)
+		{
+			*err = e_type;
+			return tt_err;
+		}
 		return tt_boolean;
 	case tt_ne:
 	case tt_ee:
+		if (!FitsType(r, l) && (r != tt_nil || l == tt_nil))
+		{
+			*err = e_type;
+			return tt_err;
+		}
 		return tt_boolean;
 	case tt_length:
-		if (l != tt_string)
+		if (l != tt_string) {
+			*err = e_type;
 			return tt_err;
+		}
 		return tt_integer;
 	case tt_concatenate:
-		if (l != tt_string || r != tt_string)
+		if (l != tt_string || r != tt_string) {
+			*err = e_type;
 			return tt_err;
+		}
 		return tt_string;
 	case tt_and:
 	case tt_or:
-		if (l != tt_boolean || r != tt_boolean)
+		if (l != tt_boolean || r != tt_boolean) {
+			*err = e_type;
 			return tt_err;
+		}
+		return tt_boolean;
 	case tt_not:
-		if (l != tt_boolean)
+		if (l != tt_boolean) {
+			*err = e_type;
 			return tt_err;
+		}
 		return tt_boolean;
 	case tt_u_minus:
-		if (!numeric(l))
+		if (!numeric(l)) {
+			*err = e_type;
 			return tt_err;
+		}
 		return l;
 	case tt_comma:
 		return tt_comma;
 	case tt_fcall:
 	{
 		FunctionDecl* fd = SA_FindFunction(analyzer, c_str(&node->core.sval));
-		if (!fd)return tt_err;
-		if (!MatchFunctionIns(node, analyzer, fd->types))
+		if (!fd){
+			*err = e_redefinition;
+			return tt_err;
+		}
+		// here
+		if ((*err = MatchFunctionIns(node, analyzer, fd->types)))
 		{
 			e_msg("Bad function call");
 			return tt_err;
@@ -334,13 +402,15 @@ token_type GetNodeType(const Node* node, SemanticAnalyzer* analyzer, bool simple
 		fd->called = true;
 		if (fd->ret.end - fd->ret.begin == 1) return *fd->ret.begin;
 		if (simple) return tt_fcall;
+		*err = e_other;
 		return tt_err;
 	}
 	default:
+		*err = e_other;
 		return tt_err;
 	}
 }
-token_type GetExpType(const Vector(Node)* ast, SemanticAnalyzer* analyzer)
+token_type GetExpType(const Vector(Node)* ast, SemanticAnalyzer* analyzer, Error* err)
 {
-	return GetNodeType(ast->data_->left, analyzer, true);
+	return GetNodeType(ast->data_->left, analyzer, true, err);
 }

@@ -1,7 +1,7 @@
 #pragma once
 
 #define ENUM_ERROR_TYPES \
-	X(ok) X(invalid_token) X(invalid_syntax) X(semantic) X(eof) 
+	X(ok) X(invalid_token) X(invalid_syntax) X(redefinition) X(type_ass) X(count) X(type) X(other) X(RTnil) X(RTzero) 
 
 typedef enum Error {
 #define X(a) e_##a,

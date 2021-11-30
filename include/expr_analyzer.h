@@ -20,7 +20,7 @@ void Constructor(ExpressionAnalyzer* self);
 void Destructor(ExpressionAnalyzer* self);
 
 Error Execute(ExpressionAnalyzer* self, struct Scanner* scanner);
-token_type GetExpType(const Vector(Node)* ast, struct SemanticAnalyzer* analyzer);
+token_type GetExpType(const Vector(Node)* ast, struct SemanticAnalyzer* analyzer, Error* err);
 
 #ifndef EXPRA_IMPL
 #pragma pop_macro("c_class")

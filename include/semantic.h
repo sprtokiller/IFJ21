@@ -38,7 +38,7 @@ inline bool FitsType(token_type t1, token_type t2)
 	return t1 == t2 || (t1 == tt_number && t2 == tt_integer);
 }
 
-token_type GetExpType(const Vector(Node)* ast, struct SemanticAnalyzer* analyzer);//convenience
+token_type GetExpType(const Vector(Node)* ast, SemanticAnalyzer* analyzer, Error* err);//convenience
 
 
 #ifndef SEMANTIC_IMPL

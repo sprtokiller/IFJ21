@@ -96,6 +96,8 @@ inline token_type literal_type(token_type tt)
 		return tt_number;
 	case tt_int_literal:
 		return tt_integer;
+	case tt_nil:
+		return tt_nil;
 	default:
 		return tt_err;
 	}

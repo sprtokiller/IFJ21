@@ -597,7 +597,7 @@ Error _get_token(Scanner* self, token* tk)
 			if (sym == '=')
 			{
 				push_back_str(&xtoken, (char)sym);
-				predict = (token_type)((uint32_t)predict + 1);
+				predict = tt_ee;
 				sym = 0;
 			}
 			goto make_token;

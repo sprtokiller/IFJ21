@@ -1,20 +1,21 @@
+-- Program 1: Vypocet faktorialu (iterativne)
 require "ifj21"
-
-
-function a(a:integer, b:boolean):integer, boolean
-	return 5, ""
+function main() -- uzivatelska funkce bez parametru
+	local a : integer
+	local vysl : integer = 0
+	write("Zadejte cislo pro vypocet faktorialu\n")
+	a = readi()
+	if a == nil then
+		write("a je nil\n") return
+	end
+	if a < 0 then
+		write("Faktorial nelze spocitat\n")
+	else
+		vysl = 1
+		while a > 0 do
+			vysl = vysl * a a = a - 1 -- dva prikazy
+		end
+		write("Vysledek je: ", vysl, "\n")
+	end
 end
-
-function s(a:integer, b:boolean):integer
-	return a(5, true)
-end
-
-function main():string, boolean
-	local y:string = ""
-	local a:integer = 20
-	local b:number
-	local c:boolean = true
-	
-	b,c = s(s(a, c),c)
-
-end
+main() -- prikaz hlavniho tela program
