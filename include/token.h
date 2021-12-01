@@ -10,7 +10,7 @@ X(length) X(multiply) X(divide) X(int_divide) X(add) X(subtract) X(concatenate) 
 X(left_parenthese) X(right_parenthese) X(comma) X(semicolon) X(colon) X(assign)\
 X(eof) X(u_plus) X(u_minus) X(fcall) X(type)\
 X(for) X(repeat) X(until) X(break)\
-X(expression) X(internal_variable)
+X(expression) X(internal_variable) X(int_convert)
 
 typedef enum token_type {
 #define X(a) tt_##a,

@@ -290,6 +290,21 @@ token_type GetNodeType(Node* node, SemanticAnalyzer* analyzer, bool simple, Erro
 	case tt_add:
 	case tt_subtract:
 	case tt_multiply:
+		if (AnyNil(r, l)) {
+			*err = e_RTnil;
+			return tt_err;
+		}
+		if (!numeric(r) || !numeric(l))
+		{
+			*err = e_type;
+			return tt_err;
+		}
+		if (l != r)
+		{
+			if (l == tt_number)node->right->result = tt_int_convert;
+			if (r == tt_number)node->left->result = tt_int_convert;
+		}
+		return node->result = l;
 	case tt_power:
 		if (AnyNil(r, l)) {
 			*err = e_RTnil;
@@ -300,6 +315,8 @@ token_type GetNodeType(Node* node, SemanticAnalyzer* analyzer, bool simple, Erro
 			*err = e_type;
 			return tt_err;
 		}
+		if (l == tt_integer)
+			node->result = node->left->result = tt_int_convert;
 		return node->result = l;
 	case tt_modulo:
 	case tt_int_divide:
@@ -334,6 +351,10 @@ token_type GetNodeType(Node* node, SemanticAnalyzer* analyzer, bool simple, Erro
 			*err = e_RTzero;
 			return tt_err;
 		}
+		if (l == tt_integer)
+			node->left->result = tt_int_convert;
+		if (r == tt_integer)
+			node->right->result = tt_int_convert;
 		return node->result = tt_number;
 	case tt_g:
 	case tt_ge:
@@ -343,18 +364,28 @@ token_type GetNodeType(Node* node, SemanticAnalyzer* analyzer, bool simple, Erro
 			*err = e_RTnil;
 			return tt_err;
 		}
-		if (!FitsType(r, l) || r == tt_boolean || l == tt_boolean)
+		if (!FitsType(r, l))
 		{
 			*err = e_type;
 			return tt_err;
 		}
+		if (l != r)
+		{
+			if (l == tt_number)node->right->result = tt_int_convert;
+			if (r == tt_number)node->left->result = tt_int_convert;
+		}
 		return node->result = tt_boolean;
 	case tt_ne:
 	case tt_ee:
-		if (!FitsType(r, l) && (r != tt_nil || l == tt_nil))
+		if (!FitsType(r, l) && (r != tt_nil || l != tt_nil))
 		{
 			*err = e_type;
 			return tt_err;
+		}
+		if (l != r && (r != tt_nil && l != tt_nil))
+		{
+			if (l == tt_number)node->right->result = tt_int_convert;
+			if (r == tt_number)node->left->result = tt_int_convert;
 		}
 		return node->result = tt_boolean;
 	case tt_length:
@@ -426,6 +457,9 @@ void GenerateNode(Node* self, String* to)
 	if (self->right)GenerateNode(self->right, to);
 	if (self->left)GenerateNode(self->left, to);
 
+	if(self->result == tt_int_convert)
+		append_str(to, "INT2FLOATS\n");
+
 	switch (self->core.type)
 	{
 	case tt_internal_variable:
@@ -487,12 +521,13 @@ void GenerateNode(Node* self, String* to)
 		append_str(to, "NOTS\n");
 		break;
 	case tt_u_minus:
-		if (self->result == tt_integer)
+		if (self->left->result == tt_integer)
 		{
 			append_str(to, "PUSHS int@0\n"
 				"SUBS\n"); break;
 		}
-		if (self->result == tt_number)
+		if (self->left->result == tt_number 
+			|| self->left->result == tt_int_convert)
 		{
 			append_str(to, "PUSHS float@0\n"
 				"SUBS\n"); break;
