@@ -1,6 +1,7 @@
 #include "..\include\syntax.h"
 #include "Templates.h"
 #include "semantic.h"
+#include "codegen.h"
 #include <stdio.h>
 #include <malloc.h>
 #include <string.h>
@@ -44,12 +45,16 @@ void rq_print(reqStmt* self)
 }
 Error rq_analyze(reqStmt* self, struct SemanticAnalyzer* analyzer)
 {
-	if (strcmp(c_str(&self->arg.sval), "\"ifj21\"") || !SA_IsGlobal(analyzer))
+	if (strcmp(c_str(&self->arg.sval), "ifj21") || !SA_IsGlobal(analyzer))
 	{
 		e_msg("Require has unknown package or is not global");
 		return e_other;
 	}
 	return e_ok;
+}
+void rq_generate(reqStmt* self, struct CodeGen* codegen)
+{
+
 }
 
 static const struct IASTElement vfptr_rq = (IASTElement)
@@ -58,6 +63,7 @@ static const struct IASTElement vfptr_rq = (IASTElement)
 	rq_print,
 	reqStmt_dtor,
 	rq_analyze,
+	rq_generate
 };
 void reqStmt_ctor(reqStmt* self)
 {
@@ -130,13 +136,23 @@ Error blk_analyze(blockPart* self, struct SemanticAnalyzer* analyzer)
 	SA_ResignScope(analyzer);
 	return e;
 }
+void blk_generate(const blockPart* self, struct CodeGen* codegen)
+{
+	for (size_t i = 0; i < size_Vector_ppIASTElement(&self->block); i++)
+	{
+		IASTElement** pp = *at_Vector_ppIASTElement(&self->block, i);
+		if ((*pp)->generate)
+			(*pp)->generate(pp, codegen);
+	}
+}
 
 static const struct IASTElement vfptr_blk = (IASTElement)
 {
 	blk_append,
 	blk_print,
 	blockPart_dtor,
-	blk_analyze
+	blk_analyze,
+	blk_generate
 };
 void blockPart_ctor(blockPart* self)
 {
@@ -252,17 +268,50 @@ Error fd_analyze(funcDecl* self, struct SemanticAnalyzer* analyzer)
 			&self->ret, c_str(&self->name.sval), false))
 		return e_redefinition; //function was redef
 
+	self->block.partial = true;
+	SA_AddScope(analyzer);
+	for (size_t i = 0; i < size_Vector_token(&self->args); i++)
+	{
+		token* t = at_Vector_token(&self->args, i);
+		if (!SA_AddVariable(analyzer, &t->sval,
+			t->type, true, false))return e_redefinition;
+	}
+
 	ERR_CHECK(blk_analyze(&self->block, analyzer));
 	SA_LeaveFunction(analyzer);
 	return e;
 }
+void fd_generate(const funcDecl* self, struct CodeGen* codegen)
+{
+	String* func = CG_AddFunction(codegen);
+	append_str(func, "LABEL $$");
+	append_str(func, c_str(&self->name.sval));
+	push_back_str(func, '\n');
+	append_str(func, "CREATEFRAME\n""PUSHFRAME\n");
+
+	for (size_t i = 0; i < size_Vector_token(&self->args); i++)
+	{
+		const char* t = c_str(&at_Vector_token(&self->args, i)->sval);
+		append_str(func, "DEFVAR ");
+		append_str(func, t);
+		push_back_str(func, '\n');
+		append_str(func, "POPS ");
+		append_str(func, t);
+	}
+
+	blk_generate(&self->block, codegen);
+
+	CG_EndFunction(codegen);
+}
+
 
 static const struct IASTElement vfptr_fd = (IASTElement)
 {
 	fd_append,
 	fd_print,
 	funcDecl_dtor,
-	fd_analyze
+	fd_analyze,
+	fd_generate
 };
 void funcDecl_ctor(funcDecl* self)
 {
@@ -355,11 +404,14 @@ Error ls_analyze(localStmt* self, struct SemanticAnalyzer* analyzer)
 		e_msg("Local statement can't be in global scope!");
 		return e_other;
 	}
-	if (!SA_AddVariable(analyzer, c_str(&self->id), self->type, self->has_value)) {
+	
+
+	if (!SA_AddVariable(analyzer, &self->id, self->type, self->has_value, false)) {
 		e_msg("Variable already exists!");
 		return e_redefinition;
 	}
 	if (!self->has_value)return e_ok;
+
 
 	Error e = e_ok;
 	token_type tt = GetExpType(&self->value, analyzer, &e);
@@ -384,13 +436,31 @@ Error ls_analyze(localStmt* self, struct SemanticAnalyzer* analyzer)
 
 	return e_ok;
 }
+void ls_generate(const localStmt* self, struct CodeGen* codegen)
+{
+	String* code = codegen->current;
+	const char* t = c_str(&self->id);
+	append_str(code, "DEFVAR ");
+	append_str(code, t);
+	push_back_str(code, '\n');
+	if (self->has_value)
+	{
+		GenerateExpression(&self->value, code);
+		append_str(code, "POPS ");
+		append_str(code, t);
+		push_back_str(code, '\n');
+		push_back_str(code, '\n');
+	}
+}
+
 
 static const struct IASTElement vfptr_ls = (IASTElement)
 {
 	ls_append,
 	ls_print,
 	localStmt_dtor,
-	ls_analyze
+	ls_analyze,
+	ls_generate
 };
 void localStmt_ctor(localStmt* self)
 {
@@ -681,6 +751,12 @@ Error prg_analyze(Program* self, struct SemanticAnalyzer* analyzer)
 	if (!SA_Final(analyzer))return e_redefinition;
 	return e;
 }
+void prg_generate(Program* self, struct CodeGen* codegen)
+{
+	append_str(&codegen->global, "DEFVAR GF@__XTMP_STR\n"
+		"DEFVAR GF@__XTMP_STRLEN\n\n");
+	blk_generate(&self->global_block, codegen);
+}
 
 static const struct IASTElement vfptr_prg = (IASTElement)
 {
@@ -688,6 +764,7 @@ static const struct IASTElement vfptr_prg = (IASTElement)
 	prg_print,
 	Program_dtor,
 	prg_analyze,
+	prg_generate
 };
 void Program_ctor(Program* self)
 {
@@ -859,7 +936,7 @@ Error for_analyze(For* self, struct SemanticAnalyzer* analyzer)
 		return e_other;
 	}
 	SA_AddScope(analyzer);
-	SA_AddVariable(analyzer, c_str(&self->id), tt_integer, true);
+	SA_AddVariable(analyzer, &self->id, tt_integer, true, false);
 
 	token_type tt_ex = GetExpType(&self->expr, analyzer, &e);
 	if (e)return e;
@@ -1012,9 +1089,9 @@ RetState ret_append(Return* self, token* tk)
 	case tt_comma:
 		return s_await_e;
 	case tt_expression:
-		if (tk->ec != 0) { 
+		if (tk->ec != 0) {
 			clear_Vector_Node((Vector(Node)*)tk->expression);
-			return s_accept; 
+			return s_accept;
 		}
 		Vector_Node_move_ctor(push(&self->retlist),
 			(Vector(Node)*)tk->expression);
@@ -1169,7 +1246,7 @@ static void Print_elseif(List_elseif* self)
 static Error Check_elseif_node(Node_elseif* self, struct SemanticAnalyzer* analyzer, bool expr)
 {
 	Error e = e_ok;
-	if(!expr) return blk_analyze(&self->block, analyzer);
+	if (!expr) return blk_analyze(&self->block, analyzer);
 	token_type tt = GetExpType(&self->expr, analyzer, &e);
 	if (e)return e;
 	return blk_analyze(&self->block, analyzer);
@@ -1396,7 +1473,7 @@ Error gs_analyze(globalStmt* self, struct SemanticAnalyzer* analyzer)
 	}
 	if (self->type == tt_function)
 		return SA_AddFunction(analyzer, &self->fargs, &self->fretargs, c_str(&self->id), true) ? e_ok : e_redefinition;
-	if (!SA_AddVariable(analyzer, c_str(&self->id), self->type, self->has_value)) {
+	if (!SA_AddVariable(analyzer, &self->id, self->type, self->has_value, true)) {
 		e_msg("Variable already exists in this scope");
 		return e_redefinition;
 	}
@@ -1425,14 +1502,32 @@ Error gs_analyze(globalStmt* self, struct SemanticAnalyzer* analyzer)
 
 	return e_ok;
 }
-
+void gs_generate(const globalStmt* self, struct CodeGen* codegen)
+{
+	if (self->type == tt_function)return;
+	
+	String* code = codegen->current;
+	const char* t = c_str(&self->id);
+	append_str(code, "DEFVAR ");
+	append_str(code, t);
+	push_back_str(code, '\n');
+	if (self->has_value)
+	{
+		GenerateExpression(&self->value, code);
+		append_str(code, "POPS ");
+		append_str(code, t);
+		push_back_str(code, '\n');
+		push_back_str(code, '\n');
+	}
+}
 
 static const struct IASTElement vfptr_gs = (IASTElement)
 {
 	gs_append,
 	gs_print,
 	globalStmt_dtor,
-	gs_analyze
+	gs_analyze,
+	gs_generate
 };
 void globalStmt_ctor(globalStmt* self)
 {

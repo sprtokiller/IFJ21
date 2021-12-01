@@ -146,8 +146,8 @@ void push_back_str(String* self, char c)
 {
 	if (!self->is_large && *last_c(self))
 	{
-		self->short_str[sizeof(String) - 1 - (size_t)self->short_str[sizeof(String) - 1]--] = c;
-		self->short_str[sizeof(String) - 1 - (size_t)self->short_str[sizeof(String) - 1]] = '\0';
+		self->short_str[sizeof(String) - 1 - (size_t)self->term--] = c;
+		self->short_str[sizeof(String) - 1 - (size_t)self->term] = '\0';
 		return;
 	}
 
@@ -167,6 +167,53 @@ void clear_str(String* self)
 	}
 	*last(self) = i_size(0);
 	self->short_str[0] = '\0';
+}
+
+void append_str(String* self, const char* input)
+{
+	StringView x = { input, strlen(input) };
+	reallocate_for(self, x.len);
+
+	if (!self->is_large)
+	{
+		while (*input)
+			self->short_str[sizeof(String) - 1 - self->term--] = *input++;
+		self->short_str[sizeof(String) - 1 - self->term] = '\0';
+		return;
+	}
+	memcpy(self->str + self->len, x.data, x.len);
+	self->len += x.len;
+	self->str[self->len] = '\0';
+}
+
+void prepend_str(String* self, const char* input)
+{
+	StringView x = { input, strlen(input) };
+	reallocate_for(self, x.len);
+
+	if (!self->is_large)
+	{
+		memmove(self->short_str + x.len, self->short_str, x.len);
+		memcpy(self->short_str, x.data, x.len);
+		self->term -= x.len;
+		return;
+	}
+	memmove(self->str + x.len, self->str, x.len);
+	memcpy(self->str, x.data, x.len);
+	self->len += x.len;
+}
+
+void pop_front_str(String* self)
+{
+	if (!self->is_large)
+	{
+		memmove(self->short_str, self->short_str + 1, sizeof(String) - 1 - self->term - 1);
+		self->short_str[sizeof(String) - 1 - self->term - 1] = '\0';
+		self->term++;
+		return;
+	}
+	memmove(self->str, self->str + 1, --self->len);
+	self->str[self->len--] = 0;
 }
 
 StringView substr_b(const String* self, size_t offset_back)

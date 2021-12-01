@@ -15,6 +15,7 @@ struct Node {
 	bool valid;
 	bool expression;
 	token core;
+	token_type result;
 	Node* left, *right;           /**< Left and right subtree */
 };
 

@@ -1,6 +1,7 @@
 ﻿#include "common.h"
 #include "../include/parser.h"
 #include "semantic.h"
+#include "codegen.h"
 #include <stdio.h>
 	
 int main(int argc, char* argv[])
@@ -17,7 +18,13 @@ int main(int argc, char* argv[])
 	Parser_ctor(&parser, stream);
 	ERR_CHECK(Start(&parser));
 	e = (*parser.program)->analyze(parser.program, &semantic);
-	if(e)e_msg(error_type_name(e));
+	if (e) { e_msg(error_type_name(e)); return e; }
+
+	UNIQUE(CodeGen) cg;
+	CodeGen_ctor(&cg);
+
+	(*parser.program)->generate(parser.program, &cg);
+
 
 	return e;
 }

@@ -2,6 +2,7 @@
 #include "expr_analyzer.h"
 #include "scanner.h"
 #include "semantic.h"
+#include <inttypes.h>
 
 typedef enum {
 	S,  // shift           (<)
@@ -233,18 +234,18 @@ static bool numeric(token_type tt)
 	return tt == tt_number || tt == tt_integer;
 }
 
-token_type GetNodeType(const Node* node, SemanticAnalyzer* analyzer, bool simple, Error* err);
+token_type GetNodeType(Node* node, SemanticAnalyzer* analyzer, bool simple, Error* err);
 
 
 
-Error MatchFunctionIns(const Node* node, SemanticAnalyzer* analyzer, Span_token_type subsp)
+Error MatchFunctionIns(Node* node, SemanticAnalyzer* analyzer, Span_token_type subsp)
 {
 	Error e = e_ok;
 	token_type l = GetNodeType(node->left, analyzer, false, &e);
 	token_type r = GetNodeType(node->right, analyzer, false, &e);
 	if (r == tt_err || l == tt_err)return e;
 
-	if (l == tt_eof)return empty_Span_token_type(&subsp)?e_ok:e_count;
+	if (l == tt_eof)return empty_Span_token_type(&subsp) ? e_ok : e_count;
 	if (node->core.type == tt_fcall)return MatchFunctionIns(node->left, analyzer, subsp);
 
 	if (!FitsType(l, *subsp.begin))return e_count;
@@ -258,7 +259,7 @@ bool AnyNil(token_type a, token_type b)
 	return a == tt_nil || b == tt_nil;
 }
 
-token_type GetNodeType(const Node* node, SemanticAnalyzer* analyzer, bool simple, Error* err)
+token_type GetNodeType(Node* node, SemanticAnalyzer* analyzer, bool simple, Error* err)
 {
 	if (!node)return tt_eof;
 	token_type r = tt_eof, l = tt_eof;
@@ -278,44 +279,45 @@ token_type GetNodeType(const Node* node, SemanticAnalyzer* analyzer, bool simple
 			*err = e_redefinition;
 			return tt_err;
 		}
+		token_dtor(&node->core);
+		node->core.type = tt_internal_variable; //restate with pseudoname
+		node->core.expression = x->asm_name;
+
 		if (!x->has_value)
-			return tt_nil;
-		return x->type;
+			return node->result = tt_nil;
+		return node->result = x->type;
 	}
 	case tt_add:
 	case tt_subtract:
 	case tt_multiply:
 	case tt_power:
-		if(AnyNil(r,l)){
+		if (AnyNil(r, l)) {
 			*err = e_RTnil;
 			return tt_err;
 		}
-		if (!numeric(r) || !numeric(l))
+		if (r != tt_integer || !numeric(l))
 		{
 			*err = e_type;
 			return tt_err;
 		}
-		if (r == tt_number || l == tt_number)
-			return tt_number;
-		return l;
+		return node->result = l;
 	case tt_modulo:
 	case tt_int_divide:
 		if (AnyNil(r, l)) {
 			*err = e_RTnil;
 			return tt_err;
 		}
-		if (!numeric(r) || !numeric(l))
+		if (r != tt_integer || l != tt_integer)
 		{
 			*err = e_type;
 			return tt_err;
 		}
-		if ((node->right->core.type == tt_int_literal ||
-			node->right->core.type == tt_double_literal) && node->right->core.ival == 0)
+		if ((node->right->core.type == tt_int_literal) && node->right->core.ival == 0)
 		{
 			*err = e_RTzero;
 			return tt_err;
 		}
-		return tt_integer;
+		return node->result = tt_integer;
 	case tt_divide:
 		if (AnyNil(r, l)) {
 			*err = e_RTnil;
@@ -332,7 +334,7 @@ token_type GetNodeType(const Node* node, SemanticAnalyzer* analyzer, bool simple
 			*err = e_RTzero;
 			return tt_err;
 		}
-		return tt_number;
+		return node->result = tt_number;
 	case tt_g:
 	case tt_ge:
 	case tt_l:
@@ -346,7 +348,7 @@ token_type GetNodeType(const Node* node, SemanticAnalyzer* analyzer, bool simple
 			*err = e_type;
 			return tt_err;
 		}
-		return tt_boolean;
+		return node->result = tt_boolean;
 	case tt_ne:
 	case tt_ee:
 		if (!FitsType(r, l) && (r != tt_nil || l == tt_nil))
@@ -354,56 +356,56 @@ token_type GetNodeType(const Node* node, SemanticAnalyzer* analyzer, bool simple
 			*err = e_type;
 			return tt_err;
 		}
-		return tt_boolean;
+		return node->result = tt_boolean;
 	case tt_length:
 		if (l != tt_string) {
 			*err = e_type;
 			return tt_err;
 		}
-		return tt_integer;
+		return node->result = tt_integer;
 	case tt_concatenate:
 		if (l != tt_string || r != tt_string) {
 			*err = e_type;
 			return tt_err;
 		}
-		return tt_string;
+		return node->result = tt_string;
 	case tt_and:
 	case tt_or:
 		if (l != tt_boolean || r != tt_boolean) {
 			*err = e_type;
 			return tt_err;
 		}
-		return tt_boolean;
+		return node->result = tt_boolean;
 	case tt_not:
 		if (l != tt_boolean) {
 			*err = e_type;
 			return tt_err;
 		}
-		return tt_boolean;
+		return node->result = tt_boolean;
 	case tt_u_minus:
 		if (!numeric(l)) {
 			*err = e_type;
 			return tt_err;
 		}
-		return l;
+		return node->result = l;
 	case tt_comma:
 		return tt_comma;
 	case tt_fcall:
 	{
 		FunctionDecl* fd = SA_FindFunction(analyzer, c_str(&node->core.sval));
-		if (!fd){
+		if (!fd) {
 			*err = e_redefinition;
 			return tt_err;
 		}
-		if(!IsWrite(c_str(&node->core.sval)))
+		if (!IsWrite(c_str(&node->core.sval)))
 			if ((*err = MatchFunctionIns(node, analyzer, fd->types)))
 			{
 				e_msg("Bad function call");
 				return tt_err;
 			}
 		fd->called = true;
-		if (fd->ret.end - fd->ret.begin == 1) return *fd->ret.begin;
-		if (simple) return tt_fcall;
+		if (fd->ret.end - fd->ret.begin == 1) return node->result = *fd->ret.begin;
+		if (simple) return node->result = tt_fcall;
 		*err = e_other;
 		return tt_err;
 	}
@@ -412,7 +414,128 @@ token_type GetNodeType(const Node* node, SemanticAnalyzer* analyzer, bool simple
 		return tt_err;
 	}
 }
-token_type GetExpType(const Vector(Node)* ast, SemanticAnalyzer* analyzer, Error* err)
+token_type GetExpType(Vector(Node)* ast, SemanticAnalyzer* analyzer, Error* err)
 {
 	return GetNodeType(ast->data_->left, analyzer, true, err);
+}
+
+void GenerateNode(Node* self, String* to)
+{
+	if (self->right)GenerateNode(self->right, to);
+	if (self->left)GenerateNode(self->left, to);
+
+	switch (self->core.type)
+	{
+	case tt_internal_variable:
+		append_str(to, "PUSHS ");
+		append_str(to, (const char*)self->core.expression);
+		push_back_str(to, '\n');
+		break;
+	case tt_int_literal:
+	{
+		char c[128];
+		sprintf(c, "%"PRId64"\n", self->core.ival);
+		append_str(to, "PUSHS int@");
+		append_str(to, c);
+		break;
+	}
+	case tt_double_literal:
+	{
+		char c[128];
+		sprintf(c, "%a\n", self->core.dval);
+		append_str(to, "PUSHS float@");
+		append_str(to, c);
+		break;
+	}
+	case tt_string_literal:
+		append_str(to, "PUSHS string@");
+		append_str(to, c_str(&self->core.sval));
+		push_back_str(to, '\n');
+		break;
+	case tt_power:
+		append_str(to, "CALL $$_builtin_pow\n");
+		break;
+	case tt_length:
+		append_str(to, "POPS GF@__XTMP_STR\n"
+			"STRLEN GF@__XTMP_STRLEN GF@__XTMP_STR\n"
+			"PUSHS GF@__XTMP_STRLEN\n");
+		break;
+	case tt_multiply:
+		append_str(to, "MULS\n");
+		break;
+	case tt_divide:
+		append_str(to, "DIVS\n");
+		break;
+	case tt_int_divide:
+		append_str(to, "IDIVS\n");
+		break;
+	case tt_add:
+		append_str(to, "ADDS\n");
+		break;
+	case tt_subtract:
+		append_str(to, "SUBS\n");
+		break;
+	case tt_and:
+		append_str(to, "ANDS\n");
+		break;
+	case tt_or:
+		append_str(to, "ORS\n");
+		break;
+	case tt_not:
+		append_str(to, "NOTS\n");
+		break;
+	case tt_u_minus:
+		if (self->result == tt_integer)
+		{
+			append_str(to, "PUSHS int@0\n"
+				"SUBS\n"); break;
+		}
+		if (self->result == tt_number)
+		{
+			append_str(to, "PUSHS float@0\n"
+				"SUBS\n"); break;
+		}
+		break;
+	case tt_modulo:
+		append_str(to, "CREATEFRAME\n"
+			"PUSHFRAME\n"
+			"DEFVAR LF@a\n"
+			"POPS LF@a\n"
+			"DEFVAR LF@m\n"
+			"POPS LF@in\n"
+			"DEFVAR LF@res\n"
+			"IDIV LF@res LF@a LF@m\n"
+			"MUL LF@res LF@a LF@m\n"
+			"SUB LF@a LF@a LF@res\n"
+			"PUSHS LF@a\n"
+			"POPFRAME\n");
+		break;
+
+	case tt_g:
+		append_str(to, "GTS\n");
+		break;
+	case tt_l:
+		append_str(to, "LTS\n");
+		break;
+	case tt_le:
+		append_str(to, "GTS\n""NOTS\n");
+		break;
+	case tt_ge:
+		append_str(to, "LTS\n""NOTS\n");
+		break;
+	case tt_ee:
+		append_str(to, "EQS\n");
+		break;
+	case tt_ne:
+		append_str(to, "EQS\n""NOTS\n");
+		break;
+
+	default:
+		break;
+	}
+
+}
+void GenerateExpression(Vector(Node)* self, String* to)
+{
+	GenerateNode(self->data_->left, to);
 }
