@@ -249,7 +249,7 @@ Error MatchFunctionIns(Node* node, SemanticAnalyzer* analyzer, Span_token_type s
 	if (node->core.type == tt_fcall)return MatchFunctionIns(node->left, analyzer, subsp);
 
 	if (!FitsType(l, *subsp.begin))return e_count;
-	if (r == tt_comma)return MatchFunctionIns(node->left, analyzer, (Span_token_type) { subsp.begin + 1, subsp.end });
+	if (r == tt_comma)return MatchFunctionIns(node->right, analyzer, (Span_token_type) { subsp.begin + 1, subsp.end });
 	if (!FitsType(r, *(subsp.begin + 1)))return e_count;
 	return e_ok;
 }
@@ -418,6 +418,8 @@ token_type GetExpType(Vector(Node)* ast, SemanticAnalyzer* analyzer, Error* err)
 {
 	return GetNodeType(ast->data_->left, analyzer, true, err);
 }
+
+
 
 void GenerateNode(Node* self, String* to)
 {

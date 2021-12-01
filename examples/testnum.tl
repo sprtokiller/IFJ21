@@ -1,16 +1,16 @@
 -- Program 1: Vypocet faktorialu (iterativne)
 require "ifj21"
 
-global x:number = -10+4*26^2^2 * #"good"
-function x(): integer, string, integer
+--global x:number = -10+4*26^2^2 * #"good"
+function x(a:integer, b:string, c:integer): integer
 end
 
 function main() -- uzivatelska funkce bez parametru
-	local x : integer
+	local x : integer = x(5+2,"",10)
 	local y : string
 	local z : integer
 
-	x,y,z = x(), ""
+	--x,y,z = x(), ""
 
 	local a : integer
 	local vysl : integer = 0
