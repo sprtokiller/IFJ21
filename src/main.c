@@ -20,7 +20,7 @@ int main(int argc, char* argv[])
 	e = (*parser.program)->analyze(parser.program, &semantic);
 	if (e) { e_msg(error_type_name(e)); return e; }
 
-	UNIQUE(CodeGen) cg;
+	UNIQUE(CodeGen) cg = {0};
 	CodeGen_ctor(&cg);
 
 	(*parser.program)->generate(parser.program, &cg);

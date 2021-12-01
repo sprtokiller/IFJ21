@@ -521,6 +521,7 @@ typedef struct AssOrFCall
 {
 	Implements(IASTElement);
 	bool valid : 1;
+	bool all_assigned : 1;
 	enum {
 		ass_none, ass_ass, ass_fcall
 	} op : 3; // 0-fcall 1-ass
@@ -653,6 +654,10 @@ Error afc_analyze(AssOrFCall* self, struct SemanticAnalyzer* analyzer)
 		if (!exp) continue;
 
 		token_type tt = GetExpType(exp, analyzer, &e);
+		if(tt == tt_eof && !self->all_assigned) {
+			e_msg("Less vars assigned than expekted");
+			return e_count;
+		}
 		if (e)return e;
 
 		if (tt == tt_fcall)
@@ -664,7 +669,11 @@ Error afc_analyze(AssOrFCall* self, struct SemanticAnalyzer* analyzer)
 			}
 			for (size_t j = 0; j < size_Span_token_type(&fp->ret); j++)
 			{
-				if (i + j >= self->idents.end_)break;
+				if (i + j == self->idents.end_ - 1)self->all_assigned = true;
+				if (i + j >= self->idents.end_) { 
+					self->all_assigned = true;
+					break; 
+				}
 				Variable* vi = SA_FindVariable(analyzer, c_str(&(i + j)->sval));
 				if (vi->type != fp->ret.begin[j])
 				{

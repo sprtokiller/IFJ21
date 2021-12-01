@@ -2,11 +2,20 @@
 require "ifj21"
 
 global x:number = -10+4*26^2^2 * #"good"
-
+function x(): integer, string, integer
+end
 
 function main() -- uzivatelska funkce bez parametru
+	local x : integer
+	local y : string
+	local z : integer
+
+	x,y,z = x(), ""
+
 	local a : integer
 	local vysl : integer = 0
+
+
 	write("Zadejte cislo pro vypocet faktorialu\n\\")
 	a = readi()
 	if a == nil then

@@ -52,7 +52,7 @@ static inline size_t calculate_growth(size_t Oldcapacity, size_t Newsize) //MS S
 	const size_t Geometric = Oldcapacity + Oldcapacity / 2;
 	if (Geometric < Newsize)
 	{
-		return Newsize; // geometric growth would be insufficient
+		return Newsize + 1; // geometric growth would be insufficient
 	}
 
 	return Geometric; // geometric growth is sufficient
@@ -63,7 +63,7 @@ static void reallocate_for(String* self, size_t sz)
 	const size_t Newsize = Oldsize + sz;
 
 	if (Newsize <= capacity_str(self))return;
-	const size_t Newcapacity = calculate_growth(Oldsize, Newsize);
+	const size_t Newcapacity = calculate_growth(capacity_str(self), Newsize);
 
 	if (self->is_large)
 	{
