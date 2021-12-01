@@ -484,6 +484,7 @@ RetState afc_append(AssOrFCall* self, token* tk)
 			break;
 		}
 		case tt_assign:
+			self->eq = true;
 		case tt_comma:
 			self->op = ass_ass;
 			break;
@@ -605,10 +606,11 @@ Error afc_analyze(AssOrFCall* self, struct SemanticAnalyzer* analyzer)
 			exp = exp->next;
 			continue;
 		}
-		if (FitsType(tt, v->type)) {
+		if (!FitsType(tt, v->type)) {
 			e_msg("Expression and variable types do not match");
 			return e_type_ass;
 		}
+		v->has_value = true;
 		exp = exp->next;
 	}
 	if (exp)return e_count;
@@ -1037,7 +1039,7 @@ Error ret_analyze(Return* self, struct SemanticAnalyzer* analyzer)
 	token_type tt = tt_err;
 	Error e = e_ok;
 
-	if (empty_Span_token_type(&rets) && (tt = GetExpType(&node->expression, analyzer, &e)) == tt_fcall) //void function returns
+	if (empty_Span_token_type(&rets) && node && (tt = GetExpType(&node->expression, analyzer, &e)) == tt_fcall) //void function returns
 	{
 		FunctionDecl* fp = SA_FindFunction(analyzer, c_str(&node->expression.data_[0].left->core.sval));
 		if (!empty_Span_token_type(&fp->ret)) {

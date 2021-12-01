@@ -144,7 +144,7 @@ bool is_operand(uint32_t state)
  *  @param el char target char
  *  @return TRUE, if char is in str
  */
-inline bool x_bsearch(const char* str, size_t len, int el)
+bool x_bsearch(const char* str, size_t len, int el)
 {
 	int l = 0;
 	int r = len;

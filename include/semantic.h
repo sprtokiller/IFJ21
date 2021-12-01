@@ -1,5 +1,6 @@
 #pragma once
 #include "Templates.h"
+#include "builtin.h"
 
 #pragma push_macro("c_class")
 #undef c_class

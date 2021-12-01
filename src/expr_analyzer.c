@@ -236,6 +236,7 @@ static bool numeric(token_type tt)
 token_type GetNodeType(const Node* node, SemanticAnalyzer* analyzer, bool simple, Error* err);
 
 
+
 Error MatchFunctionIns(const Node* node, SemanticAnalyzer* analyzer, Span_token_type subsp)
 {
 	Error e = e_ok;
@@ -243,6 +244,7 @@ Error MatchFunctionIns(const Node* node, SemanticAnalyzer* analyzer, Span_token_
 	token_type r = GetNodeType(node->right, analyzer, false, &e);
 	if (r == tt_err || l == tt_err)return e;
 
+	if (l == tt_eof)return empty_Span_token_type(&subsp)?e_ok:e_count;
 	if (node->core.type == tt_fcall)return MatchFunctionIns(node->left, analyzer, subsp);
 
 	if (!FitsType(l, *subsp.begin))return e_count;
@@ -393,12 +395,12 @@ token_type GetNodeType(const Node* node, SemanticAnalyzer* analyzer, bool simple
 			*err = e_redefinition;
 			return tt_err;
 		}
-		// here
-		if ((*err = MatchFunctionIns(node, analyzer, fd->types)))
-		{
-			e_msg("Bad function call");
-			return tt_err;
-		}
+		if(!IsWrite(c_str(&node->core.sval)))
+			if ((*err = MatchFunctionIns(node, analyzer, fd->types)))
+			{
+				e_msg("Bad function call");
+				return tt_err;
+			}
 		fd->called = true;
 		if (fd->ret.end - fd->ret.begin == 1) return *fd->ret.begin;
 		if (simple) return tt_fcall;

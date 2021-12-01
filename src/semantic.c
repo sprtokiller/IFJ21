@@ -8,6 +8,10 @@ void Constructor(selfptr)
 	self->level = (size_t)-1;
 	htab_FunctionDecl_ctor(&self->funcs);
 	self->scopes = (Vector(HashMap(Variable))){ 0 };
+	FunctionDecl* fdec = NULL;
+#define X(a) fdec = emplace_htab_FunctionDecl(&self->funcs, #a); *fdec = fd##a;
+	LIST_BUILTINS()
+#undef X
 }
 void Destructor(selfptr)
 {

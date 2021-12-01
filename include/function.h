@@ -3,8 +3,8 @@
 
 typedef struct Span_token_type
 {
-	token_type* begin;
-	token_type* end;
+	const token_type* begin;
+	const token_type* end;
 }Span_token_type;
 
 inline bool size_Span_token_type(Span_token_type* self)
