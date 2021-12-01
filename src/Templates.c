@@ -6,3 +6,4 @@
 #define VTEMPLATES_IMPL
 #include "Templates.h"
 #include "VLib/Vector_T.c"
+#include "symtable.c"

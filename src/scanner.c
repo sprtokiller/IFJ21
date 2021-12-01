@@ -144,7 +144,7 @@ bool is_operand(uint32_t state)
  *  @param el char target char
  *  @return TRUE, if char is in str
  */
-inline bool x_bsearch(const char* str, size_t len, int el)
+bool x_bsearch(const char* str, size_t len, int el)
 {
 	int l = 0;
 	int r = len;
@@ -221,8 +221,13 @@ bool _parse_kw(Scanner* self, String* xtoken, int* xsym, token_type* tt)
 		predict = "and"; *tt = tt_and; break;
 
 	case 'b':
-		predict = "boolean"; *tt = tt_boolean; break;
-
+		switch (nsym)
+		{
+		case 'r': predict = "break"; *tt = tt_break; break;
+		case 'o': predict = "boolean"; *tt = tt_boolean; break;
+		default:return false;
+		}
+		break;
 	case 'd':
 		predict = "do"; *tt = tt_do; break;
 
@@ -592,7 +597,7 @@ Error _get_token(Scanner* self, token* tk)
 			if (sym == '=')
 			{
 				push_back_str(&xtoken, (char)sym);
-				predict = (token_type)((uint32_t)predict + 1);
+				predict = tt_ee;
 				sym = 0;
 			}
 			goto make_token;

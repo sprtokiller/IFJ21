@@ -134,7 +134,7 @@ void Template(erase)(selfptr, VECTOR_T* iterator)
 	Template(_Destroy_single)(iterator);
 	while (iterator != self->end_ - 1)
 	{
-		*iterator = iterator[1];
+		memmove(iterator, iterator + 1, sizeof(*iterator));
 		++iterator;
 	}
 	self->end_ = iterator;

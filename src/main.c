@@ -1,17 +1,23 @@
 ﻿#include "common.h"
 #include "../include/parser.h"
+#include "semantic.h"
 #include <stdio.h>
 	
 int main(int argc, char* argv[])
 {
 	SetupTerminal();
+	Error e = e_ok;
 
 	FILE* stream = fopen(SOURCE_DIR "/examples/testnum.tl","r");
 
-	Parser parser;
-	Parser_ctor(&parser, stream);
-	Start(&parser);
+	UNIQUE(SemanticAnalyzer) semantic = {0};
+	SemanticAnalyzer_ctor(&semantic);
 
-	Parser_dtor(&parser);
-	return 0;
+	UNIQUE(Parser) parser;
+	Parser_ctor(&parser, stream);
+	ERR_CHECK(Start(&parser));
+	e = (*parser.program)->analyze(parser.program, &semantic);
+	if(e)e_msg(error_type_name(e));
+
+	return e;
 }

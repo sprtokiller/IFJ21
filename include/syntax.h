@@ -1,5 +1,6 @@
 #pragma once
 #include "token.h"
+#include "error.h"
 
 typedef enum
 {
@@ -11,11 +12,14 @@ typedef enum
 	s_accept_fcall
 }RetState;
 
+struct SemanticAnalyzer;
+
 typedef struct IASTElement
 {
 	RetState(*append)(struct IASTElement** self, token* tk);
 	void(*print)(struct IASTElement** self);
 	void(*dtor)(struct IASTElement** self);
+	Error(*analyze)(struct IASTElement** self, struct SemanticAnalyzer* analyzer);
 }IASTElement,**ppIASTElement;
 
 void ppIASTElement_dtor(ppIASTElement* self);

@@ -1,12 +1,19 @@
 #include "error.h"
 
-const char* error_types_str[] =
-{
-#define X(a) #a,
-	ENUM_ERROR_TYPES
-#undef X
+const char* error_types_str[] = {
+	"no error",
+	"lexical error or invalid token",
+	"syntax error",
+	"variable redefinition or non-existence",
+	"assignment types mismatch",
+	"wrong count of return or input types",
+	"expresion type mismatch",
+	"other semantic",
+	"Runtime Prediction: nil value operation",
+	"Runtime Prediction: zero division",
+	"compiler internal error"
 };
 
 const char* error_type_name(Error type) {
-	return error_types_str[type];
+	return error_types_str[(unsigned)type];
 }

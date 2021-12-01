@@ -1,7 +1,12 @@
 #include "..\include\syntax.h"
 #include "Templates.h"
+#include "semantic.h"
 #include <stdio.h>
 #include <malloc.h>
+#include <string.h>
+#include "common.h"
+
+typedef Vector(Node) Expression;
 
 static void PrintExpression(const Vector(Node)* vec)
 {
@@ -13,6 +18,8 @@ static void PrintExpression(const Vector(Node)* vec)
 }
 
 
+///////////////////////////////////////////////////////
+#pragma region Require
 typedef struct reqStmt
 {
 	Implements(IASTElement);
@@ -35,12 +42,22 @@ void rq_print(reqStmt* self)
 {
 	printf("require %s", c_str(&self->arg.sval));
 }
+Error rq_analyze(reqStmt* self, struct SemanticAnalyzer* analyzer)
+{
+	if (strcmp(c_str(&self->arg.sval), "\"ifj21\"") || !SA_IsGlobal(analyzer))
+	{
+		e_msg("Require has unknown package or is not global");
+		return e_other;
+	}
+	return e_ok;
+}
 
 static const struct IASTElement vfptr_rq = (IASTElement)
 {
 	rq_append,
 	rq_print,
-	reqStmt_dtor
+	reqStmt_dtor,
+	rq_analyze,
 };
 void reqStmt_ctor(reqStmt* self)
 {
@@ -52,12 +69,14 @@ void reqStmt_dtor(reqStmt* self)
 	if (self->valid)
 		token_dtor(&self->arg);
 }
+#pragma endregion
 ///////////////////////////////////////////////////////
 #pragma region Block
 typedef struct blockPart
 {
 	Implements(IASTElement);
 	bool valid : 1;
+	bool partial : 1;
 	IASTElement** active;
 	Vector(ppIASTElement) block;
 }blockPart;
@@ -98,12 +117,26 @@ void blk_print(blockPart* self)
 		putchar('\n');
 	}
 }
+Error blk_analyze(blockPart* self, struct SemanticAnalyzer* analyzer)
+{
+	Error e = e_ok;
+	if (!self->partial)SA_AddScope(analyzer);
+	for (size_t i = 0; i < size_Vector_ppIASTElement(&self->block); i++)
+	{
+		IASTElement** pp = *at_Vector_ppIASTElement(&self->block, i);
+		if ((*pp)->analyze)
+			ERR_CHECK((*pp)->analyze(pp, analyzer));
+	}
+	SA_ResignScope(analyzer);
+	return e;
+}
 
 static const struct IASTElement vfptr_blk = (IASTElement)
 {
 	blk_append,
 	blk_print,
-	blockPart_dtor
+	blockPart_dtor,
+	blk_analyze
 };
 void blockPart_ctor(blockPart* self)
 {
@@ -173,6 +206,8 @@ RetState fd_append(funcDecl* self, token* tk)
 		break;
 	case tt_comma:
 		break;
+	case tt_end:
+		return s_accept;
 	default:
 		if (is_type(tk->type)) {
 			if (!self->finished_args) {
@@ -185,8 +220,7 @@ RetState fd_append(funcDecl* self, token* tk)
 			}
 		}
 		self->fills_block = true;
-		blk_append(&self->block, tk);
-		break;
+		return blk_append(&self->block, tk);
 	}
 	return s_await;
 }
@@ -210,12 +244,25 @@ void fd_print(funcDecl* self)
 	blk_print(&self->block);
 	printf("end");
 }
+Error fd_analyze(funcDecl* self, struct SemanticAnalyzer* analyzer)
+{
+	Error e = e_ok;
+	if (!SA_IsGlobal(analyzer) ||
+		!SA_AddFunction(analyzer, &self->types,
+			&self->ret, c_str(&self->name.sval), false))
+		return e_redefinition; //function was redef
+
+	ERR_CHECK(blk_analyze(&self->block, analyzer));
+	SA_LeaveFunction(analyzer);
+	return e;
+}
 
 static const struct IASTElement vfptr_fd = (IASTElement)
 {
 	fd_append,
 	fd_print,
-	funcDecl_dtor
+	funcDecl_dtor,
+	fd_analyze
 };
 void funcDecl_ctor(funcDecl* self)
 {
@@ -301,12 +348,49 @@ void ls_print(localStmt* self)
 		}
 	}
 }
+Error ls_analyze(localStmt* self, struct SemanticAnalyzer* analyzer)
+{
+	if (SA_IsGlobal(analyzer))
+	{
+		e_msg("Local statement can't be in global scope!");
+		return e_other;
+	}
+	if (!SA_AddVariable(analyzer, c_str(&self->id), self->type, self->has_value)) {
+		e_msg("Variable already exists!");
+		return e_redefinition;
+	}
+	if (!self->has_value)return e_ok;
+
+	Error e = e_ok;
+	token_type tt = GetExpType(&self->value, analyzer, &e);
+	if (e) {
+		e_msg("Expression is invalid in this context");
+		return e;
+	}
+	if (tt == tt_fcall)
+	{
+		FunctionDecl* fp = SA_FindFunction(analyzer, c_str(&self->value.data_[0].left->core.sval));
+		if (empty_Span_token_type(&fp->ret)) {
+			e_msg("Function returns void");
+			return e_count;
+		}
+		tt = *fp->ret.begin; //Get first
+	}
+	if (!FitsType(tt, self->type))
+	{
+		e_msg("Expression type is invalid");
+		return e_type_ass;
+	}
+
+	return e_ok;
+}
 
 static const struct IASTElement vfptr_ls = (IASTElement)
 {
 	ls_append,
 	ls_print,
-	localStmt_dtor
+	localStmt_dtor,
+	ls_analyze
 };
 void localStmt_ctor(localStmt* self)
 {
@@ -400,6 +484,7 @@ RetState afc_append(AssOrFCall* self, token* tk)
 			break;
 		}
 		case tt_assign:
+			self->eq = true;
 		case tt_comma:
 			self->op = ass_ass;
 			break;
@@ -471,12 +556,73 @@ void afc_print(AssOrFCall* self)
 		break;
 	}
 }
+Error afc_analyze(AssOrFCall* self, struct SemanticAnalyzer* analyzer)
+{
+	Error e = e_ok;
+	if (self->op == ass_fcall) // fcall
+	{
+		if (GetExpType(&self->fcall, analyzer, &e) == tt_err) {
+			e_msg("Invalid Expression");
+			return e;
+		}
+		if (!SA_FindFunction(analyzer, c_str(&self->fcall.data_[0].left->core.sval))) {
+			e_msg("Function not declared");
+			return e_redefinition;
+		}
+		return e_ok;
+	}
+
+	List_Node* exp = self->expressions.first; //first always exists
+	for (token* i = self->idents.data_; i != self->idents.end_; i++)
+	{
+		Variable* v = SA_FindVariable(analyzer, c_str(&i->sval));
+		if (!v) {
+			e_msg("Variable %s does not exist", c_str(&i->sval));
+			return e_redefinition;
+		}
+		if (!exp) continue;
+
+		token_type tt = GetExpType(exp, analyzer, &e);
+		if (e)return e;
+
+		if (tt == tt_fcall)
+		{
+			FunctionDecl* fp = SA_FindFunction(analyzer, c_str(&exp->expression.data_[0].left->core.sval));
+			if (empty_Span_token_type(&fp->ret)) {
+				e_msg("Function returns void");
+				return e_count;
+			}
+			for (size_t j = 0; j < size_Span_token_type(&fp->ret); j++)
+			{
+				if (i + j >= self->idents.end_)break;
+				Variable* vi = SA_FindVariable(analyzer, c_str(&(i + j)->sval));
+				if (vi->type != fp->ret.begin[j])
+				{
+					e_msg("Variable and function return value types does not match");
+					return e_type_ass;
+				}
+				vi->has_value = true;
+			}
+			exp = exp->next;
+			continue;
+		}
+		if (!FitsType(tt, v->type)) {
+			e_msg("Expression and variable types do not match");
+			return e_type_ass;
+		}
+		v->has_value = true;
+		exp = exp->next;
+	}
+	if (exp)return e_count;
+	return e_ok;
+}
 
 static const struct IASTElement vfptr_afc = (IASTElement)
 {
 	afc_append,
 	afc_print,
-	AssOrFCall_dtor
+	AssOrFCall_dtor,
+	afc_analyze
 };
 void AssOrFCall_ctor(AssOrFCall* self)
 {
@@ -486,7 +632,7 @@ void AssOrFCall_ctor(AssOrFCall* self)
 }
 void AssOrFCall_dtor(AssOrFCall* self)
 {
-	if (self->eq)
+	if (self->op == ass_ass)
 	{
 		Vector_token_dtor(&self->idents);
 		List_exp_dtor(&self->expressions);
@@ -527,12 +673,21 @@ void prg_print(Program* self)
 	putchar('\n');
 	blk_print(&self->global_block);
 }
+Error prg_analyze(Program* self, struct SemanticAnalyzer* analyzer)
+{
+	Error e = e_ok;
+	ERR_CHECK(rq_analyze(&self->req, analyzer));
+	ERR_CHECK(blk_analyze(&self->global_block, analyzer));
+	if (!SA_Final(analyzer))return e_redefinition;
+	return e;
+}
 
 static const struct IASTElement vfptr_prg = (IASTElement)
 {
 	prg_append,
 	prg_print,
-	Program_dtor
+	Program_dtor,
+	prg_analyze,
 };
 void Program_ctor(Program* self)
 {
@@ -587,12 +742,26 @@ void wh_print(While* self)
 	blk_print(&self->block);
 	printf("end");
 }
+Error wh_analyze(While* self, struct SemanticAnalyzer* analyzer)
+{
+	if (SA_IsGlobal(analyzer)) {
+		e_msg("Invalid statement for global scope");
+		return e_other;
+	}
+	Error e = e_ok;
+	token_type tt = GetExpType(&self->expr, analyzer, &e);
+	if (e)return e;
+
+	e = blk_analyze(&self->block, analyzer);
+	return e;
+}
 
 static const struct IASTElement vfptr_wh = (IASTElement)
 {
 	wh_append,
 	wh_print,
-	While_dtor
+	While_dtor,
+	wh_analyze
 };
 void While_ctor(While* self)
 {
@@ -682,12 +851,43 @@ void for_print(For* self)
 
 	blk_print(&self->block);
 }
+Error for_analyze(For* self, struct SemanticAnalyzer* analyzer)
+{
+	Error e = e_ok;
+	if (SA_IsGlobal(analyzer)) {
+		e_msg("Invalid statement for global scope");
+		return e_other;
+	}
+	SA_AddScope(analyzer);
+	SA_AddVariable(analyzer, c_str(&self->id), tt_integer, true);
+
+	token_type tt_ex = GetExpType(&self->expr, analyzer, &e);
+	if (e)return e;
+	token_type tt_term = GetExpType(&self->terminus, analyzer, &e);
+	if (e)return e;
+
+	if (tt_ex != tt_integer ||
+		tt_term != tt_integer)
+		return e_type;
+
+	if (self->has_increment)
+	{
+		tt_ex = GetExpType(&self->increment, analyzer, &e);
+		if (e)return e;
+		if (tt_ex != tt_integer)return tt_type;
+	}
+
+	self->block.partial = true;
+	e = blk_analyze(&self->block, analyzer);
+	return e;
+}
 
 static const struct IASTElement vfptr_for = (IASTElement)
 {
 	for_append,
 	for_print,
-	For_dtor
+	For_dtor,
+	for_analyze
 };
 void For_ctor(For* self)
 {
@@ -752,12 +952,25 @@ void rep_print(Repeat* self)
 	printf("until");
 	PrintExpression(&self->expr);
 }
+Error rep_analyze(Repeat* self, struct SemanticAnalyzer* analyzer)
+{
+	if (SA_IsGlobal(analyzer)) {
+		e_msg("Invalid statement for global scope");
+		return e_other;
+	}
+	Error e = e_ok;
+	token_type tt = GetExpType(&self->expr, analyzer, &e);
+	if (e)return e;
+	e = blk_analyze(&self->block, analyzer);
+	return e;
+}
 
 static const struct IASTElement vfptr_rep = (IASTElement)
 {
 	rep_append,
 	rep_print,
-	Repeat_dtor
+	Repeat_dtor,
+	rep_analyze
 };
 void Repeat_ctor(Repeat* self)
 {
@@ -799,7 +1012,10 @@ RetState ret_append(Return* self, token* tk)
 	case tt_comma:
 		return s_await_e;
 	case tt_expression:
-		if (tk->ec != 0)return s_accept;
+		if (tk->ec != 0) { 
+			clear_Vector_Node((Vector(Node)*)tk->expression);
+			return s_accept; 
+		}
 		Vector_Node_move_ctor(push(&self->retlist),
 			(Vector(Node)*)tk->expression);
 		return s_await;
@@ -812,12 +1028,70 @@ void ret_print(Return* self)
 {
 	printf("return ");
 }
+Error ret_analyze(Return* self, struct SemanticAnalyzer* analyzer)
+{
+	if (!analyzer->curr_func) {
+		e_msg("return in global scope");
+		return e_other; //find
+	}
+	Span_token_type rets = analyzer->curr_func->ret;
+	List_Node* node = self->retlist.first;
+	token_type tt = tt_err;
+	Error e = e_ok;
+
+	if (empty_Span_token_type(&rets) && node && (tt = GetExpType(&node->expression, analyzer, &e)) == tt_fcall) //void function returns
+	{
+		FunctionDecl* fp = SA_FindFunction(analyzer, c_str(&node->expression.data_[0].left->core.sval));
+		if (!empty_Span_token_type(&fp->ret)) {
+			e_msg("Function does not return void");
+			return e_count;
+		}
+	}
+	if (e != e_ok)return e;
+
+	for (token_type* i = rets.begin; i != rets.end; i++)
+	{
+		if (!node)return e_ok;
+		tt = GetExpType(&node->expression, analyzer, &e);
+		if (e != e_ok)return e;
+		if (tt == tt_fcall)
+		{
+			FunctionDecl* fp = SA_FindFunction(analyzer, c_str(&node->expression.data_[0].left->core.sval));
+			if (empty_Span_token_type(&fp->ret)) {
+				e_msg("Function returns void");
+				return e_count;
+			}
+
+			for (size_t j = 0; j < size_Span_token_type(&fp->ret); j++)
+			{
+				if (i + j == rets.end)break;
+				if (!FitsType(i[j], fp->ret.begin[j]))
+				{
+					e_msg("Function return types do not match");
+					return e_count;
+				}
+			}
+			node = node->next;
+			continue;
+		}
+		if (!FitsType(tt, *i)) {
+			e_msg("Expression and variable types do not match");
+			return e_count;
+		}
+		node = node->next;
+	}
+	if (node) {
+		e_msg("Return count mismatch"); return e_count;
+	}
+	return e_ok;
+}
 
 static const struct IASTElement vfptr_ret = (IASTElement)
 {
 	ret_append,
 	ret_print,
-	Return_dtor
+	Return_dtor,
+	ret_analyze
 };
 void Return_ctor(Return* self)
 {
@@ -831,7 +1105,6 @@ void Return_dtor(Return* self)
 #pragma endregion
 ///////////////////////////////////////////////////////
 #pragma region Branch
-
 typedef struct Node_elseif
 {
 	Vector(Node) expr;
@@ -893,7 +1166,30 @@ static void Print_elseif(List_elseif* self)
 		Print_elseif_node(i);
 	}
 }
-
+static Error Check_elseif_node(Node_elseif* self, struct SemanticAnalyzer* analyzer, bool expr)
+{
+	Error e = e_ok;
+	if(!expr) return blk_analyze(&self->block, analyzer);
+	token_type tt = GetExpType(&self->expr, analyzer, &e);
+	if (e)return e;
+	return blk_analyze(&self->block, analyzer);
+}
+static Error Check_elseif(List_elseif* self, struct SemanticAnalyzer* analyzer)
+{
+	Error e = e_ok;
+	for (Node_elseif* i = self->first; i != NULL; i = i->next) {
+		if (i == self->first) {
+			ERR_CHECK(Check_elseif_node(i, analyzer, true));
+			continue;
+		}
+		if (!i->next) {
+			ERR_CHECK(Check_elseif_node(i, analyzer, false));
+			continue;
+		}
+		ERR_CHECK(Check_elseif_node(i, analyzer, true));
+	}
+	return e;
+}
 
 typedef struct Branch
 {
@@ -957,12 +1253,21 @@ void br_print(Branch* self)
 {
 	Print_elseif(&self->blocks);
 }
+Error br_analyze(Branch* self, struct SemanticAnalyzer* analyzer)
+{
+	if (SA_IsGlobal(analyzer)) {
+		e_msg("Invalid statement for global scope");
+		return e_other;
+	}
+	return Check_elseif(&self->blocks, analyzer);
+}
 
 static const struct IASTElement vfptr_br = (IASTElement)
 {
 	br_append,
 	br_print,
-	Branch_dtor
+	Branch_dtor,
+	br_analyze
 };
 void Branch_ctor(Branch* self)
 {
@@ -1012,7 +1317,7 @@ RetState gs_append(globalStmt* self, token* tk)
 	switch (tk->type)
 	{
 	case tt_function:
-		if (self->valid)return s_refused;
+		if (self->type == tt_function)return s_refused;
 		self->type = tt_function;
 		break;
 	case tt_global:
@@ -1083,12 +1388,51 @@ void gs_print(globalStmt* self)
 		}
 	}
 }
+Error gs_analyze(globalStmt* self, struct SemanticAnalyzer* analyzer)
+{
+	if (!SA_IsGlobal(analyzer)) {
+		e_msg("Global declaration is not in global scope");
+		return e_other;
+	}
+	if (self->type == tt_function)
+		return SA_AddFunction(analyzer, &self->fargs, &self->fretargs, c_str(&self->id), true) ? e_ok : e_redefinition;
+	if (!SA_AddVariable(analyzer, c_str(&self->id), self->type, self->has_value)) {
+		e_msg("Variable already exists in this scope");
+		return e_redefinition;
+	}
+	if (!self->has_value)return e_ok;
+
+	Error e = e_ok;
+	token_type tt = GetExpType(&self->value, analyzer, &e);
+	if (e) {
+		e_msg("Expression is invalid in this context");
+		return e;
+	}
+	if (tt == tt_fcall)
+	{
+		FunctionDecl* fp = SA_FindFunction(analyzer, c_str(&self->value.data_[0].left->core.sval));
+		if (empty_Span_token_type(&fp->ret)) {
+			e_msg("Function returns void");
+			return e_count;
+		}
+		tt = *fp->ret.begin; //Get first
+	}
+	if (FitsType(tt, self->type))
+	{
+		e_msg("Expression type is invalid");
+		return e_type_ass;
+	}
+
+	return e_ok;
+}
+
 
 static const struct IASTElement vfptr_gs = (IASTElement)
 {
 	gs_append,
 	gs_print,
-	globalStmt_dtor
+	globalStmt_dtor,
+	gs_analyze
 };
 void globalStmt_ctor(globalStmt* self)
 {
@@ -1104,6 +1448,48 @@ void globalStmt_dtor(globalStmt* self)
 	Vector_token_type_dtor(&self->fretargs);
 }
 
+#pragma endregion
+///////////////////////////////////////////////////////
+#pragma region Break
+typedef struct Break
+{
+	Implements(IASTElement);
+}Break;
+
+void Break_ctor(Break* self);
+void Break_dtor(Break* self);
+
+RetState brk_append(Break* self, token* tk)
+{
+	if (tk->type == tt_break)
+		return s_accept;
+	return s_refused;
+}
+void brk_print(Break* self)
+{
+	printf("break");
+}
+Error brk_analyze(Break* self, struct SemanticAnalyzer* analyzer)
+{
+	return e_ok;
+}
+
+
+static const struct IASTElement vfptr_brk = (IASTElement)
+{
+	brk_append,
+	brk_print,
+	Break_dtor,
+	brk_analyze
+};
+void Break_ctor(Break* self)
+{
+	self->method = &vfptr_brk;
+}
+void Break_dtor(Break* self)
+{
+	unused_param(self);
+}
 #pragma endregion
 ///////////////////////////////////////////////////////
 
@@ -1152,6 +1538,10 @@ IASTElement** MakeStatement(token_type type)
 	case tt_if:
 		out = calloc(sizeof(Branch), 1);
 		Branch_ctor(out);
+		break;
+	case tt_break:
+		out = calloc(sizeof(Break), 1);
+		Break_ctor(out);
 		break;
 	default:
 		break;

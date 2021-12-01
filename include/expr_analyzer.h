@@ -3,13 +3,8 @@
 #include "error.h"
 
 struct Scanner;
+struct SemanticAnalyzer;
 
-typedef enum {
-	S,  // shift           (<)
-	R,  // reduce          (>)
-	E,  // equal           (=)
-	X   // nothing - error ( )
-}ExprAction;
 
 #pragma push_macro("c_class")
 #undef c_class
@@ -25,6 +20,7 @@ void Constructor(ExpressionAnalyzer* self);
 void Destructor(ExpressionAnalyzer* self);
 
 Error Execute(ExpressionAnalyzer* self, struct Scanner* scanner);
+token_type GetExpType(const Vector(Node)* ast, struct SemanticAnalyzer* analyzer, Error* err);
 
 #ifndef EXPRA_IMPL
 #pragma pop_macro("c_class")
