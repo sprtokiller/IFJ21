@@ -2,7 +2,7 @@
 require "ifj21"
 
 --global x:number = -10+4*26^2^2 * #"good"
-function x(a:integer, b:string, c:integer): integer
+function x(a:integer, b:string, c:number): integer
 end
 
 function main() -- uzivatelska funkce bez parametru

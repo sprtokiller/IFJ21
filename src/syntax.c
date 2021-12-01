@@ -428,7 +428,7 @@ Error ls_analyze(localStmt* self, struct SemanticAnalyzer* analyzer)
 		}
 		tt = *fp->ret.begin; //Get first
 	}
-	if (!FitsType(tt, self->type))
+	if (!FitsType(self->type, tt))
 	{
 		e_msg("Expression type is invalid");
 		return e_type_ass;

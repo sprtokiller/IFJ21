@@ -248,9 +248,11 @@ Error MatchFunctionIns(Node* node, SemanticAnalyzer* analyzer, Span_token_type s
 	if (l == tt_eof)return empty_Span_token_type(&subsp) ? e_ok : e_count;
 	if (node->core.type == tt_fcall)return MatchFunctionIns(node->left, analyzer, subsp);
 
-	if (!FitsType(l, *subsp.begin))return e_count;
+	if (!FitsType(*subsp.begin, l))return e_count;
+	if (l != *subsp.begin)node->left->result = tt_int_convert;
 	if (r == tt_comma)return MatchFunctionIns(node->right, analyzer, (Span_token_type) { subsp.begin + 1, subsp.end });
-	if (!FitsType(r, *(subsp.begin + 1)))return e_count;
+	if (!FitsType(*(subsp.begin + 1), r))return e_count;
+	if (r != *(subsp.begin + 1))node->right->result = tt_int_convert;
 	return e_ok;
 }
 
@@ -364,7 +366,7 @@ token_type GetNodeType(Node* node, SemanticAnalyzer* analyzer, bool simple, Erro
 			*err = e_RTnil;
 			return tt_err;
 		}
-		if (!FitsType(r, l))
+		if (!FitsType(r, l)&& !FitsType(l, r))
 		{
 			*err = e_type;
 			return tt_err;
@@ -377,7 +379,7 @@ token_type GetNodeType(Node* node, SemanticAnalyzer* analyzer, bool simple, Erro
 		return node->result = tt_boolean;
 	case tt_ne:
 	case tt_ee:
-		if (!FitsType(r, l) && (r != tt_nil || l != tt_nil))
+		if (!FitsType(r, l) && !FitsType(l, r) && (r != tt_nil && l != tt_nil))
 		{
 			*err = e_type;
 			return tt_err;
@@ -457,7 +459,7 @@ void GenerateNode(Node* self, String* to)
 	if (self->right)GenerateNode(self->right, to);
 	if (self->left)GenerateNode(self->left, to);
 
-	if(self->result == tt_int_convert)
+	if (self->result == tt_int_convert)
 		append_str(to, "INT2FLOATS\n");
 
 	switch (self->core.type)
@@ -526,7 +528,7 @@ void GenerateNode(Node* self, String* to)
 			append_str(to, "PUSHS int@0\n"
 				"SUBS\n"); break;
 		}
-		if (self->left->result == tt_number 
+		if (self->left->result == tt_number
 			|| self->left->result == tt_int_convert)
 		{
 			append_str(to, "PUSHS float@0\n"
