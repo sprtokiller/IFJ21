@@ -910,7 +910,7 @@ void wh_generate_fc(const While* self, struct CodeGen* codegen)
 	sprintf(c, "%p", self);
 	if (self->expr.data_[0].result == tt_false)
 	{
-		GenerateExpression(&self->expr, codegen);
+		GenerateExpression(&self->expr, func);
 		append_str(func, "CLEARS\n");
 		return;
 	}
@@ -919,7 +919,7 @@ void wh_generate_fc(const While* self, struct CodeGen* codegen)
 		append_str(func, "LABEL $wh_cy_"); //cycle
 		append_str(func, c);
 		push_back_str(func, '\n');
-		GenerateExpression(&self->expr, codegen);
+		GenerateExpression(&self->expr, func);
 		append_str(func, "CLEARS\n");
 		blk_generate(&self->block, codegen);
 		append_str(func, "JUMP $wh_cy_");
@@ -944,7 +944,7 @@ void wh_generate_fc(const While* self, struct CodeGen* codegen)
 	append_str(func, "LABEL $wh_c_"); //cond
 	append_str(func, c);
 	push_back_str(func, '\n');
-	GenerateExpression(&self->expr, codegen);
+	GenerateExpression(&self->expr, func);
 	append_str(func, "POPS LF@_wh_");
 	append_str(func, c);
 	push_back_str(func, '\n');
@@ -966,7 +966,7 @@ void wh_generate(const While* self, struct CodeGen* codegen)
 
 	if (self->expr.data_[0].result == tt_false)
 	{
-		GenerateExpression(&self->expr, codegen);
+		GenerateExpression(&self->expr, func);
 		append_str(func, "CLEARS\n");
 		return;
 	}
@@ -979,7 +979,7 @@ void wh_generate(const While* self, struct CodeGen* codegen)
 		append_str(func, "LABEL $wh_cy_"); //cycle
 		append_str(func, c);
 		push_back_str(func, '\n');
-		GenerateExpression(&self->expr, codegen);
+		GenerateExpression(&self->expr, func);
 		append_str(func, "CLEARS\n");
 		blk_generate(&self->block, codegen);
 		append_str(func, "JUMP $wh_cy_");
@@ -1000,7 +1000,7 @@ void wh_generate(const While* self, struct CodeGen* codegen)
 	append_str(func, "LABEL $wh_c_"); //cond
 	append_str(func, c);
 	push_back_str(func, '\n');
-	GenerateExpression(&self->expr, codegen);
+	GenerateExpression(&self->expr, func);
 	append_str(func, "PUSHS bool@true\n");
 	append_str(func, "JUMPIFEQS $wh_cy_");
 	append_str(func, c);
@@ -1275,7 +1275,7 @@ void rep_generate(const Repeat* self, struct CodeGen* codegen)
 	if (self->expr.data_[0].result == tt_true)
 	{
 		blk_generate(&self->block, codegen);
-		GenerateExpression(&self->expr, codegen);
+		GenerateExpression(&self->expr, func);
 		append_str(func, "CLEARS\n");
 		return;
 	}
@@ -1289,7 +1289,7 @@ void rep_generate(const Repeat* self, struct CodeGen* codegen)
 		append_str(func, c);
 		push_back_str(func, '\n');
 		blk_generate(&self->block, codegen);
-		GenerateExpression(&self->expr, codegen);
+		GenerateExpression(&self->expr, func);
 		append_str(func, "CLEARS\n");
 		append_str(func, "JUMP $rep_cy_");
 		append_str(func, c);
@@ -1303,7 +1303,7 @@ void rep_generate(const Repeat* self, struct CodeGen* codegen)
 
 	blk_generate(&self->block, codegen);
 
-	GenerateExpression(&self->expr, codegen);
+	GenerateExpression(&self->expr, func);
 	append_str(func, "PUSHS bool@true\n");
 	append_str(func, "JUMPIFEQS $rep_cy_");
 	append_str(func, c);
@@ -1514,11 +1514,6 @@ static void Print_elseif(List_elseif* self)
 static bool Generate_elseif_node(const Node_elseif* self, struct CodeGen* codegen, const char* finish, bool first)
 {
 	String* func = codegen->current;
-	if (!self->expr.data_) //else block
-	{
-		blk_generate(&self->block, codegen);
-		return false;
-	}
 	if (!first)
 	{
 		char c[19];
@@ -1526,6 +1521,11 @@ static bool Generate_elseif_node(const Node_elseif* self, struct CodeGen* codege
 		append_str(func, "LABEL $eif_");
 		append_str(func, c);
 		push_back_str(func, '\n');
+	}
+	if (!self->expr.data_) //else block
+	{
+		blk_generate(&self->block, codegen);
+		return false;
 	}
 
 	GenerateExpression(&self->expr, func);
