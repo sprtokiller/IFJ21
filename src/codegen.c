@@ -1,11 +1,12 @@
 #define CODE_IMPL
 #include "codegen.h"
 
-void Constructor(selfptr)
+void Constructor(selfptr, HashMap(FunctionDecl)* funcs)
 {
 	Vector_String_ctor(&self->code);
 	String_ctor(&self->global, NULL);
 	CG_EndFunction(self);
+	self->funcs = funcs;
 }
 void Destructor(selfptr)
 {

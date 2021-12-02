@@ -3,6 +3,7 @@
 #include "scanner.h"
 #include "semantic.h"
 #include <inttypes.h>
+#include <string.h>
 
 typedef enum {
 	S,  // shift           (<)
@@ -243,16 +244,19 @@ Error MatchFunctionIns(Node* node, SemanticAnalyzer* analyzer, Span_token_type s
 	Error e = e_ok;
 	token_type l = GetNodeType(node->left, analyzer, false, &e);
 	token_type r = GetNodeType(node->right, analyzer, false, &e);
-	if (r == tt_err || l == tt_err)return e;
+	if (e)return e;
 
 	if (l == tt_eof)return empty_Span_token_type(&subsp) ? e_ok : e_count;
-	if (node->core.type == tt_fcall)return MatchFunctionIns(node->left, analyzer, subsp);
+	if (node->core.type == tt_fcall && l == tt_comma)return MatchFunctionIns(node->left, analyzer, subsp);
 
 	if (!FitsType(*subsp.begin, l))return e_count;
-	if (l != *subsp.begin)node->left->result = tt_int_convert;
-	if (r == tt_comma)return MatchFunctionIns(node->right, analyzer, (Span_token_type) { subsp.begin + 1, subsp.end });
+	if (r == tt_eof && (subsp.begin + 1) == subsp.end)return e_ok;
+	if (l != *subsp.begin && l != tt_comma)node->left->result = tt_int_convert;
+	if (r == tt_comma)
+		return MatchFunctionIns(node->right, analyzer, (Span_token_type) { subsp.begin + 1, subsp.end });
 	if (!FitsType(*(subsp.begin + 1), r))return e_count;
 	if (r != *(subsp.begin + 1))node->right->result = tt_int_convert;
+
 	return e_ok;
 }
 
@@ -366,7 +370,7 @@ token_type GetNodeType(Node* node, SemanticAnalyzer* analyzer, bool simple, Erro
 			*err = e_RTnil;
 			return tt_err;
 		}
-		if (!FitsType(r, l)&& !FitsType(l, r))
+		if (!FitsType(r, l) && !FitsType(l, r))
 		{
 			*err = e_type;
 			return tt_err;
@@ -452,15 +456,18 @@ token_type GetExpType(Vector(Node)* ast, SemanticAnalyzer* analyzer, Error* err)
 	return GetNodeType(ast->data_->left, analyzer, true, err);
 }
 
-
-
+size_t Argc(Node* self)
+{
+	size_t x = 0;
+	if (self->core.type != tt_comma && self->core.type != tt_fcall)return 1;
+	if (self->right)x += Argc(self->right);
+	if (self->left)x += Argc(self->left);
+	return x;
+}
 void GenerateNode(Node* self, String* to)
 {
 	if (self->right)GenerateNode(self->right, to);
 	if (self->left)GenerateNode(self->left, to);
-
-	if (self->result == tt_int_convert)
-		append_str(to, "INT2FLOATS\n");
 
 	switch (self->core.type)
 	{
@@ -568,10 +575,24 @@ void GenerateNode(Node* self, String* to)
 	case tt_ne:
 		append_str(to, "EQS\n""NOTS\n");
 		break;
-
+	case tt_fcall:
+		if (!strcmp(c_str(&self->core.sval), "write"))
+		{
+			char c[128];
+			sprintf(c, "%zu", Argc(self));
+			append_str(to, "PUSHS int@");
+			append_str(to, c);
+			push_back_str(to, '\n');
+		}
+		append_str(to, "CALL $$");
+		append_str(to, c_str(&self->core.sval));
+		push_back_str(to, '\n');
 	default:
 		break;
 	}
+
+	if (self->result == tt_int_convert)
+		append_str(to, "INT2FLOATS\n");
 
 }
 void GenerateExpression(Vector(Node)* self, String* to)

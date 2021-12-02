@@ -30,6 +30,7 @@ typedef struct
 	const char* asm_name;
 	token_type type;
 	bool has_value;
+	bool global;
 }Variable;
 
 #define HASH_T Variable

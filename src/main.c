@@ -21,7 +21,7 @@ int main(int argc, char* argv[])
 	if (e) { e_msg(error_type_name(e)); return e; }
 
 	UNIQUE(CodeGen) cg = {0};
-	CodeGen_ctor(&cg);
+	CodeGen_ctor(&cg, &semantic.funcs);
 
 	(*parser.program)->generate(parser.program, &cg);
 

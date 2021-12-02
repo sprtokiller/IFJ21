@@ -69,7 +69,7 @@ void SA_LeaveFunction(selfptr)
 
 bool SA_AddVariable(selfptr, String* id, token_type type, bool has_value, bool global)
 {
-	Variable* xtok = find_htab_Variable(self->current, c_str(id));
+	Variable* xtok = SA_FindVariable(self, c_str(id));
 	Variable* tok = emplace_htab_Variable(self->current, id);
 	if (!tok)return false; //var already exists, push failed
 
@@ -78,21 +78,21 @@ bool SA_AddVariable(selfptr, String* id, token_type type, bool has_value, bool g
 	else
 		prepend_str(id, "LF@");
 
-	if (xtok)
+	if (xtok && global != xtok->global)
 	{
-		char x[sizeof(void*) * 2 + 2] = {0};
+		char x[sizeof(void*) * 2 + 2] = { 0 };
 		sprintf(x, "_%p", id);
 		append_str(id, x);
 	}
 
-	*tok = (Variable){ c_str(id), type, has_value};
+	*tok = (Variable){ c_str(id), type, has_value, global };
 	return true;
 }
 
 Variable* SA_FindVariable(selfptr, const char* id)
 {
 	Variable* tok = NULL;
-	for (htab_Variable* i = self->current; i > self->scopes.data_; i--)
+	for (htab_Variable* i = self->current; i >= self->scopes.data_; i--)
 		if ((tok = find_htab_Variable(i, id)))return tok;
 	return NULL;
 }

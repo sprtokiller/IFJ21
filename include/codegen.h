@@ -8,13 +8,14 @@ typedef struct c_class c_class;
 
 struct c_class
 {
-	String global;
+	HashMap(FunctionDecl)* funcs;
 	Vector(String) code;
 	String* current;
+	String global;
 };
 
 
-void Constructor(selfptr);
+void Constructor(selfptr, HashMap(FunctionDecl)* funcs);
 void Destructor(selfptr);
 
 String* CG_AddFunction(selfptr);
