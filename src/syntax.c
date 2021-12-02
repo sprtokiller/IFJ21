@@ -1299,30 +1299,112 @@ static void Print_elseif(List_elseif* self)
 		Print_elseif_node(i);
 	}
 }
-static Error Check_elseif_node(Node_elseif* self, struct SemanticAnalyzer* analyzer, bool expr)
+static bool Generate_elseif_node(const Node_elseif* self, struct CodeGen* codegen, const char* finish, bool first)
+{
+	String* func = codegen->current;
+	if (!self->expr.data_) //else block
+	{
+		blk_generate(&self->block, codegen);
+		return false;
+	}
+	if (!first)
+	{
+		char c[19];
+		sprintf(c, "%p", self);
+		append_str(func, "LABEL $eif_");
+		append_str(func, c);
+		push_back_str(func, '\n');
+	}
+
+	GenerateExpression(&self->expr, func);
+	if (self->expr.data_[0].left->result == tt_fcall)
+	{
+		if (self->expr.data_[0].result == tt_false)
+		{
+			append_str(func, "CLEARS\n");
+			return true;
+		}
+		if (self->expr.data_[0].result == tt_true)
+		{
+			blk_generate(&self->block, codegen);
+			return false;
+		}
+		append_str(func, "POPS LF@_if_");
+		append_str(func, finish);
+		push_back_str(func, '\n');
+		append_str(func, "CLEARS\n");
+		append_str(func, "PUSHS LF@_if_");
+		append_str(func, finish);
+		push_back_str(func, '\n');
+	}
+
+	if (self->expr.data_[0].result == tt_false)
+		return true;
+
+	if (self->expr.data_[0].result == tt_true)
+	{
+		blk_generate(&self->block, codegen);
+		return false;
+	}
+
+	if (self->next)
+	{
+		char c[19];
+		sprintf(c, "%p", self->next);
+		append_str(func, "JUMPIFNEQ $eif_");
+		append_str(func, c);
+		push_back_str(func, '\n');
+	}
+	else
+	{
+		append_str(func, "JUMPIFNEQ $endif_");
+		append_str(func, finish);
+		push_back_str(func, '\n');
+	}
+	blk_generate(&self->block, codegen);
+	append_str(func, "JUMP $endif_"); //to end
+	append_str(func, finish);
+	push_back_str(func, '\n');
+	return true;
+}
+static Error Check_elseif_node(Node_elseif* self, struct SemanticAnalyzer* analyzer)
 {
 	Error e = e_ok;
-	if (!expr) return blk_analyze(&self->block, analyzer);
+	if (!self->expr.data_) return blk_analyze(&self->block, analyzer);
 	token_type tt = GetExpType(&self->expr, analyzer, &e);
 	if (e)return e;
+
+	if (tt == tt_fcall)
+	{
+		FunctionDecl* fd = SA_FindFunction(analyzer, c_str(&self->expr.data_[0].left->core.sval));
+		if (size_Span_token_type(&fd->ret))return e_count;
+		tt = fd->ret.begin[0];
+	}
+
+	if(tt == tt_boolean)
+		return blk_analyze(&self->block, analyzer);
+
+	if (tt == tt_nil)
+		self->expr.data_[0].result = tt_false;
+	else
+		self->expr.data_[0].result = tt_true;
 	return blk_analyze(&self->block, analyzer);
 }
 static Error Check_elseif(List_elseif* self, struct SemanticAnalyzer* analyzer)
 {
 	Error e = e_ok;
 	for (Node_elseif* i = self->first; i != NULL; i = i->next) {
-		if (i == self->first) {
-			ERR_CHECK(Check_elseif_node(i, analyzer, true));
-			continue;
-		}
-		if (!i->next) {
-			ERR_CHECK(Check_elseif_node(i, analyzer, false));
-			continue;
-		}
-		ERR_CHECK(Check_elseif_node(i, analyzer, true));
+		ERR_CHECK(Check_elseif_node(i, analyzer));
 	}
 	return e;
 }
+static void Generate_elseif(const List_elseif* self, struct CodeGen* codegen, const char* finish)
+{
+	for (Node_elseif* i = self->first; i != NULL; i = i->next) {
+		if (!Generate_elseif_node(i, codegen, finish, i == self->first))return;
+	}
+}
+
 
 typedef struct Branch
 {
@@ -1394,13 +1476,28 @@ Error br_analyze(Branch* self, struct SemanticAnalyzer* analyzer)
 	}
 	return Check_elseif(&self->blocks, analyzer);
 }
+void br_generate(const Branch* self, struct CodeGen* codegen)
+{
+	String* func = codegen->current;
+
+	char c[19];
+	sprintf(c, "%p", self);
+	append_str(func, "DEFVAR LF@_if_");
+	append_str(func, c);
+	push_back_str(func, '\n');
+	Generate_elseif(&self->blocks, codegen, c);
+	append_str(func, "LABEL $endif_");
+	append_str(func, c);
+	push_back_str(func, '\n');
+}
 
 static const struct IASTElement vfptr_br = (IASTElement)
 {
 	br_append,
 	br_print,
 	Branch_dtor,
-	br_analyze
+	br_analyze,
+	br_generate
 };
 void Branch_ctor(Branch* self)
 {

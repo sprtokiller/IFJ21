@@ -497,6 +497,9 @@ void GenerateNode(Node* self, String* to)
 		append_str(to, c_str(&self->core.sval));
 		push_back_str(to, '\n');
 		break;
+	case tt_nil:
+		append_str(to, "PUSHS nil@nil\n");
+		break;
 	case tt_power:
 		append_str(to, "CALL $$_builtin_pow\n");
 		break;
