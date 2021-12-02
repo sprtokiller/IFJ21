@@ -15,7 +15,7 @@ function main() -- uzivatelska funkce bez parametru
 	local a : integer
 	local vysl : integer = 0
 
-	a = x(5+2,"",10)
+	--a = x(5+2,"",10)
 
 	write("Zadejte cislo pro vypocet faktorialu\n\\")
 	a = readi()

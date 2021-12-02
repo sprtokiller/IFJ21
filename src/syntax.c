@@ -714,7 +714,7 @@ void afc_generate(const AssOrFCall* self, struct CodeGen* codegen)
 
 	List_Node* exp = self->expressions.first;
 	size_t n = 0;
-	for (token* i = self->idents.data_;  i < self->idents.end_ && n < self->expressions.n; i++, n++)
+	for (token* i = self->idents.data_; i < self->idents.end_ && n < self->expressions.n; i++, n++)
 	{
 		GenerateExpression(&exp->expression, func);
 
@@ -729,10 +729,15 @@ void afc_generate(const AssOrFCall* self, struct CodeGen* codegen)
 					break;
 				}
 				append_str(func, "POPS ");
-				append_str(func, c_str(&(i+j)->sval));
+				append_str(func, c_str(&(i + j)->sval));
 				push_back_str(func, '\n');
 			}
+			exp = exp->next;
+			continue;
 		}
+		append_str(func, "POPS ");
+		append_str(func, c_str(&i->sval));
+		push_back_str(func, '\n');
 		exp = exp->next;
 	}
 }
