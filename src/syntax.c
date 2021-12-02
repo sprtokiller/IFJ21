@@ -885,8 +885,126 @@ Error wh_analyze(While* self, struct SemanticAnalyzer* analyzer)
 	token_type tt = GetExpType(&self->expr, analyzer, &e);
 	if (e)return e;
 
-	e = blk_analyze(&self->block, analyzer);
-	return e;
+	if (tt == tt_fcall)
+	{
+		FunctionDecl* fd = SA_FindFunction(analyzer, c_str(&self->expr.data_[0].left->core.sval));
+		if (size_Span_token_type(&fd->ret))return e_count;
+		tt = fd->ret.begin[0];
+	}
+
+	if (tt == tt_boolean)
+		return blk_analyze(&self->block, analyzer);
+
+	if (tt == tt_nil)
+		self->expr.data_[0].result = tt_false;
+	else
+		self->expr.data_[0].result = tt_true;
+
+	return blk_analyze(&self->block, analyzer);
+}
+
+void wh_generate_fc(const While* self, struct CodeGen* codegen)
+{
+	String* func = codegen->current;
+	char c[19] = { 0 };
+	sprintf(c, "%p", self);
+	if (self->expr.data_[0].result == tt_false)
+	{
+		GenerateExpression(&self->expr, codegen);
+		append_str(func, "CLEARS\n");
+		return;
+	}
+	if (self->expr.data_[0].result == tt_true)
+	{
+		append_str(func, "LABEL $wh_cy_"); //cycle
+		append_str(func, c);
+		push_back_str(func, '\n');
+		GenerateExpression(&self->expr, codegen);
+		append_str(func, "CLEARS\n");
+		blk_generate(&self->block, codegen);
+		append_str(func, "JUMP $wh_cy_");
+		append_str(func, c);
+		push_back_str(func, '\n');
+		return;
+	}
+
+	append_str(func, "DEFVAR LF@_wh_");
+	append_str(func, c);
+	push_back_str(func, '\n');
+
+	append_str(func, "JUMP $wh_c_");
+	append_str(func, c);
+	push_back_str(func, '\n');
+	append_str(func, "LABEL $wh_cy_"); //cycle
+	append_str(func, c);
+	push_back_str(func, '\n');
+
+	blk_generate(&self->block, codegen);
+
+	append_str(func, "LABEL $wh_c_"); //cond
+	append_str(func, c);
+	push_back_str(func, '\n');
+	GenerateExpression(&self->expr, codegen);
+	append_str(func, "POPS LF@_wh_");
+	append_str(func, c);
+	push_back_str(func, '\n');
+	append_str(func, "CLEARS\n");
+	append_str(func, "PUSHS LF@_wh_");
+	append_str(func, c);
+	push_back_str(func, '\n');
+	append_str(func, "PUSHS bool@true\n");
+	append_str(func, "JUMPIFEQS $wh_cy_");
+	append_str(func, c);
+	push_back_str(func, '\n');
+}
+void wh_generate(const While* self, struct CodeGen* codegen)
+{
+	String* func = codegen->current;
+
+	if (self->expr.data_[0].left->result == tt_fcall)
+		return wh_generate_fc(self, codegen);
+
+	if (self->expr.data_[0].result == tt_false)
+	{
+		GenerateExpression(&self->expr, codegen);
+		append_str(func, "CLEARS\n");
+		return;
+	}
+
+	char c[19] = { 0 };
+	sprintf(c, "%p", self);
+
+	if (self->expr.data_[0].result == tt_true)
+	{
+		append_str(func, "LABEL $wh_cy_"); //cycle
+		append_str(func, c);
+		push_back_str(func, '\n');
+		GenerateExpression(&self->expr, codegen);
+		append_str(func, "CLEARS\n");
+		blk_generate(&self->block, codegen);
+		append_str(func, "JUMP $wh_cy_");
+		append_str(func, c);
+		push_back_str(func, '\n');
+		return;
+	}
+
+	append_str(func, "JUMP $wh_c_");
+	append_str(func, c);
+	push_back_str(func, '\n');
+	append_str(func, "LABEL $wh_cy_"); //cycle
+	append_str(func, c);
+	push_back_str(func, '\n');
+
+	blk_generate(&self->block, codegen);
+
+	append_str(func, "LABEL $wh_c_"); //cond
+	append_str(func, c);
+	push_back_str(func, '\n');
+	GenerateExpression(&self->expr, codegen);
+	append_str(func, "PUSHS bool@true\n");
+	append_str(func, "JUMPIFEQS $wh_cy_");
+	append_str(func, c);
+	push_back_str(func, '\n');
 }
 
 static const struct IASTElement vfptr_wh = (IASTElement)
@@ -894,7 +1012,8 @@ static const struct IASTElement vfptr_wh = (IASTElement)
 	wh_append,
 	wh_print,
 	While_dtor,
-	wh_analyze
+	wh_analyze,
+	wh_generate
 };
 void While_ctor(While* self)
 {
@@ -1097,13 +1216,106 @@ Error rep_analyze(Repeat* self, struct SemanticAnalyzer* analyzer)
 	e = blk_analyze(&self->block, analyzer);
 	return e;
 }
+void rep_generate_fc(const Repeat* self, struct CodeGen* codegen)
+{
+	String* func = codegen->current;
+	char c[19] = { 0 };
+	sprintf(c, "%p", self);
+	if (self->expr.data_[0].result == tt_true)
+	{
+		blk_generate(&self->block, codegen);
+		GenerateExpression(&self->expr, codegen);
+		append_str(func, "CLEARS\n");
+		return;
+	}
+	if (self->expr.data_[0].result == tt_false)
+	{
+		append_str(func, "LABEL $rep_cy_"); //cycle
+		append_str(func, c);
+		push_back_str(func, '\n');
+		blk_generate(&self->block, codegen);
+		GenerateExpression(&self->expr, codegen);
+		append_str(func, "CLEARS\n");
+		append_str(func, "JUMP $rep_cy_");
+		append_str(func, c);
+		push_back_str(func, '\n');
+		return;
+	}
 
+	append_str(func, "DEFVAR LF@_rep_");
+	append_str(func, c);
+	push_back_str(func, '\n');
+
+	append_str(func, "LABEL $rep_cy_"); //cycle
+	append_str(func, c);
+	push_back_str(func, '\n');
+
+	blk_generate(&self->block, codegen);
+
+	GenerateExpression(&self->expr, codegen);
+	append_str(func, "POPS LF@_rep_");
+	append_str(func, c);
+	push_back_str(func, '\n');
+	append_str(func, "CLEARS\n");
+	append_str(func, "PUSHS LF@_rep_");
+	append_str(func, c);
+	push_back_str(func, '\n');
+	append_str(func, "PUSHS bool@true\n");
+	append_str(func, "JUMPIFNEQS $rep_cy_");
+	append_str(func, c);
+	push_back_str(func, '\n');
+}
+void rep_generate(const Repeat* self, struct CodeGen* codegen)
+{
+	String* func = codegen->current;
+
+	if (self->expr.data_[0].left->result == tt_fcall)
+		return rep_generate_fc(self, codegen);
+
+	if (self->expr.data_[0].result == tt_true)
+	{
+		blk_generate(&self->block, codegen);
+		GenerateExpression(&self->expr, codegen);
+		append_str(func, "CLEARS\n");
+		return;
+	}
+
+	char c[19] = { 0 };
+	sprintf(c, "%p", self);
+
+	if (self->expr.data_[0].result == tt_false)
+	{
+		append_str(func, "LABEL $rep_cy_"); //cycle
+		append_str(func, c);
+		push_back_str(func, '\n');
+		blk_generate(&self->block, codegen);
+		GenerateExpression(&self->expr, codegen);
+		append_str(func, "CLEARS\n");
+		append_str(func, "JUMP $rep_cy_");
+		append_str(func, c);
+		push_back_str(func, '\n');
+		return;
+	}
+
+	append_str(func, "LABEL $rep_cy_"); //cycle
+	append_str(func, c);
+	push_back_str(func, '\n');
+
+	blk_generate(&self->block, codegen);
+
+	GenerateExpression(&self->expr, codegen);
+	append_str(func, "PUSHS bool@true\n");
+	append_str(func, "JUMPIFEQS $rep_cy_");
+	append_str(func, c);
+	push_back_str(func, '\n');
+}
 static const struct IASTElement vfptr_rep = (IASTElement)
 {
 	rep_append,
 	rep_print,
 	Repeat_dtor,
-	rep_analyze
+	rep_analyze,
+	rep_generate
 };
 void Repeat_ctor(Repeat* self)
 {
@@ -1326,6 +1538,7 @@ static bool Generate_elseif_node(const Node_elseif* self, struct CodeGen* codege
 		}
 		if (self->expr.data_[0].result == tt_true)
 		{
+			append_str(func, "CLEARS\n");
 			blk_generate(&self->block, codegen);
 			return false;
 		}
@@ -1351,13 +1564,15 @@ static bool Generate_elseif_node(const Node_elseif* self, struct CodeGen* codege
 	{
 		char c[19];
 		sprintf(c, "%p", self->next);
-		append_str(func, "JUMPIFNEQ $eif_");
+		append_str(func, "PUSHS bool@true\n");
+		append_str(func, "JUMPIFNEQS $eif_");
 		append_str(func, c);
 		push_back_str(func, '\n');
 	}
 	else
 	{
-		append_str(func, "JUMPIFNEQ $endif_");
+		append_str(func, "PUSHS bool@true\n");
+		append_str(func, "JUMPIFNEQS $endif_");
 		append_str(func, finish);
 		push_back_str(func, '\n');
 	}
@@ -1381,7 +1596,7 @@ static Error Check_elseif_node(Node_elseif* self, struct SemanticAnalyzer* analy
 		tt = fd->ret.begin[0];
 	}
 
-	if(tt == tt_boolean)
+	if (tt == tt_boolean)
 		return blk_analyze(&self->block, analyzer);
 
 	if (tt == tt_nil)
