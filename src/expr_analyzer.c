@@ -576,7 +576,9 @@ void GenerateNode(Node* self, String* to)
 		append_str(to, "EQS\n""NOTS\n");
 		break;
 	case tt_fcall:
-		if (!strcmp(c_str(&self->core.sval), "write"))
+	{
+		const char* fname = c_str(&self->core.sval);
+		if (!strcmp(fname, "write"))
 		{
 			char c[128];
 			sprintf(c, "%zu", Argc(self));
@@ -585,8 +587,12 @@ void GenerateNode(Node* self, String* to)
 			push_back_str(to, '\n');
 		}
 		append_str(to, "CALL $$");
-		append_str(to, c_str(&self->core.sval));
+
+		if(IsBuiltin(fname))
+			append_str(to, "_builtin_");
+		append_str(to, fname);
 		push_back_str(to, '\n');
+	}
 	default:
 		break;
 	}

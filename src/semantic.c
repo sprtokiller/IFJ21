@@ -78,7 +78,7 @@ bool SA_AddVariable(selfptr, String* id, token_type type, bool has_value, bool g
 	else
 		prepend_str(id, "LF@");
 
-	if (xtok && global != xtok->global)
+	if (xtok && global == xtok->global)
 	{
 		char x[sizeof(void*) * 2 + 2] = { 0 };
 		sprintf(x, "_%p", id);

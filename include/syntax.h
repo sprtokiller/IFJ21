@@ -21,7 +21,7 @@ typedef struct IASTElement
 	void(*print)(struct IASTElement** self);
 	void(*dtor)(struct IASTElement** self);
 	Error(*analyze)(struct IASTElement** self, struct SemanticAnalyzer* analyzer);
-	void (*generate)(struct IASTElement** self, struct CodeGen* codegen);
+	void (*generate)(const struct IASTElement** self, struct CodeGen* codegen);
 }IASTElement,**ppIASTElement;
 
 void ppIASTElement_dtor(ppIASTElement* self);

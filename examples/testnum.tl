@@ -2,8 +2,8 @@
 require "ifj21"
 
 global x:number = -10+4*26^2^2 * #"good"
---function x(a:integer, b:string, c:number): integer
---end
+function x(a:integer, b:string, c:number): integer, boolean
+end
 
 function main() -- uzivatelska funkce bez parametru
 	local x : integer = x(5+2,"",10)
@@ -15,6 +15,7 @@ function main() -- uzivatelska funkce bez parametru
 	local a : integer
 	local vysl : integer = 0
 
+	a = x(5+2,"",10)
 
 	write("Zadejte cislo pro vypocet faktorialu\n\\")
 	a = readi()

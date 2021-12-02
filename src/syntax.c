@@ -283,9 +283,12 @@ Error fd_analyze(funcDecl* self, struct SemanticAnalyzer* analyzer)
 }
 void fd_generate(const funcDecl* self, struct CodeGen* codegen)
 {
+	const char* fname = c_str(&self->name.sval);
+	if (!find_htab_FunctionDecl(codegen->funcs, fname)->called)return;
+
 	String* func = CG_AddFunction(codegen);
 	append_str(func, "LABEL $$");
-	append_str(func, c_str(&self->name.sval));
+	append_str(func, fname);
 	push_back_str(func, '\n');
 	append_str(func, "CREATEFRAME\n""PUSHFRAME\n");
 
@@ -404,7 +407,7 @@ Error ls_analyze(localStmt* self, struct SemanticAnalyzer* analyzer)
 		e_msg("Local statement can't be in global scope!");
 		return e_other;
 	}
-	
+
 
 	if (!SA_AddVariable(analyzer, &self->id, self->type, self->has_value, false)) {
 		e_msg("Variable already exists!");
@@ -449,6 +452,13 @@ void ls_generate(const localStmt* self, struct CodeGen* codegen)
 		append_str(code, "POPS ");
 		append_str(code, t);
 		push_back_str(code, '\n');
+
+		if (self->value.data_[0].left->result == tt_fcall)
+		{
+			FunctionDecl* fd = find_htab_FunctionDecl(codegen->funcs, c_str(&self->value.data_[0].left->core.sval));
+			if (size_Span_token_type(&fd->ret) > 1)
+				append_str(code, "CLEARS\n");
+		}
 		push_back_str(code, '\n');
 	}
 }
@@ -516,6 +526,7 @@ List_exp* push(List_exp* self)
 	self->n++;
 	return  self->last = self->last->next = calloc(sizeof(List_Node), 1);
 }
+
 
 typedef struct AssOrFCall
 {
@@ -654,7 +665,7 @@ Error afc_analyze(AssOrFCall* self, struct SemanticAnalyzer* analyzer)
 		if (!exp) continue;
 
 		token_type tt = GetExpType(exp, analyzer, &e);
-		if(tt == tt_eof && !self->all_assigned) {
+		if (tt == tt_eof && !self->all_assigned) {
 			e_msg("Less vars assigned than expekted");
 			return e_count;
 		}
@@ -670,9 +681,9 @@ Error afc_analyze(AssOrFCall* self, struct SemanticAnalyzer* analyzer)
 			for (size_t j = 0; j < size_Span_token_type(&fp->ret); j++)
 			{
 				if (i + j == self->idents.end_ - 1)self->all_assigned = true;
-				if (i + j >= self->idents.end_) { 
+				if (i + j >= self->idents.end_) {
 					self->all_assigned = true;
-					break; 
+					break;
 				}
 				Variable* vi = SA_FindVariable(analyzer, c_str(&(i + j)->sval));
 				if (vi->type != fp->ret.begin[j])
@@ -695,13 +706,44 @@ Error afc_analyze(AssOrFCall* self, struct SemanticAnalyzer* analyzer)
 	if (exp)return e_count;
 	return e_ok;
 }
+void afc_generate(const AssOrFCall* self, struct CodeGen* codegen)
+{
+	String* func = codegen->current;
+	if (self->op == ass_fcall)
+		return GenerateExpression(&self->fcall, func);
+
+	List_Node* exp = self->expressions.first;
+	size_t n = 0;
+	for (token* i = self->idents.data_;  i < self->idents.end_ && n < self->expressions.n; i++, n++)
+	{
+		GenerateExpression(&exp->expression, func);
+
+		if (exp->expression.data_[0].left->result == tt_fcall)
+		{
+			FunctionDecl* fd = find_htab_FunctionDecl(codegen->funcs, c_str(&exp->expression.data_[0].left->core.sval));
+			for (size_t j = 0; j < size_Span_token_type(&fd->ret); j++)
+			{
+				if (i + j == self->idents.end_)
+				{
+					append_str(func, "CLEARS\n");
+					break;
+				}
+				append_str(func, "POPS ");
+				append_str(func, c_str(&(i+j)->sval));
+				push_back_str(func, '\n');
+			}
+		}
+		exp = exp->next;
+	}
+}
 
 static const struct IASTElement vfptr_afc = (IASTElement)
 {
 	afc_append,
 	afc_print,
 	AssOrFCall_dtor,
-	afc_analyze
+	afc_analyze,
+	afc_generate
 };
 void AssOrFCall_ctor(AssOrFCall* self)
 {
@@ -1503,7 +1545,7 @@ Error gs_analyze(globalStmt* self, struct SemanticAnalyzer* analyzer)
 		}
 		tt = *fp->ret.begin; //Get first
 	}
-	if (FitsType(tt, self->type))
+	if (!FitsType(self->type, tt))
 	{
 		e_msg("Expression type is invalid");
 		return e_type_ass;
@@ -1514,7 +1556,7 @@ Error gs_analyze(globalStmt* self, struct SemanticAnalyzer* analyzer)
 void gs_generate(const globalStmt* self, struct CodeGen* codegen)
 {
 	if (self->type == tt_function)return;
-	
+
 	String* code = codegen->current;
 	const char* t = c_str(&self->id);
 	append_str(code, "DEFVAR ");
@@ -1526,6 +1568,13 @@ void gs_generate(const globalStmt* self, struct CodeGen* codegen)
 		append_str(code, "POPS ");
 		append_str(code, t);
 		push_back_str(code, '\n');
+
+		if (self->value.data_[0].left->result == tt_fcall)
+		{
+			FunctionDecl* fd = find_htab_FunctionDecl(codegen->funcs, c_str(&self->value.data_[0].left->core.sval));
+			if (size_Span_token_type(&fd->ret) > 1)
+				append_str(code, "CLEARS\n");
+		}
 		push_back_str(code, '\n');
 	}
 }
