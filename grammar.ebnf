@@ -22,7 +22,8 @@ OptEqStmt:            /* eps */ | "=" EXPRESSION;
 OptResult:            /* eps */ | ":" TYPE OptMoreTypes;
 
 
-Block:                /* eps */ | FuncOrAss Block | LocalDecl Block | IfBlock Block | WhileBlock Block | ReturnBlock Block | ForBlock Block | RepBlock Block;
+Block:                /* eps */ | FuncOrAss Block | LocalDecl Block | IfBlock Block | WhileBlock Block | ReturnBlock Block | ForBlock Block | RepBlock Block | "break" Block;
+
 
 FuncOrAss:            IDENTIFIER FuncOrAssSel;
 FuncOrAssSel:         FuncBlock | AssBlock;
@@ -39,20 +40,10 @@ LocalDecl:            "local" IDENTIFIER ":" UnknownDeclThing;
 IfBlock:              "if" EXPRESSION "then" Block OptElsifsBlocks OptElseBlock "end";
 OptElseBlock:         /* eps */ | "else" Block;
 OptElsifsBlocks:      /* eps */ | "elseif" EXPRESSION "then" Block OptElsifsBlocks;
-WhileBlock:           "while" EXPRESSION "do" BlockBreak "end";
+WhileBlock:           "while" EXPRESSION "do" Block "end";
 ReturnBlock:          "return" OptExpression;
 
-ForBlock:             "for" IDENTIFIER "=" EXPRESSION "," EXPRESSION OptInc "do" BlockBreak "end";
+ForBlock:             "for" IDENTIFIER "=" EXPRESSION "," EXPRESSION OptInc "do" Block "end";
 OptInc:               /* eps */ | "," EXPRESSION;
-RepBlock:             "repeat" BlockBreak "until" EXPRESSION;
-OptExpression:        /* eps */| EXPRESSION OptExprList;
-
-BlockBreak:           /* eps */ | FuncOrAss BlockBreak | LocalDecl BlockBreak | IfBlockBreak BlockBreak | WhileBlockBreak BlockBreak | ReturnBlock BlockBreak | ForBlockBreak BlockBreak | RepBlockBreak BlockBreak;
-
-IfBlockBreak:         "if" EXPRESSION "then" BlockBreak OptElsifsBlocksBreak OptElseBlockBreak "end";
-OptElseBlockBreak:    /* eps */ | "else" BlockBreak;
-OptElsifsBlocksBreak: /* eps */ | "elseif" EXPRESSION "then" BlockBreak OptElsifsBlocksBreak;
-WhileBlockBreak:      "while" EXPRESSION "do" BlockBreak "end";
-
-ForBlockBreak:        "for" IDENTIFIER "=" EXPRESSION "," EXPRESSION OptInc "do" BlockBreak "end";
-RepBlockBreak:        "repeat" BlockBreak "until" EXPRESSION;
+RepBlock:             "repeat" Block "until" EXPRESSION;
+OptExpression:          /* eps */| EXPRESSION OptExprList;
