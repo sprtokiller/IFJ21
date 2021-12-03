@@ -9,6 +9,12 @@
 
 typedef Vector(Node) Expression;
 
+typedef struct IASTCycle
+{
+	IASTElement element;
+	void(*acc_break)(struct IASTCycle** self);
+}IASTCycle;
+
 static void PrintExpression(const Vector(Node)* vec)
 {
 	for (size_t i = 1; i < size_Vector_Node(vec); i++)
@@ -876,9 +882,10 @@ void Program_dtor(Program* self)
 #pragma region While
 typedef struct While
 {
-	Implements(IASTElement);
+	Implements(IASTCycle);
 	bool valid : 1;
 	bool fills_block : 1;
+	bool has_break : 1;
 	Vector(Node) expr;
 	blockPart block;
 }While;
@@ -915,6 +922,9 @@ void wh_print(While* self)
 }
 Error wh_analyze(While* self, struct SemanticAnalyzer* analyzer)
 {
+	UNIQUE(CycleGuard) cg;
+	CycleGuard_ctor(&cg, analyzer, (CycleCore) { self });
+
 	if (SA_IsGlobal(analyzer)) {
 		e_msg("Invalid statement for global scope");
 		return e_other;
@@ -963,6 +973,12 @@ void wh_generate_fc(const While* self, struct CodeGen* codegen)
 		append_str(func, "JUMP $wh_cy_");
 		append_str(func, c);
 		push_back_str(func, '\n');
+		if (self->has_break)
+		{
+			append_str(func, "LABEL $brk_"); //cond
+			append_str(func, c);
+			push_back_str(func, '\n');
+		}
 		return;
 	}
 
@@ -994,6 +1010,13 @@ void wh_generate_fc(const While* self, struct CodeGen* codegen)
 	append_str(func, "JUMPIFEQS $wh_cy_");
 	append_str(func, c);
 	push_back_str(func, '\n');
+
+	if (self->has_break)
+	{
+		append_str(func, "LABEL $brk_"); //cond
+		append_str(func, c);
+		push_back_str(func, '\n');
+	}
 }
 void wh_generate(const While* self, struct CodeGen* codegen)
 {
@@ -1023,6 +1046,12 @@ void wh_generate(const While* self, struct CodeGen* codegen)
 		append_str(func, "JUMP $wh_cy_");
 		append_str(func, c);
 		push_back_str(func, '\n');
+		if (self->has_break)
+		{
+			append_str(func, "LABEL $brk_"); //cond
+			append_str(func, c);
+			push_back_str(func, '\n');
+		}
 		return;
 	}
 
@@ -1043,15 +1072,29 @@ void wh_generate(const While* self, struct CodeGen* codegen)
 	append_str(func, "JUMPIFEQS $wh_cy_");
 	append_str(func, c);
 	push_back_str(func, '\n');
+
+	if (self->has_break)
+	{
+		append_str(func, "LABEL $brk_"); //cond
+		append_str(func, c);
+		push_back_str(func, '\n');
+	}
+}
+void wh_acc_break(While* self)
+{
+	self->has_break = true;
 }
 
-static const struct IASTElement vfptr_wh = (IASTElement)
+static const struct IASTCycle vfptr_wh = (IASTCycle)
 {
+	.element = (IASTElement){
 	wh_append,
 	wh_print,
 	While_dtor,
 	wh_analyze,
 	wh_generate
+},
+.acc_break = wh_acc_break
 };
 void While_ctor(While* self)
 {
@@ -1070,10 +1113,11 @@ void While_dtor(While* self)
 #pragma region For
 typedef struct For
 {
-	Implements(IASTElement);
+	Implements(IASTCycle);
 	bool valid : 1;
 	bool has_increment : 1;
 	bool fills_block : 1;
+	bool has_break : 1;
 	bool has_terminus : 1;
 	bool has_expr : 1;
 	token id;
@@ -1143,6 +1187,9 @@ void for_print(For* self)
 }
 Error for_analyze(For* self, struct SemanticAnalyzer* analyzer)
 {
+	UNIQUE(CycleGuard) cg;
+	CycleGuard_ctor(&cg, analyzer, (CycleCore) { self });
+
 	Error e = e_ok;
 	if (SA_IsGlobal(analyzer)) {
 		e_msg("Invalid statement for global scope");
@@ -1265,15 +1312,29 @@ void for_generate(const For* self, struct CodeGen* codegen)
 	append_str(func, "JUMPIFNEQS $for_cy_");
 	append_str(func, c);
 	push_back_str(func, '\n');
+	if (self->has_break)
+	{
+		append_str(func, "LABEL $brk_"); //cond
+		append_str(func, c);
+		push_back_str(func, '\n');
+	}
+}
+void for_acc_break(For* self)
+{
+	self->has_break = true;
 }
 
-static const struct IASTElement vfptr_for = (IASTElement)
+static const struct IASTCycle vfptr_for = (IASTCycle)
 {
-	for_append,
-	for_print,
-	For_dtor,
-	for_analyze,
-	for_generate
+	.element =  (IASTElement)
+	{
+		for_append,
+		for_print,
+		For_dtor,
+		for_analyze,
+		for_generate
+	},
+	.acc_break = for_acc_break
 };
 void For_ctor(For* self)
 {
@@ -1293,9 +1354,10 @@ void For_dtor(For* self)
 #pragma region Repeat
 typedef struct Repeat
 {
-	Implements(IASTElement);
+	Implements(IASTCycle);
 	bool valid : 1;
 	bool fills_block : 1;
+	bool has_break : 1;
 	Vector(Node) expr;
 	blockPart block;
 }Repeat;
@@ -1340,6 +1402,9 @@ void rep_print(Repeat* self)
 }
 Error rep_analyze(Repeat* self, struct SemanticAnalyzer* analyzer)
 {
+	UNIQUE(CycleGuard) cg;
+	CycleGuard_ctor(&cg, analyzer, (CycleCore) { self });
+
 	if (SA_IsGlobal(analyzer)) {
 		e_msg("Invalid statement for global scope");
 		return e_other;
@@ -1373,6 +1438,12 @@ void rep_generate_fc(const Repeat* self, struct CodeGen* codegen)
 		append_str(func, "JUMP $rep_cy_");
 		append_str(func, c);
 		push_back_str(func, '\n');
+		if (self->has_break)
+		{
+			append_str(func, "LABEL $brk_"); //cond
+			append_str(func, c);
+			push_back_str(func, '\n');
+		}
 		return;
 	}
 
@@ -1398,6 +1469,12 @@ void rep_generate_fc(const Repeat* self, struct CodeGen* codegen)
 	append_str(func, "JUMPIFNEQS $rep_cy_");
 	append_str(func, c);
 	push_back_str(func, '\n');
+	if (self->has_break)
+	{
+		append_str(func, "LABEL $brk_"); //cond
+		append_str(func, c);
+		push_back_str(func, '\n');
+	}
 }
 void rep_generate(const Repeat* self, struct CodeGen* codegen)
 {
@@ -1428,6 +1505,12 @@ void rep_generate(const Repeat* self, struct CodeGen* codegen)
 		append_str(func, "JUMP $rep_cy_");
 		append_str(func, c);
 		push_back_str(func, '\n');
+		if (self->has_break)
+		{
+			append_str(func, "LABEL $brk_"); //cond
+			append_str(func, c);
+			push_back_str(func, '\n');
+		}
 		return;
 	}
 
@@ -1442,14 +1525,29 @@ void rep_generate(const Repeat* self, struct CodeGen* codegen)
 	append_str(func, "JUMPIFEQS $rep_cy_");
 	append_str(func, c);
 	push_back_str(func, '\n');
+	if (self->has_break)
+	{
+		append_str(func, "LABEL $brk_"); //cond
+		append_str(func, c);
+		push_back_str(func, '\n');
+	}
 }
-static const struct IASTElement vfptr_rep = (IASTElement)
+void rep_acc_break(Repeat* self)
 {
-	rep_append,
-	rep_print,
-	Repeat_dtor,
-	rep_analyze,
-	rep_generate
+	self->has_break = true;
+}
+
+static const struct IASTCycle vfptr_rep = (IASTCycle)
+{
+	.element = (IASTElement)
+	{
+		rep_append,
+		rep_print,
+		Repeat_dtor,
+		rep_analyze,
+		rep_generate
+	},
+	.acc_break = rep_acc_break
 };
 void Repeat_ctor(Repeat* self)
 {
@@ -2105,6 +2203,7 @@ void globalStmt_dtor(globalStmt* self)
 typedef struct Break
 {
 	Implements(IASTElement);
+	CycleCore cycle;
 }Break;
 
 void Break_ctor(Break* self);
@@ -2122,11 +2221,25 @@ void brk_print(Break* self)
 }
 Error brk_analyze(Break* self, struct SemanticAnalyzer* analyzer)
 {
+	if (!analyzer->cycles.cycle)
+	{
+		e_msg("break not within cycle");
+		return e_other;
+	}
+	self->cycle = analyzer->cycles;
+	(*self->cycle.cycle)->acc_break(self->cycle.cycle);
+
 	return e_ok;
 }
 void brk_generate(const Break* self, struct CodeGen* codegen)
 {
+	String* func = codegen->current;
+	char c[19] = { 0 };
+	sprintf(c, "%p", self->cycle.cycle);
 
+	append_str(func, "JUMP $brk_");
+	append_str(func, c);
+	push_back_str(func, '\n');
 }
 
 static const struct IASTElement vfptr_brk = (IASTElement)

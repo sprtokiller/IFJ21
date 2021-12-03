@@ -28,6 +28,7 @@ function main() -- uzivatelska funkce bez parametru
 		vysl = 1
 		while a > 0 do
 			vysl = vysl * a a = a - 1 -- dva prikazy
+			break
 		end
 		write("Vysledek je: ", vysl, "\n")
 	end

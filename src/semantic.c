@@ -28,6 +28,18 @@ bool Span_EQ(Span_token_type a, Span_token_type b)
 	return true;
 }
 
+void CycleGuard_ctor(CycleGuard* self, SemanticAnalyzer* ggz, CycleCore cc)
+{
+	self->ggz = ggz;
+	self->cc = ggz->cycles;
+	ggz->cycles = cc;
+}
+
+void CycleGuard_dtor(CycleGuard* self)
+{
+	self->ggz->cycles = self->cc;
+}
+
 void SA_AddScope(selfptr)
 {
 	self->level++;

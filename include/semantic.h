@@ -10,6 +10,20 @@ typedef struct c_class c_class;
 void Constructor(selfptr);
 void Destructor(selfptr);
 
+struct IASTCycle;
+
+typedef struct
+{
+	struct IASTCycle** cycle;
+}CycleCore;
+typedef struct
+{
+	SemanticAnalyzer* ggz;
+	CycleCore cc;
+}CycleGuard;
+
+void CycleGuard_ctor(CycleGuard* self, SemanticAnalyzer* ggz, CycleCore cc);
+void CycleGuard_dtor(CycleGuard* self);
 
 struct SemanticAnalyzer
 {
@@ -18,6 +32,7 @@ struct SemanticAnalyzer
 	HashMap(Variable)* current;
 	FunctionDecl* curr_func;
 	size_t level; //scope level
+	CycleCore cycles;
 };
 
 inline bool SA_IsGlobal(selfptr)
