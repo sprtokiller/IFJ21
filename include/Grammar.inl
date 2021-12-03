@@ -46,38 +46,64 @@ Error identifier_f(Vector(token_type)* stack, token_type top_tt)
 		break;
 	case T(26):
 		PUSH T(26);
-		PUSH T(37);
+		PUSH T(38);
 		break;
-	case T(31):
-		PUSH T(31);
+	case T(29):
+		PUSH T(29);
 		PUSH T(45);
 		break;
-	case T(37):
-		PUSH T(54);
+	case T(32):
+		PUSH T(32);
+		PUSH T(53);
+		break;
+	case T(38):
+		PUSH T(62);
 		PUSH tt_identifier;
 		break;
 	case T(45):
-		PUSH T(57);
+		PUSH T(65);
+		PUSH tt_identifier;
+		break;
+	case T(53):
+		PUSH T(71);
+		PUSH tt_identifier;
+		break;
+	case T(67):
+		PUSH T(67);
+		PUSH T(83);
+		break;
+	case T(83):
+		PUSH T(100);
 		PUSH tt_identifier;
 		break;
 	case T(6):
 	case T(12):
 	case T(21):
 	case T(22):
-	case T(29):
-	case T(33):
-	case T(36):
-	case T(44):
-	case T(56):
-	case T(59):
-	case T(62):
-	case T(63):
+	case T(30):
+	case T(34):
+	case T(37):
+	case T(52):
 	case T(64):
-	case T(67):
-	case T(68):
-	case T(69):
-	case T(71):
+	case T(70):
 	case T(73):
+	case T(76):
+	case T(77):
+	case T(78):
+	case T(81):
+	case T(82):
+	case T(90):
+	case T(93):
+	case T(94):
+	case T(95):
+	case T(97):
+	case T(99):
+	case T(102):
+	case T(104):
+	case T(107):
+	case T(108):
+	case T(109):
+	case T(111):
 		break;
 	default:
 		return e_invalid_syntax;
@@ -116,15 +142,29 @@ Error function_f(Vector(token_type)* stack, token_type top_tt)
 		PUSH tt_left_parenthese;
 		PUSH tt_function;
 		break;
-	case T(55):
-		PUSH T(62);
+	case T(63):
+		PUSH T(76);
 		PUSH tt_right_parenthese;
 		PUSH T(20);
 		PUSH tt_left_parenthese;
 		PUSH tt_function;
 		break;
-	case T(58):
-		PUSH T(67);
+	case T(66):
+		PUSH T(81);
+		PUSH tt_right_parenthese;
+		PUSH T(20);
+		PUSH tt_left_parenthese;
+		PUSH tt_function;
+		break;
+	case T(72):
+		PUSH T(93);
+		PUSH tt_right_parenthese;
+		PUSH T(20);
+		PUSH tt_left_parenthese;
+		PUSH tt_function;
+		break;
+	case T(101):
+		PUSH T(107);
 		PUSH tt_right_parenthese;
 		PUSH T(20);
 		PUSH tt_left_parenthese;
@@ -132,7 +172,7 @@ Error function_f(Vector(token_type)* stack, token_type top_tt)
 		break;
 	case T(21):
 	case T(22):
-	case T(33):
+	case T(34):
 		break;
 	default:
 		return e_invalid_syntax;
@@ -148,24 +188,38 @@ Error left_parenthese_f(Vector(token_type)* stack, token_type top_tt)
 		PUSH tt_left_parenthese;
 		break;
 	case T(24):
-		PUSH T(34);
+		PUSH T(35);
 		break;
-	case T(34):
-		PUSH T(52);
-		PUSH tt_left_parenthese;
-		break;
-	case T(54):
+	case T(35):
 		PUSH T(60);
-		break;
-	case T(57):
-		PUSH T(65);
-		break;
-	case T(60):
-		PUSH T(70);
 		PUSH tt_left_parenthese;
+		break;
+	case T(62):
+		PUSH T(74);
 		break;
 	case T(65):
-		PUSH T(72);
+		PUSH T(79);
+		break;
+	case T(71):
+		PUSH T(91);
+		break;
+	case T(74):
+		PUSH T(96);
+		PUSH tt_left_parenthese;
+		break;
+	case T(79):
+		PUSH T(98);
+		PUSH tt_left_parenthese;
+		break;
+	case T(91):
+		PUSH T(103);
+		PUSH tt_left_parenthese;
+		break;
+	case T(100):
+		PUSH T(105);
+		break;
+	case T(105):
+		PUSH T(110);
 		PUSH tt_left_parenthese;
 		break;
 	default:
@@ -180,20 +234,26 @@ Error right_parenthese_f(Vector(token_type)* stack, token_type top_tt)
 	case T(9):
 		PUSH tt_right_parenthese;
 		break;
-	case T(52):
+	case T(60):
 		PUSH tt_right_parenthese;
 		break;
-	case T(70):
+	case T(96):
 		PUSH tt_right_parenthese;
 		break;
-	case T(72):
+	case T(98):
+		PUSH tt_right_parenthese;
+		break;
+	case T(103):
+		PUSH tt_right_parenthese;
+		break;
+	case T(110):
 		PUSH tt_right_parenthese;
 		break;
 	case T(5):
 	case T(11):
 	case T(20):
 	case T(23):
-	case T(32):
+	case T(33):
 		break;
 	default:
 		return e_invalid_syntax;
@@ -211,13 +271,27 @@ Error end_f(Vector(token_type)* stack, token_type top_tt)
 	case T(27):
 	case T(28):
 	case T(29):
-	case T(36):
-	case T(44):
-	case T(56):
-	case T(62):
-	case T(63):
+	case T(30):
+	case T(37):
+	case T(52):
 	case T(64):
-	case T(71):
+	case T(67):
+	case T(68):
+	case T(69):
+	case T(70):
+	case T(76):
+	case T(77):
+	case T(78):
+	case T(81):
+	case T(82):
+	case T(90):
+	case T(97):
+	case T(99):
+	case T(102):
+	case T(107):
+	case T(108):
+	case T(109):
+	case T(111):
 		break;
 	default:
 		return e_invalid_syntax;
@@ -234,17 +308,27 @@ Error colon_f(Vector(token_type)* stack, token_type top_tt)
 		PUSH tt_colon;
 		break;
 	case T(21):
-		PUSH T(33);
+		PUSH T(34);
 		PUSH tt_type;
 		PUSH tt_colon;
 		break;
-	case T(62):
-		PUSH T(71);
+	case T(76):
+		PUSH T(97);
 		PUSH tt_type;
 		PUSH tt_colon;
 		break;
-	case T(67):
-		PUSH T(73);
+	case T(81):
+		PUSH T(99);
+		PUSH tt_type;
+		PUSH tt_colon;
+		break;
+	case T(93):
+		PUSH T(104);
+		PUSH tt_type;
+		PUSH tt_colon;
+		break;
+	case T(107):
+		PUSH T(111);
 		PUSH tt_type;
 		PUSH tt_colon;
 		break;
@@ -262,19 +346,27 @@ Error type_f(Vector(token_type)* stack, token_type top_tt)
 		PUSH tt_type;
 		break;
 	case T(20):
-		PUSH T(32);
+		PUSH T(33);
 		PUSH tt_type;
 		break;
 	case T(25):
-		PUSH T(36);
+		PUSH T(37);
 		PUSH tt_type;
 		break;
-	case T(55):
-		PUSH T(63);
+	case T(63):
+		PUSH T(77);
 		PUSH tt_type;
 		break;
-	case T(58):
-		PUSH T(68);
+	case T(66):
+		PUSH T(82);
+		PUSH tt_type;
+		break;
+	case T(72):
+		PUSH T(94);
+		PUSH tt_type;
+		break;
+	case T(101):
+		PUSH T(108);
 		PUSH tt_type;
 		break;
 	default:
@@ -302,15 +394,10 @@ Error comma_f(Vector(token_type)* stack, token_type top_tt)
 		PUSH tt_comma;
 		break;
 	case T(24):
-		PUSH T(35);
+		PUSH T(36);
 		break;
-	case T(30):
+	case T(31):
 		PUSH tt_expression;
-		PUSH tt_comma;
-		break;
-	case T(32):
-		PUSH T(32);
-		PUSH tt_type;
 		PUSH tt_comma;
 		break;
 	case T(33):
@@ -318,57 +405,100 @@ Error comma_f(Vector(token_type)* stack, token_type top_tt)
 		PUSH tt_type;
 		PUSH tt_comma;
 		break;
-	case T(35):
-		PUSH T(44);
-		PUSH tt_expression;
-		PUSH tt_assign;
-		PUSH T(53);
-		break;
-	case T(44):
-		PUSH T(44);
-		PUSH tt_expression;
-		PUSH tt_comma;
-		break;
-	case T(53):
-		PUSH T(53);
-		PUSH tt_identifier;
-		PUSH tt_comma;
-		break;
-	case T(54):
-		PUSH T(61);
-		break;
-	case T(57):
-		PUSH T(66);
-		break;
-	case T(61):
-		PUSH T(64);
-		PUSH tt_expression;
-		PUSH tt_assign;
-		PUSH T(53);
-		break;
-	case T(64):
-		PUSH T(64);
-		PUSH tt_expression;
-		PUSH tt_comma;
-		break;
-	case T(66):
-		PUSH T(69);
-		PUSH tt_expression;
-		PUSH tt_assign;
-		PUSH T(53);
-		break;
-	case T(69):
-		PUSH T(69);
-		PUSH tt_expression;
-		PUSH tt_comma;
-		break;
-	case T(71):
-		PUSH T(71);
+	case T(34):
+		PUSH T(34);
 		PUSH tt_type;
 		PUSH tt_comma;
 		break;
-	case T(73):
-		PUSH T(73);
+	case T(36):
+		PUSH T(52);
+		PUSH tt_expression;
+		PUSH tt_assign;
+		PUSH T(61);
+		break;
+	case T(52):
+		PUSH T(52);
+		PUSH tt_expression;
+		PUSH tt_comma;
+		break;
+	case T(61):
+		PUSH T(61);
+		PUSH tt_identifier;
+		PUSH tt_comma;
+		break;
+	case T(62):
+		PUSH T(75);
+		break;
+	case T(65):
+		PUSH T(80);
+		break;
+	case T(71):
+		PUSH T(92);
+		break;
+	case T(75):
+		PUSH T(78);
+		PUSH tt_expression;
+		PUSH tt_assign;
+		PUSH T(61);
+		break;
+	case T(78):
+		PUSH T(78);
+		PUSH tt_expression;
+		PUSH tt_comma;
+		break;
+	case T(80):
+		PUSH T(90);
+		PUSH tt_expression;
+		PUSH tt_assign;
+		PUSH T(61);
+		break;
+	case T(90):
+		PUSH T(90);
+		PUSH tt_expression;
+		PUSH tt_comma;
+		break;
+	case T(92):
+		PUSH T(95);
+		PUSH tt_expression;
+		PUSH tt_assign;
+		PUSH T(61);
+		break;
+	case T(95):
+		PUSH T(95);
+		PUSH tt_expression;
+		PUSH tt_comma;
+		break;
+	case T(97):
+		PUSH T(97);
+		PUSH tt_type;
+		PUSH tt_comma;
+		break;
+	case T(99):
+		PUSH T(99);
+		PUSH tt_type;
+		PUSH tt_comma;
+		break;
+	case T(100):
+		PUSH T(106);
+		break;
+	case T(104):
+		PUSH T(104);
+		PUSH tt_type;
+		PUSH tt_comma;
+		break;
+	case T(106):
+		PUSH T(109);
+		PUSH tt_expression;
+		PUSH tt_assign;
+		PUSH T(61);
+		break;
+	case T(109):
+		PUSH T(109);
+		PUSH tt_expression;
+		PUSH tt_comma;
+		break;
+	case T(111):
+		PUSH T(111);
 		PUSH tt_type;
 		PUSH tt_comma;
 		break;
@@ -393,7 +523,7 @@ Error global_f(Vector(token_type)* stack, token_type top_tt)
 		break;
 	case T(21):
 	case T(22):
-	case T(33):
+	case T(34):
 		break;
 	default:
 		return e_invalid_syntax;
@@ -409,45 +539,71 @@ Error assign_f(Vector(token_type)* stack, token_type top_tt)
 		PUSH tt_assign;
 		break;
 	case T(24):
-		PUSH T(35);
-		break;
-	case T(35):
-		PUSH T(44);
-		PUSH tt_expression;
-		PUSH tt_assign;
-		PUSH T(53);
+		PUSH T(36);
 		break;
 	case T(36):
+		PUSH T(52);
 		PUSH tt_expression;
 		PUSH tt_assign;
-		break;
-	case T(54):
 		PUSH T(61);
 		break;
-	case T(57):
-		PUSH T(66);
+	case T(37):
+		PUSH tt_expression;
+		PUSH tt_assign;
+		break;
+	case T(62):
+		PUSH T(75);
+		break;
+	case T(65):
+		PUSH T(80);
+		break;
+	case T(71):
+		PUSH T(92);
+		break;
+	case T(75):
+		PUSH T(78);
+		PUSH tt_expression;
+		PUSH tt_assign;
+		PUSH T(61);
+		break;
+	case T(77):
+		PUSH tt_expression;
+		PUSH tt_assign;
+		break;
+	case T(80):
+		PUSH T(90);
+		PUSH tt_expression;
+		PUSH tt_assign;
+		PUSH T(61);
+		break;
+	case T(82):
+		PUSH tt_expression;
+		PUSH tt_assign;
+		break;
+	case T(92):
+		PUSH T(95);
+		PUSH tt_expression;
+		PUSH tt_assign;
+		PUSH T(61);
+		break;
+	case T(94):
+		PUSH tt_expression;
+		PUSH tt_assign;
+		break;
+	case T(100):
+		PUSH T(106);
+		break;
+	case T(106):
+		PUSH T(109);
+		PUSH tt_expression;
+		PUSH tt_assign;
+		PUSH T(61);
+		break;
+	case T(108):
+		PUSH tt_expression;
+		PUSH tt_assign;
 		break;
 	case T(61):
-		PUSH T(64);
-		PUSH tt_expression;
-		PUSH tt_assign;
-		PUSH T(53);
-		break;
-	case T(63):
-		PUSH tt_expression;
-		PUSH tt_assign;
-		break;
-	case T(66):
-		PUSH T(69);
-		PUSH tt_expression;
-		PUSH tt_assign;
-		PUSH T(53);
-		break;
-	case T(68):
-		PUSH tt_expression;
-		PUSH tt_assign;
-		break;
-	case T(53):
 		break;
 	default:
 		return e_invalid_syntax;
@@ -463,29 +619,47 @@ Error expression_f(Vector(token_type)* stack, token_type top_tt)
 		PUSH T(23);
 		PUSH tt_expression;
 		break;
-	case T(29):
-		PUSH T(44);
+	case T(30):
+		PUSH T(52);
 		PUSH tt_expression;
 		break;
-	case T(52):
+	case T(60):
 		PUSH tt_right_parenthese;
 		PUSH T(23);
 		PUSH tt_expression;
 		break;
-	case T(56):
-		PUSH T(64);
-		PUSH tt_expression;
-		break;
-	case T(59):
-		PUSH T(69);
+	case T(64):
+		PUSH T(78);
 		PUSH tt_expression;
 		break;
 	case T(70):
+		PUSH T(90);
+		PUSH tt_expression;
+		break;
+	case T(73):
+		PUSH T(95);
+		PUSH tt_expression;
+		break;
+	case T(96):
 		PUSH tt_right_parenthese;
 		PUSH T(23);
 		PUSH tt_expression;
 		break;
-	case T(72):
+	case T(98):
+		PUSH tt_right_parenthese;
+		PUSH T(23);
+		PUSH tt_expression;
+		break;
+	case T(102):
+		PUSH T(109);
+		PUSH tt_expression;
+		break;
+	case T(103):
+		PUSH tt_right_parenthese;
+		PUSH T(23);
+		PUSH tt_expression;
+		break;
+	case T(110):
 		PUSH tt_right_parenthese;
 		PUSH T(23);
 		PUSH tt_expression;
@@ -511,39 +685,69 @@ Error local_f(Vector(token_type)* stack, token_type top_tt)
 		break;
 	case T(26):
 		PUSH T(26);
-		PUSH T(38);
+		PUSH T(39);
 		break;
-	case T(31):
-		PUSH T(31);
+	case T(29):
+		PUSH T(29);
 		PUSH T(46);
 		break;
-	case T(38):
-		PUSH T(55);
+	case T(32):
+		PUSH T(32);
+		PUSH T(54);
+		break;
+	case T(39):
+		PUSH T(63);
 		PUSH tt_colon;
 		PUSH tt_identifier;
 		PUSH tt_local;
 		break;
 	case T(46):
-		PUSH T(58);
+		PUSH T(66);
+		PUSH tt_colon;
+		PUSH tt_identifier;
+		PUSH tt_local;
+		break;
+	case T(54):
+		PUSH T(72);
+		PUSH tt_colon;
+		PUSH tt_identifier;
+		PUSH tt_local;
+		break;
+	case T(67):
+		PUSH T(67);
+		PUSH T(84);
+		break;
+	case T(84):
+		PUSH T(101);
 		PUSH tt_colon;
 		PUSH tt_identifier;
 		PUSH tt_local;
 		break;
 	case T(6):
 	case T(12):
-	case T(29):
-	case T(36):
-	case T(44):
-	case T(56):
-	case T(59):
-	case T(62):
-	case T(63):
+	case T(30):
+	case T(37):
+	case T(52):
 	case T(64):
-	case T(67):
-	case T(68):
-	case T(69):
-	case T(71):
+	case T(70):
 	case T(73):
+	case T(76):
+	case T(77):
+	case T(78):
+	case T(81):
+	case T(82):
+	case T(90):
+	case T(93):
+	case T(94):
+	case T(95):
+	case T(97):
+	case T(99):
+	case T(102):
+	case T(104):
+	case T(107):
+	case T(108):
+	case T(109):
+	case T(111):
 		break;
 	default:
 		return e_invalid_syntax;
@@ -569,13 +773,17 @@ Error if_f(Vector(token_type)* stack, token_type top_tt)
 		break;
 	case T(26):
 		PUSH T(26);
-		PUSH T(39);
+		PUSH T(40);
 		break;
-	case T(31):
-		PUSH T(31);
+	case T(29):
+		PUSH T(29);
 		PUSH T(47);
 		break;
-	case T(39):
+	case T(32):
+		PUSH T(32);
+		PUSH T(55);
+		break;
+	case T(40):
 		PUSH tt_end;
 		PUSH T(28);
 		PUSH T(27);
@@ -586,28 +794,60 @@ Error if_f(Vector(token_type)* stack, token_type top_tt)
 		break;
 	case T(47):
 		PUSH tt_end;
-		PUSH T(28);
-		PUSH T(27);
-		PUSH T(26);
+		PUSH T(69);
+		PUSH T(68);
+		PUSH T(67);
+		PUSH tt_then;
+		PUSH tt_expression;
+		PUSH tt_if;
+		break;
+	case T(55):
+		PUSH tt_end;
+		PUSH T(69);
+		PUSH T(68);
+		PUSH T(67);
+		PUSH tt_then;
+		PUSH tt_expression;
+		PUSH tt_if;
+		break;
+	case T(67):
+		PUSH T(67);
+		PUSH T(85);
+		break;
+	case T(85):
+		PUSH tt_end;
+		PUSH T(69);
+		PUSH T(68);
+		PUSH T(67);
 		PUSH tt_then;
 		PUSH tt_expression;
 		PUSH tt_if;
 		break;
 	case T(6):
 	case T(12):
-	case T(29):
-	case T(36):
-	case T(44):
-	case T(56):
-	case T(59):
-	case T(62):
-	case T(63):
+	case T(30):
+	case T(37):
+	case T(52):
 	case T(64):
-	case T(67):
-	case T(68):
-	case T(69):
-	case T(71):
+	case T(70):
 	case T(73):
+	case T(76):
+	case T(77):
+	case T(78):
+	case T(81):
+	case T(82):
+	case T(90):
+	case T(93):
+	case T(94):
+	case T(95):
+	case T(97):
+	case T(99):
+	case T(102):
+	case T(104):
+	case T(107):
+	case T(108):
+	case T(109):
+	case T(111):
 		break;
 	default:
 		return e_invalid_syntax;
@@ -631,13 +871,24 @@ Error else_f(Vector(token_type)* stack, token_type top_tt)
 		PUSH T(7);
 		PUSH tt_else;
 		break;
+	case T(69):
+		PUSH T(29);
+		PUSH tt_else;
+		break;
 	case T(26):
 	case T(27):
-	case T(56):
-	case T(62):
-	case T(63):
 	case T(64):
-	case T(71):
+	case T(67):
+	case T(68):
+	case T(76):
+	case T(77):
+	case T(78):
+	case T(97):
+	case T(102):
+	case T(107):
+	case T(108):
+	case T(109):
+	case T(111):
 		break;
 	default:
 		return e_invalid_syntax;
@@ -655,12 +906,25 @@ Error elseif_f(Vector(token_type)* stack, token_type top_tt)
 		PUSH tt_expression;
 		PUSH tt_elseif;
 		break;
+	case T(68):
+		PUSH T(68);
+		PUSH T(67);
+		PUSH tt_then;
+		PUSH tt_expression;
+		PUSH tt_elseif;
+		break;
 	case T(26):
-	case T(56):
-	case T(62):
-	case T(63):
 	case T(64):
-	case T(71):
+	case T(67):
+	case T(76):
+	case T(77):
+	case T(78):
+	case T(97):
+	case T(102):
+	case T(107):
+	case T(108):
+	case T(109):
+	case T(111):
 		break;
 	default:
 		return e_invalid_syntax;
@@ -677,48 +941,80 @@ Error while_f(Vector(token_type)* stack, token_type top_tt)
 		break;
 	case T(16):
 		PUSH tt_end;
-		PUSH T(7);
+		PUSH T(29);
 		PUSH tt_do;
 		PUSH tt_expression;
 		PUSH tt_while;
 		break;
 	case T(26):
 		PUSH T(26);
-		PUSH T(40);
+		PUSH T(41);
 		break;
-	case T(31):
-		PUSH T(31);
+	case T(29):
+		PUSH T(29);
 		PUSH T(48);
 		break;
-	case T(40):
+	case T(32):
+		PUSH T(32);
+		PUSH T(56);
+		break;
+	case T(41):
 		PUSH tt_end;
-		PUSH T(7);
+		PUSH T(29);
 		PUSH tt_do;
 		PUSH tt_expression;
 		PUSH tt_while;
 		break;
 	case T(48):
 		PUSH tt_end;
-		PUSH T(7);
+		PUSH T(29);
+		PUSH tt_do;
+		PUSH tt_expression;
+		PUSH tt_while;
+		break;
+	case T(56):
+		PUSH tt_end;
+		PUSH T(29);
+		PUSH tt_do;
+		PUSH tt_expression;
+		PUSH tt_while;
+		break;
+	case T(67):
+		PUSH T(67);
+		PUSH T(86);
+		break;
+	case T(86):
+		PUSH tt_end;
+		PUSH T(29);
 		PUSH tt_do;
 		PUSH tt_expression;
 		PUSH tt_while;
 		break;
 	case T(6):
 	case T(12):
-	case T(29):
-	case T(36):
-	case T(44):
-	case T(56):
-	case T(59):
-	case T(62):
-	case T(63):
+	case T(30):
+	case T(37):
+	case T(52):
 	case T(64):
-	case T(67):
-	case T(68):
-	case T(69):
-	case T(71):
+	case T(70):
 	case T(73):
+	case T(76):
+	case T(77):
+	case T(78):
+	case T(81):
+	case T(82):
+	case T(90):
+	case T(93):
+	case T(94):
+	case T(95):
+	case T(97):
+	case T(99):
+	case T(102):
+	case T(104):
+	case T(107):
+	case T(108):
+	case T(109):
+	case T(111):
 		break;
 	default:
 		return e_invalid_syntax;
@@ -729,7 +1025,7 @@ Error do_f(Vector(token_type)* stack, token_type top_tt)
 {
 	switch ((int)top_tt)
 	{
-	case T(30):
+	case T(31):
 		break;
 	default:
 		return e_invalid_syntax;
@@ -745,40 +1041,66 @@ Error return_f(Vector(token_type)* stack, token_type top_tt)
 		PUSH T(17);
 		break;
 	case T(17):
-		PUSH T(29);
+		PUSH T(30);
 		PUSH tt_return;
 		break;
 	case T(26):
 		PUSH T(26);
-		PUSH T(41);
+		PUSH T(42);
 		break;
-	case T(31):
-		PUSH T(31);
+	case T(29):
+		PUSH T(29);
 		PUSH T(49);
 		break;
-	case T(41):
-		PUSH T(56);
+	case T(32):
+		PUSH T(32);
+		PUSH T(57);
+		break;
+	case T(42):
+		PUSH T(64);
 		PUSH tt_return;
 		break;
 	case T(49):
-		PUSH T(59);
+		PUSH T(70);
+		PUSH tt_return;
+		break;
+	case T(57):
+		PUSH T(73);
+		PUSH tt_return;
+		break;
+	case T(67):
+		PUSH T(67);
+		PUSH T(87);
+		break;
+	case T(87):
+		PUSH T(102);
 		PUSH tt_return;
 		break;
 	case T(6):
 	case T(12):
-	case T(29):
-	case T(36):
-	case T(44):
-	case T(56):
-	case T(59):
-	case T(62):
-	case T(63):
+	case T(30):
+	case T(37):
+	case T(52):
 	case T(64):
-	case T(67):
-	case T(68):
-	case T(69):
-	case T(71):
+	case T(70):
 	case T(73):
+	case T(76):
+	case T(77):
+	case T(78):
+	case T(81):
+	case T(82):
+	case T(90):
+	case T(93):
+	case T(94):
+	case T(95):
+	case T(97):
+	case T(99):
+	case T(102):
+	case T(104):
+	case T(107):
+	case T(108):
+	case T(109):
+	case T(111):
 		break;
 	default:
 		return e_invalid_syntax;
@@ -795,9 +1117,9 @@ Error for_f(Vector(token_type)* stack, token_type top_tt)
 		break;
 	case T(18):
 		PUSH tt_end;
-		PUSH T(7);
+		PUSH T(29);
 		PUSH tt_do;
-		PUSH T(30);
+		PUSH T(31);
 		PUSH tt_expression;
 		PUSH tt_comma;
 		PUSH tt_expression;
@@ -807,17 +1129,21 @@ Error for_f(Vector(token_type)* stack, token_type top_tt)
 		break;
 	case T(26):
 		PUSH T(26);
-		PUSH T(42);
+		PUSH T(43);
 		break;
-	case T(31):
-		PUSH T(31);
+	case T(29):
+		PUSH T(29);
 		PUSH T(50);
 		break;
-	case T(42):
+	case T(32):
+		PUSH T(32);
+		PUSH T(58);
+		break;
+	case T(43):
 		PUSH tt_end;
-		PUSH T(7);
+		PUSH T(29);
 		PUSH tt_do;
-		PUSH T(30);
+		PUSH T(31);
 		PUSH tt_expression;
 		PUSH tt_comma;
 		PUSH tt_expression;
@@ -827,9 +1153,37 @@ Error for_f(Vector(token_type)* stack, token_type top_tt)
 		break;
 	case T(50):
 		PUSH tt_end;
-		PUSH T(7);
+		PUSH T(29);
 		PUSH tt_do;
-		PUSH T(30);
+		PUSH T(31);
+		PUSH tt_expression;
+		PUSH tt_comma;
+		PUSH tt_expression;
+		PUSH tt_assign;
+		PUSH tt_identifier;
+		PUSH tt_for;
+		break;
+	case T(58):
+		PUSH tt_end;
+		PUSH T(29);
+		PUSH tt_do;
+		PUSH T(31);
+		PUSH tt_expression;
+		PUSH tt_comma;
+		PUSH tt_expression;
+		PUSH tt_assign;
+		PUSH tt_identifier;
+		PUSH tt_for;
+		break;
+	case T(67):
+		PUSH T(67);
+		PUSH T(88);
+		break;
+	case T(88):
+		PUSH tt_end;
+		PUSH T(29);
+		PUSH tt_do;
+		PUSH T(31);
 		PUSH tt_expression;
 		PUSH tt_comma;
 		PUSH tt_expression;
@@ -839,19 +1193,29 @@ Error for_f(Vector(token_type)* stack, token_type top_tt)
 		break;
 	case T(6):
 	case T(12):
-	case T(29):
-	case T(36):
-	case T(44):
-	case T(56):
-	case T(59):
-	case T(62):
-	case T(63):
+	case T(30):
+	case T(37):
+	case T(52):
 	case T(64):
-	case T(67):
-	case T(68):
-	case T(69):
-	case T(71):
+	case T(70):
 	case T(73):
+	case T(76):
+	case T(77):
+	case T(78):
+	case T(81):
+	case T(82):
+	case T(90):
+	case T(93):
+	case T(94):
+	case T(95):
+	case T(97):
+	case T(99):
+	case T(102):
+	case T(104):
+	case T(107):
+	case T(108):
+	case T(109):
+	case T(111):
 		break;
 	default:
 		return e_invalid_syntax;
@@ -869,44 +1233,74 @@ Error repeat_f(Vector(token_type)* stack, token_type top_tt)
 	case T(19):
 		PUSH tt_expression;
 		PUSH tt_until;
-		PUSH T(31);
+		PUSH T(32);
 		PUSH tt_repeat;
 		break;
 	case T(26):
 		PUSH T(26);
-		PUSH T(43);
+		PUSH T(44);
 		break;
-	case T(31):
-		PUSH T(31);
+	case T(29):
+		PUSH T(29);
 		PUSH T(51);
 		break;
-	case T(43):
+	case T(32):
+		PUSH T(32);
+		PUSH T(59);
+		break;
+	case T(44):
 		PUSH tt_expression;
 		PUSH tt_until;
-		PUSH T(31);
+		PUSH T(32);
 		PUSH tt_repeat;
 		break;
 	case T(51):
 		PUSH tt_expression;
 		PUSH tt_until;
-		PUSH T(31);
+		PUSH T(32);
+		PUSH tt_repeat;
+		break;
+	case T(59):
+		PUSH tt_expression;
+		PUSH tt_until;
+		PUSH T(32);
+		PUSH tt_repeat;
+		break;
+	case T(67):
+		PUSH T(67);
+		PUSH T(89);
+		break;
+	case T(89):
+		PUSH tt_expression;
+		PUSH tt_until;
+		PUSH T(32);
 		PUSH tt_repeat;
 		break;
 	case T(6):
 	case T(12):
-	case T(29):
-	case T(36):
-	case T(44):
-	case T(56):
-	case T(59):
-	case T(62):
-	case T(63):
+	case T(30):
+	case T(37):
+	case T(52):
 	case T(64):
-	case T(67):
-	case T(68):
-	case T(69):
-	case T(71):
+	case T(70):
 	case T(73):
+	case T(76):
+	case T(77):
+	case T(78):
+	case T(81):
+	case T(82):
+	case T(90):
+	case T(93):
+	case T(94):
+	case T(95):
+	case T(97):
+	case T(99):
+	case T(102):
+	case T(104):
+	case T(107):
+	case T(108):
+	case T(109):
+	case T(111):
 		break;
 	default:
 		return e_invalid_syntax;
@@ -917,12 +1311,46 @@ Error until_f(Vector(token_type)* stack, token_type top_tt)
 {
 	switch ((int)top_tt)
 	{
-	case T(31):
-	case T(59):
-	case T(67):
-	case T(68):
-	case T(69):
+	case T(32):
 	case T(73):
+	case T(93):
+	case T(94):
+	case T(95):
+	case T(104):
+		break;
+	default:
+		return e_invalid_syntax;
+	}
+	return e_ok;
+}
+Error break_f(Vector(token_type)* stack, token_type top_tt)
+{
+	switch ((int)top_tt)
+	{
+	case T(29):
+		PUSH tt_break;
+		break;
+	case T(32):
+		PUSH tt_break;
+		break;
+	case T(67):
+		PUSH tt_break;
+		break;
+	case T(70):
+	case T(73):
+	case T(81):
+	case T(82):
+	case T(90):
+	case T(93):
+	case T(94):
+	case T(95):
+	case T(99):
+	case T(102):
+	case T(104):
+	case T(107):
+	case T(108):
+	case T(109):
+	case T(111):
 		break;
 	default:
 		return e_invalid_syntax;
@@ -936,7 +1364,7 @@ Error eof_f(Vector(token_type)* stack, token_type top_tt)
 	case T(1):
 	case T(21):
 	case T(22):
-	case T(33):
+	case T(34):
 		break;
 	default:
 		return e_invalid_syntax;
@@ -971,6 +1399,7 @@ Error LLTable(Vector(token_type)* stack, token_type input_tt, token_type top_tt)
 	case tt_for:                    return for_f(stack, top_tt);
 	case tt_repeat:                 return repeat_f(stack, top_tt);
 	case tt_until:                  return until_f(stack, top_tt);
+	case tt_break:                  return break_f(stack, top_tt);
 	case tt_eof:                    return eof_f(stack, top_tt);
 	default:return e_invalid_syntax;
 	}
