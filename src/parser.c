@@ -86,6 +86,5 @@ Error Start(selfptr)
 		}
 		return e_invalid_syntax;
 	}
-	(*self->program)->print(self->program);
 	return e;
 }

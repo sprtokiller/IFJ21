@@ -284,7 +284,9 @@ Error fd_analyze(funcDecl* self, struct SemanticAnalyzer* analyzer)
 void fd_generate(const funcDecl* self, struct CodeGen* codegen)
 {
 	const char* fname = c_str(&self->name.sval);
-	if (!find_htab_FunctionDecl(codegen->funcs, fname)->called)return;
+	FunctionDecl* fd = find_htab_FunctionDecl(codegen->funcs, fname);
+
+	if (!fd->called)return;
 
 	String* func = CG_AddFunction(codegen);
 	append_str(func, "LABEL $$");
@@ -295,20 +297,56 @@ void fd_generate(const funcDecl* self, struct CodeGen* codegen)
 	for (size_t i = 0; i < size_Vector_token(&self->args); i++)
 	{
 		const char* t = c_str(&at_Vector_token(&self->args, i)->sval);
-		append_str(func, "DEFVAR ");
+		append_str(func, "DEFVAR LF@");
 		append_str(func, t);
 		push_back_str(func, '\n');
 		append_str(func, "POPS ");
 		append_str(func, t);
+		push_back_str(func, '\n');
+	}
+
+
+	char d[19];
+	sprintf(d, "%p", fd);
+
+	for (size_t i = 0; i < size_Vector_token_type(&self->ret); i++)
+	{
+		char c[19];
+		sprintf(c, "%zu", i);
+		append_str(func, "DEFVAR LF@__fret_");
+		append_str(func, c);
+		append_str(func, d);
+		push_back_str(func, '\n');
+		append_str(func, "MOVE LF@__fret_");
+		append_str(func, c);
+		append_str(func, d);
+		append_str(func, " nil@nil\n");
+		push_back_str(func, '\n');
 	}
 
 	blk_generate(&self->block, codegen);
+
+	append_str(func, "LABEL $__fret_");
+	append_str(func, d);
+	push_back_str(func, '\n');
+
+	for (int i = size_Vector_token_type(&self->ret) - 1; i != -1; i--)
+	{
+		char c[19];
+		sprintf(c, "%d", i);
+		append_str(func, "PUSHS LF@__fret_");
+		append_str(func, c);
+		append_str(func, d);
+		push_back_str(func, '\n');
+	}
+	append_str(func, "POPFRAME\n");
+	append_str(func, "RETURN\n");
 
 	CG_EndFunction(codegen);
 }
 
 
-static const struct IASTElement vfptr_fd = (IASTElement)
+static struct IASTElement vfptr_fd = (IASTElement)
 {
 	fd_append,
 	fd_print,
@@ -1118,6 +1156,19 @@ Error for_analyze(For* self, struct SemanticAnalyzer* analyzer)
 	token_type tt_term = GetExpType(&self->terminus, analyzer, &e);
 	if (e)return e;
 
+	if (tt_ex == tt_fcall)
+	{
+		FunctionDecl* fd = SA_FindFunction(analyzer, c_str(&self->expr.data_[0].left->core.sval));
+		if (size_Span_token_type(&fd->ret))return e_count;
+		tt_ex = fd->ret.begin[0];
+	}
+	if (tt_term == tt_fcall)
+	{
+		FunctionDecl* fd = SA_FindFunction(analyzer, c_str(&self->terminus.data_[0].left->core.sval));
+		if (size_Span_token_type(&fd->ret))return e_count;
+		tt_term = fd->ret.begin[0];
+	}
+
 	if (tt_ex != tt_integer ||
 		tt_term != tt_integer)
 		return e_type;
@@ -1126,6 +1177,12 @@ Error for_analyze(For* self, struct SemanticAnalyzer* analyzer)
 	{
 		tt_ex = GetExpType(&self->increment, analyzer, &e);
 		if (e)return e;
+		if (tt_ex == tt_fcall)
+		{
+			FunctionDecl* fd = SA_FindFunction(analyzer, c_str(&self->increment.data_[0].left->core.sval));
+			if (size_Span_token_type(&fd->ret))return e_count;
+			tt_ex = fd->ret.begin[0];
+		}
 		if (tt_ex != tt_integer)return tt_type;
 	}
 
@@ -1133,13 +1190,90 @@ Error for_analyze(For* self, struct SemanticAnalyzer* analyzer)
 	e = blk_analyze(&self->block, analyzer);
 	return e;
 }
+void for_generate(const For* self, struct CodeGen* codegen)
+{
+	String* func = codegen->current;
+	const char* var = c_str(&self->id.sval);
+	append_str(func, "DEFVAR "); //create index
+	append_str(func, var);
+	push_back_str(func, '\n');
+
+
+	GenerateExpression(&self->expr, func);
+	append_str(func, "POPS "); //init index
+	append_str(func, var);
+	push_back_str(func, '\n');
+
+	if (self->expr.data_[0].left->result == tt_fcall) {
+		append_str(func, "CLEARS\n");
+	}
+
+	char c[19] = { 0 };
+	sprintf(c, "%p", self);
+	if (self->terminus.data_[0].left->result == tt_fcall) {
+		append_str(func, "DEFVAR LF@__for_"); //create index
+		append_str(func, c);
+		push_back_str(func, '\n');
+	}
+
+	append_str(func, "JUMP $for_c_");
+	append_str(func, c);
+	push_back_str(func, '\n');
+	append_str(func, "LABEL $for_cy_"); //cycle
+	append_str(func, c);
+	push_back_str(func, '\n');
+
+	blk_generate(&self->block, codegen);
+
+
+	append_str(func, "PUSHS ");
+	append_str(func, var);
+	push_back_str(func, '\n');
+	if (self->has_increment)
+	{
+		GenerateExpression(&self->increment, func);
+	}
+	else
+	{
+		append_str(func, "PUSHS int@1\n");
+	}
+	append_str(func, "ADDS\n");
+	append_str(func, "POPS ");
+	append_str(func, var);
+	push_back_str(func, '\n');
+	append_str(func, "CLEARS\n");
+
+	append_str(func, "LABEL $for_c_"); //cond
+	append_str(func, c);
+	push_back_str(func, '\n');
+	GenerateExpression(&self->terminus, func);
+	if (self->terminus.data_[0].left->result == tt_fcall)
+	{
+		append_str(func, "POPS LF@__for_"); //create index
+		append_str(func, c);
+		push_back_str(func, '\n');
+		append_str(func, "CLEARS\n");
+		append_str(func, "PUSHS LF@__for_"); //create index
+		append_str(func, c);
+		push_back_str(func, '\n');
+	}
+
+	append_str(func, "PUSHS ");
+	append_str(func, var);
+	push_back_str(func, '\n');
+
+	append_str(func, "JUMPIFNEQS $for_cy_");
+	append_str(func, c);
+	push_back_str(func, '\n');
+}
 
 static const struct IASTElement vfptr_for = (IASTElement)
 {
 	for_append,
 	for_print,
 	For_dtor,
-	for_analyze
+	for_analyze,
+	for_generate
 };
 void For_ctor(For* self)
 {
@@ -1337,6 +1471,7 @@ typedef struct Return
 	Implements(IASTElement);
 	bool valid : 1;
 	bool ret : 1;
+	FunctionDecl* function;
 	List_exp retlist;
 }Return;
 
@@ -1375,7 +1510,7 @@ void ret_print(Return* self)
 }
 Error ret_analyze(Return* self, struct SemanticAnalyzer* analyzer)
 {
-	if (!analyzer->curr_func) {
+	if (!(self->function = analyzer->curr_func)) {
 		e_msg("return in global scope");
 		return e_other; //find
 	}
@@ -1430,13 +1565,59 @@ Error ret_analyze(Return* self, struct SemanticAnalyzer* analyzer)
 	}
 	return e_ok;
 }
+void ret_generate(const Return* self, struct CodeGen* codegen)
+{
+	String* func = codegen->current;
+	char d[19];
+	sprintf(d, "%p", self->function);
+
+	List_Node* exp = self->retlist.first;
+	const size_t lim = size_Span_token_type(&self->function);
+	for (size_t i = 0; i < lim; i++)
+	{
+		if (!exp)break;
+		GenerateExpression(exp, func);
+
+		char c[19];
+		if (exp->expression.data_[0].left->result == tt_fcall)
+		{
+			FunctionDecl* fd = find_htab_FunctionDecl(codegen->funcs, c_str(&exp->expression.data_[0].left->core.sval));
+			for (size_t j = 0; j < size_Span_token_type(&fd->ret); j++)
+			{
+				if (i + j == lim)
+				{
+					append_str(func, "CLEARS\n");
+					break;
+				}
+				sprintf(d, "%p", i + j);
+				append_str(func, "POPS LF@__fret_");
+				append_str(func, c);
+				append_str(func, d);
+				push_back_str(func, '\n');
+			}
+			exp = exp->next;
+			continue;
+		}
+		sprintf(c, "%p", i);
+		append_str(func, "POPS LF@__fret_");
+		append_str(func, c);
+		append_str(func, d);
+		push_back_str(func, '\n');
+		exp = exp->next;
+	}
+
+	append_str(func, "JUMP $__fret_");
+	append_str(func, d);
+	push_back_str(func, '\n');
+}
 
 static const struct IASTElement vfptr_ret = (IASTElement)
 {
 	ret_append,
 	ret_print,
 	Return_dtor,
-	ret_analyze
+	ret_analyze,
+	ret_generate
 };
 void Return_ctor(Return* self)
 {

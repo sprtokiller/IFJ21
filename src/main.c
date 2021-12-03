@@ -25,6 +25,10 @@ int main(int argc, char* argv[])
 
 	(*parser.program)->generate(parser.program, &cg);
 
+	printf("%s\n", c_str(&cg.global));
+	for (size_t i = 0; i < size_Vector_String(&cg.code); i++){
+		printf("%s\n", c_str(at_Vector_String(&cg.code, i)));
+	}
 
 	return e;
 }
