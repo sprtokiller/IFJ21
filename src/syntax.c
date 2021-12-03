@@ -2124,14 +2124,18 @@ Error brk_analyze(Break* self, struct SemanticAnalyzer* analyzer)
 {
 	return e_ok;
 }
+void brk_generate(const Break* self, struct CodeGen* codegen)
+{
 
+}
 
 static const struct IASTElement vfptr_brk = (IASTElement)
 {
 	brk_append,
 	brk_print,
 	Break_dtor,
-	brk_analyze
+	brk_analyze,
+	brk_generate
 };
 void Break_ctor(Break* self)
 {
