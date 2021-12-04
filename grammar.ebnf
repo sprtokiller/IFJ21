@@ -22,7 +22,7 @@ OptEqStmt:            /* eps */ | "=" EXPRESSION;
 OptResult:            /* eps */ | ":" TYPE OptMoreTypes;
 
 
-Block:                /* eps */ | FuncOrAss Block | LocalDecl Block | IfBlock Block | WhileBlock Block | ReturnBlock Block | ForBlock Block | RepBlock Block;
+Block:                /* eps */ | FuncOrAss Block | LocalDecl Block | IfBlock Block | WhileBlock Block | ReturnBlock Block | ForBlock Block | RepBlock Block | "break" Block;
 
 
 FuncOrAss:            IDENTIFIER FuncOrAssSel;
@@ -46,4 +46,4 @@ ReturnBlock:          "return" OptExpression;
 ForBlock:             "for" IDENTIFIER "=" EXPRESSION "," EXPRESSION OptInc "do" Block "end";
 OptInc:               /* eps */ | "," EXPRESSION;
 RepBlock:             "repeat" Block "until" EXPRESSION;
-OptExpression:		  /* eps */| EXPRESSION OptExprList;
+OptExpression:          /* eps */| EXPRESSION OptExprList;

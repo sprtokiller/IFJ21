@@ -495,6 +495,43 @@ Error expression_f(Vector(token_type)* stack, token_type top_tt)
 	}
 	return e_ok;
 }
+Error break_f(Vector(token_type)* stack, token_type top_tt)
+{
+	switch ((int)top_tt)
+	{
+	case T(7):
+		PUSH T(7);
+		PUSH tt_break;
+		break;
+	case T(26):
+		PUSH T(26);
+		PUSH tt_break;
+		break;
+	case T(31):
+		PUSH T(31);
+		PUSH tt_break;
+		break;
+	case T(6):
+	case T(12):
+	case T(29):
+	case T(36):
+	case T(44):
+	case T(56):
+	case T(59):
+	case T(62):
+	case T(63):
+	case T(64):
+	case T(67):
+	case T(68):
+	case T(69):
+	case T(71):
+	case T(73):
+		break;
+	default:
+		return e_invalid_syntax;
+	}
+	return e_ok;
+}
 Error local_f(Vector(token_type)* stack, token_type top_tt)
 {
 	switch ((int)top_tt)
@@ -960,6 +997,7 @@ Error LLTable(Vector(token_type)* stack, token_type input_tt, token_type top_tt)
 	case tt_global:                 return global_f(stack, top_tt);
 	case tt_assign:                 return assign_f(stack, top_tt);
 	case tt_expression:             return expression_f(stack, top_tt);
+	case tt_break:                  return break_f(stack, top_tt);
 	case tt_local:                  return local_f(stack, top_tt);
 	case tt_if:                     return if_f(stack, top_tt);
 	case tt_then:                   return then_f(stack, top_tt);

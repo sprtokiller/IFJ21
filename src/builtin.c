@@ -4,7 +4,7 @@
 const char* xwrite =
 "# write(...)\n"
 "# argument count is first\n"
-"LABEL $$builtin_write\n"
+"LABEL $$_builtin_write\n"
 	"CREATEFRAME\n"
 	"PUSHFRAME\n"
 	"DEFVAR LF@ecx #Argument counter\n"
@@ -28,7 +28,7 @@ const char* xwrite =
 
 const char* xreads =
 	"# string reads()\n"
-"LABEL $$builtin_reads\n"
+"LABEL $$_builtin_reads\n"
 	"CREATEFRAME\n"
 	"PUSHFRAME\n"
 	"DEFVAR LF@in\n"
@@ -39,7 +39,7 @@ const char* xreads =
 
 const char* xreadi =
 	"# int readi()\n"
-"LABEL $$builtin_readi\n"
+"LABEL $$_builtin_readi\n"
 	"CREATEFRAME\n"
 	"PUSHFRAME\n"
 	"DEFVAR LF@in\n"
@@ -50,7 +50,7 @@ const char* xreadi =
 
 const char* xreadn =
 	"# float readn()\n"
-"LABEL $$builtin_readn\n"
+"LABEL $$_builtin_readn\n"
 	"CREATEFRAME\n"
 	"PUSHFRAME\n"
 	"DEFVAR LF@in\n"
@@ -62,7 +62,7 @@ const char* xreadn =
 
 const char* xtointeger =
 	"# int tointeger(float)\n"
-"LABEL $$builtin_tointeger\n"
+"LABEL $$_builtin_tointeger\n"
 	"CREATEFRAME\n"
 	"PUSHFRAME\n"
 	"DEFVAR LF@in\n"
@@ -79,7 +79,7 @@ const char* xtointeger =
 
 const char* xsubstr = 
 	"# substr(string, i, j)\n"
-"LABEL $$builtin_substr\n"
+"LABEL $$_builtin_substr\n"
 	"CREATEFRAME\n"
 	"PUSHFRAME\n"
 
@@ -132,7 +132,7 @@ const char* xsubstr =
 
 const char* xord =
 	"# int ord()\n"
-"LABEL $$builtin_ord\n"
+"LABEL $$_builtin_ord\n"
 	"CREATEFRAME\n"
 	"PUSHFRAME\n"
 
@@ -161,7 +161,7 @@ const char* xord =
 
 const char* xchr =
 	"# int chr()\n"
-"LABEL $$builtin_chr\n"
+"LABEL $$_builtin_chr\n"
 	"CREATEFRAME\n"
 	"PUSHFRAME\n"
 
@@ -185,6 +185,42 @@ const char* xchr =
 	"PUSHS nil@nil\n"
 	"POPFRAME\n"
 	"RETURN\n";
+
+// a/(a-a*b+b)
+const char* xpow = 
+"# float pow(float, int)\n"
+"LABEL $$_builtin_pow\n"
+	"CREATEFRAME\n"
+	"PUSHFRAME\n"
+	
+	"DEFVAR LF@in\n"
+	"POPS LF@in\n"
+	
+	"DEFVAR LF@ecx\n"
+	"POPS LF@ecx\n"
+	
+	"DEFVAR LF@ebx # res\n"
+	"MOVE LF@ebx float@0x8p-3\n" //1.0
+
+	"DEFVAR LF@eax #bool\n"
+	"JUMPIFEQ $_pow_one LF@ecx int@0\n"
+	"LT LF@eax LF@ecx LF@0\n"
+	"JUMPIFNEQ $_pow_pos LF@eax bool@true\n"
+
+	"DIV LF@in float@0x8p-3 LF@in\n" //flip the bird
+	"SUB LF@ecx int@0 LF@ecx\n"
+
+"LABEL $_pow_pos\n"
+	"MUL LF@ebx LF@ebx LF@in\n"
+	"SUB LF@ecx LF@ecx int@1\n"
+	"JUMPIFNEQ $_pow_pos LF@ecx int@0\n"
+	
+"LABEL $_pow_one\n"
+	"PUSHS LF@ebx\n"
+	"POPFRAME\n"
+	"RETURN\n";
+	
+
 
 const token_type ttchr_i = tt_integer;
 const token_type ttchr_o = tt_string;

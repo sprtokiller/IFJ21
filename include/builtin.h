@@ -27,5 +27,7 @@ typedef enum BuiltIns
 	LIST_BUILTINS()
 #undef X
 
+extern const char* xpow;
+
 bool IsBuiltin(const char* func_id);
 bool IsWrite(const char* func_id);

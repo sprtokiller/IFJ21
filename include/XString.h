@@ -15,7 +15,11 @@ union String
 		size_t al_sz : sizeof(size_t)*8 - 1;
 		size_t is_large : 1;
 	};
-	char short_str[sizeof(char*) + sizeof(size_t)*2];
+	struct
+	{
+		char short_str[sizeof(char*) + sizeof(size_t)*2 - 1];
+		char term;
+	};
 };
 
 struct StringView
@@ -36,5 +40,8 @@ bool empty_str(const String* self);
 size_t length_str(const String* self);
 void push_back_str(String* self, char c);
 void clear_str(String* self);
+void append_str(String* self, const char* input);
+void prepend_str(String* self, const char* input);
+void pop_front_str(String* self);
 
 StringView substr_b(const String* self, size_t offset_back);

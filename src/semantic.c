@@ -28,6 +28,18 @@ bool Span_EQ(Span_token_type a, Span_token_type b)
 	return true;
 }
 
+void CycleGuard_ctor(CycleGuard* self, SemanticAnalyzer* ggz, CycleCore cc)
+{
+	self->ggz = ggz;
+	self->cc = ggz->cycles;
+	ggz->cycles = cc;
+}
+
+void CycleGuard_dtor(CycleGuard* self)
+{
+	self->ggz->cycles = self->cc;
+}
+
 void SA_AddScope(selfptr)
 {
 	self->level++;
@@ -67,18 +79,32 @@ void SA_LeaveFunction(selfptr)
 	self->curr_func = NULL;
 }
 
-bool SA_AddVariable(selfptr, const char* id, token_type type, bool has_value)
+bool SA_AddVariable(selfptr, String* id, token_type type, bool has_value, bool global)
 {
+	Variable* xtok = SA_FindVariable(self, c_str(id));
 	Variable* tok = emplace_htab_Variable(self->current, id);
-	if (!tok)return false;
-	*tok = (Variable){ type, has_value };
+	if (!tok)return false; //var already exists, push failed
+
+	if (global)
+		prepend_str(id, "GF@");
+	else
+		prepend_str(id, "LF@");
+
+	if (xtok && global == xtok->global)
+	{
+		char x[sizeof(void*) * 2 + 2] = { 0 };
+		sprintf(x, "_%p", id);
+		append_str(id, x);
+	}
+
+	*tok = (Variable){ c_str(id), type, has_value, global };
 	return true;
 }
 
 Variable* SA_FindVariable(selfptr, const char* id)
 {
 	Variable* tok = NULL;
-	for (htab_Variable* i = self->current; i > self->scopes.data_; i--)
+	for (htab_Variable* i = self->current; i >= self->scopes.data_; i--)
 		if ((tok = find_htab_Variable(i, id)))return tok;
 	return NULL;
 }

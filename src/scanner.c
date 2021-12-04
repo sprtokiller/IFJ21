@@ -170,6 +170,33 @@ bool esc_sym(int c)
 	return x_bsearch(esc_, 10, c);
 }
 
+void get_esc(int c, char str[5])
+{
+	switch (c)
+	{
+	case '\"':
+	case '\'':
+	case '\\':
+		sprintf(str, "%03d", c);break;
+	case 'n':
+		sprintf(str, "%03d", '\n'); break;
+	case 'r':
+		sprintf(str, "%03d", '\r'); break;
+	case 't':
+		sprintf(str, "%03d", '\t'); break;
+	case 'f':
+		sprintf(str, "%03d", '\f'); break;
+	case 'a':
+		sprintf(str, "%03d", '\a'); break;
+	case 'b':
+		sprintf(str, "%03d", '\b'); break;
+	case 'v':
+		sprintf(str, "%03d", '\v'); break;
+	default:
+		break;
+	}
+}
+
 /*!
  *  Detection of posible kw char
  *  @return TRUE, if c is posible kw char
@@ -579,9 +606,19 @@ Error _get_token(Scanner* self, token* tk)
 		case s_string:
 			if (sym == '"')
 			{
-				push_back_str(&xtoken, (char)sym);
+				pop_front_str(&xtoken); // remove excessive "
 				sym = 0;
 				goto make_token;
+			}
+			else if (sym == ' ')
+			{
+				append_str(&xtoken, "\\032");
+				break;
+			}
+			else if (sym == '#')
+			{
+				append_str(&xtoken, "\\035");
+				break;
 			}
 			else if (sym == '\\')
 			{
@@ -629,8 +666,10 @@ Error _get_token(Scanner* self, token* tk)
 		case s_esc:
 			if (esc_sym(sym) && !escape_cnt)
 			{
+				char c[5];
+				get_esc(sym, c);
 				state = s_string;
-				push_back_str(&xtoken, (char)sym);
+				append_str(&xtoken, c);
 			}
 			else if (isdigit(sym)) {
 				push_back_str(&xtoken, (char)sym);

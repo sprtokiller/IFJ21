@@ -27,14 +27,20 @@
 
 typedef struct
 {
+	const char* asm_name;
 	token_type type;
 	bool has_value;
+	bool global;
 }Variable;
 
 #define HASH_T Variable
 #include "symtable.h"
 
 #define VECTOR_T HashMap(Variable)
+#define IsClass
+#include "VLib/Vector_T.h"
+
+#define VECTOR_T String
 #define IsClass
 #include "VLib/Vector_T.h"
 
