@@ -1,5 +1,5 @@
 ﻿#include "common.h"
-#include "../include/parser.h"
+#include "parser.h"
 #include "semantic.h"
 #include "codegen.h"
 #include <stdio.h>
@@ -9,7 +9,7 @@ int main(int argc, char* argv[])
 	SetupTerminal();
 	Error e = e_ok;
 
-	FILE* stream = fopen(SOURCE_DIR "/examples/testnum.tl","r");
+	FILE* stream = stdin;
 
 	UNIQUE(SemanticAnalyzer) semantic = {0};
 	SemanticAnalyzer_ctor(&semantic);

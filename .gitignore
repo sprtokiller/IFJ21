@@ -358,3 +358,4 @@ FodyWeavers.xsd
 # Generated CmakeSettings.json
 CMakeSettings.json
 /pass
+/gen/out/build/x64-Debug

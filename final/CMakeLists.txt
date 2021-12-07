@@ -1,9 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
 
 # set the project name
-project(IFJ21 LANGUAGES C CXX)
+project(IFJ21final LANGUAGES C)
 
-set(CMAKE_CXX_STANDARD 20)
 set_property(GLOBAL PROPERTY C_STANDARD 11)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -19,30 +18,13 @@ elseif (CMAKE_C_COMPILER_ID STREQUAL "MSVC")
   message(DEPRECATION "Pls don't use pure MSVC")
 endif()
 
-
-configure_file(GTest.cmake
-        googletest-download/CMakeLists.txt)
-execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googletest-download )
-execute_process(COMMAND ${CMAKE_COMMAND} --build .
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googletest-download )
-
-add_subdirectory(${CMAKE_BINARY_DIR}/googletest-src
-        ${CMAKE_BINARY_DIR}/googletest-build)
-
-enable_testing()
 add_compile_definitions(SOURCE_DIR="${CMAKE_SOURCE_DIR}")
 
-add_subdirectory("test")
-add_subdirectory("gen")
-add_subdirectory("final")
-
 # include header files
-include_directories(include)
-file(GLOB INCLUDE "include/*.h" "include/*.inl")
+file(GLOB INCLUDE "*.h" "*.inl")
 
 # include source files
-file(GLOB SOURCES "src/*.c")
+file(GLOB SOURCES "*.c")
 
 # add the executable
 add_executable(${PROJECT_NAME} ${SOURCES} ${INCLUDE})
