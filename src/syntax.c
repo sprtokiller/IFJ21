@@ -853,7 +853,8 @@ Error prg_analyze(Program* self, struct SemanticAnalyzer* analyzer)
 }
 void prg_generate(Program* self, struct CodeGen* codegen)
 {
-	append_str(&codegen->global, "DEFVAR GF@__XTMP_STR\n"
+	append_str(&codegen->global, ".IFJcode21\n"
+		"DEFVAR GF@__XTMP_STR\n"
 		"DEFVAR GF@__XTMP_STRLEN\n\n");
 	blk_generate(&self->global_block, codegen);
 	append_str(&codegen->global, "EXIT int@0\n\n");
