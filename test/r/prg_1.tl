@@ -1,6 +1,6 @@
 D:Token at [2, 1]: require
 D:Token at [2, 9]: string literal
-D: Val: "ifj21"
+D: Val: ifj21
 D:Token at [4, 1]: function
 D:Token at [4, 10]: identifier
 D: Val: main
@@ -24,7 +24,7 @@ D:Token at [7, 5]: identifier
 D: Val: write
 D:Token at [7, 10]: left parenthese
 D:Token at [7, 11]: string literal
-D: Val: "Zadejte cislo pro vypocet faktorialu\n"
+D: Val: Zadejte\032cislo\032pro\032vypocet\032faktorialu\010
 D:Token at [7, 51]: right parenthese
 D:Token at [8, 5]: identifier
 D: Val: a
@@ -45,7 +45,7 @@ D:Token at [11, 9]: identifier
 D: Val: write
 D:Token at [11, 14]: left parenthese
 D:Token at [11, 15]: string literal
-D: Val: "a je nil\n"
+D: Val: a\032je\032nil\010
 D:Token at [11, 27]: right parenthese
 D:Token at [11, 29]: return
 D:Token at [12, 5]: else
@@ -62,7 +62,7 @@ D:Token at [16, 9]: identifier
 D: Val: write
 D:Token at [16, 14]: left parenthese
 D:Token at [16, 15]: string literal
-D: Val: "Faktorial nelze spocitat\n"
+D: Val: Faktorial\032nelze\032spocitat\010
 D:Token at [16, 43]: right parenthese
 D:Token at [17, 5]: else
 D:Token at [18, 9]: identifier
@@ -94,20 +94,21 @@ D:Token at [20, 31]: assignment
 D: Val: =
 D:Token at [20, 33]: identifier
 D: Val: a
-D:Token at [20, 35]: integer literal
-D: Val: -1
+D:Token at [20, 35]: subtract
+D:Token at [20, 37]: integer literal
+D: Val: 1
 D:Token at [21, 9]: end
 D:Token at [22, 9]: identifier
 D: Val: write
 D:Token at [22, 14]: left parenthese
 D:Token at [22, 15]: string literal
-D: Val: "Vysledek je: "
+D: Val: Vysledek\032je:\032
 D:Token at [22, 30]: comma
 D:Token at [22, 32]: identifier
 D: Val: vysl
 D:Token at [22, 36]: comma
 D:Token at [22, 38]: string literal
-D: Val: "\n"
+D: Val: \010
 D:Token at [22, 42]: right parenthese
 D:Token at [23, 5]: end
 D:Token at [24, 1]: end

@@ -1,7 +1,7 @@
 D:Token at [3, 1]: u_minus
 D:Token at [4, 1]: u_plus
 D:Token at [5, 1]: string literal
-D: Val: "string"
+D: Val: string
 D:Token at [6, 1]: less then comparison
 D: Val: <
 D:Token at [7, 1]: greater then comparison
@@ -17,11 +17,11 @@ D:Token at [13, 1]: concatenate
 D: Val: ..
 D:Token at [14, 1]: less then comparison
 D: Val: <
-D:Token at [15, 1]: less or equal then comparison
+D:Token at [15, 1]: equality
 D: Val: <=
 D:Token at [16, 1]: greater then comparison
 D: Val: >
-D:Token at [17, 1]: greater or equal then comparison
+D:Token at [17, 1]: equality
 D: Val: >=
 D:Token at [18, 1]: equality
 D: Val: ==
@@ -29,7 +29,7 @@ D:Token at [19, 1]: not equality
 D:Token at [19, 2]: assignment
 D: Val: =
 D:Token at [21, 1]: string literal
-D: Val: "Ahoj\n\"Sve'te \\\034"
+D: Val: Ahoj\010\034Sve'te\032\092\034
 D:Token at [23, 1]: function
 D:Token at [23, 10]: identifier
 D: Val: reads

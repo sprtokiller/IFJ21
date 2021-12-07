@@ -1,6 +1,6 @@
 D:Token at [2, 1]: require
 D:Token at [2, 9]: string literal
-D: Val: "ifj21"
+D: Val: ifj21
 D:Token at [4, 1]: function
 D:Token at [4, 10]: identifier
 D: Val: factorial
@@ -21,8 +21,9 @@ D:Token at [5, 21]: assignment
 D: Val: =
 D:Token at [5, 23]: identifier
 D: Val: n
-D:Token at [5, 25]: integer literal
-D: Val: -1
+D:Token at [5, 25]: subtract
+D:Token at [5, 27]: integer literal
+D: Val: 1
 D:Token at [6, 2]: if
 D:Token at [6, 5]: identifier
 D: Val: n
@@ -65,7 +66,7 @@ D:Token at [15, 2]: identifier
 D: Val: write
 D:Token at [15, 7]: left parenthese
 D:Token at [15, 8]: string literal
-D: Val: "Zadejte cislo pro vypocet faktorialu: "
+D: Val: Zadejte\032cislo\032pro\032vypocet\032faktorialu:\032
 D:Token at [15, 48]: right parenthese
 D:Token at [16, 2]: local
 D:Token at [16, 8]: identifier
@@ -98,10 +99,10 @@ D:Token at [19, 4]: identifier
 D: Val: write
 D:Token at [19, 9]: left parenthese
 D:Token at [19, 10]: string literal
-D: Val: "Faktorial nejde spocitat!"
+D: Val: Faktorial\032nejde\032spocitat!
 D:Token at [19, 37]: comma
 D:Token at [19, 39]: string literal
-D: Val: "\n"
+D: Val: \010
 D:Token at [19, 43]: right parenthese
 D:Token at [20, 3]: else
 D:Token at [21, 4]: local
@@ -121,13 +122,13 @@ D:Token at [22, 4]: identifier
 D: Val: write
 D:Token at [22, 9]: left parenthese
 D:Token at [22, 10]: string literal
-D: Val: "Vysledek je "
+D: Val: Vysledek\032je\032
 D:Token at [22, 24]: comma
 D:Token at [22, 26]: identifier
 D: Val: vysl
 D:Token at [22, 30]: comma
 D:Token at [22, 32]: string literal
-D: Val: "\n"
+D: Val: \010
 D:Token at [22, 36]: right parenthese
 D:Token at [23, 3]: end
 D:Token at [24, 2]: else
@@ -135,7 +136,7 @@ D:Token at [25, 3]: identifier
 D: Val: write
 D:Token at [25, 8]: left parenthese
 D:Token at [25, 9]: string literal
-D: Val: "Chyba pri nacitani celeho cisla!\n"
+D: Val: Chyba\032pri\032nacitani\032celeho\032cisla!\010
 D:Token at [25, 45]: right parenthese
 D:Token at [26, 2]: end
 D:Token at [27, 1]: end
