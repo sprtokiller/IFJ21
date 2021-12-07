@@ -310,20 +310,23 @@ token_type GetNodeType(Node* node, SemanticAnalyzer* analyzer, bool simple, Erro
 			if (l == tt_number)node->right->result = tt_int_convert;
 			if (r == tt_number)node->left->result = tt_int_convert;
 		}
-		return node->result = l;
-	case tt_power:
+
+		return node->result = (l == tt_number)||(r == tt_number)?tt_number:tt_integer;
+	case tt_power:			  
 		if (AnyNil(r, l)) {
 			*err = e_RTnil;
 			return tt_err;
 		}
-		if (r != tt_integer || !numeric(l))
+		if (!numeric(r) || !numeric(l))
 		{
 			*err = e_type;
 			return tt_err;
 		}
 		if (l == tt_integer)
 			node->result = node->left->result = tt_int_convert;
-		return node->result = l;
+		if (r == tt_integer)
+			node->result = node->right->result = tt_int_convert;
+		return node->result = tt_number;
 	case tt_modulo:
 	case tt_int_divide:
 		if (AnyNil(r, l)) {
@@ -512,15 +515,33 @@ void GenerateNode(Node* self, String* to)
 		append_str(to, "MULS\n");
 		break;
 	case tt_divide:
+		append_str(to,
+			"POPS  GF@__XTMP_K1\n"
+			"POPS  GF@__XTMP_K2\n"
+			"PUSHS GF@__XTMP_K1\n"
+			"PUSHS GF@__XTMP_K2\n"
+		);
 		append_str(to, "DIVS\n");
 		break;
 	case tt_int_divide:
+		append_str(to,
+			"POPS  GF@__XTMP_K1\n"
+			"POPS  GF@__XTMP_K2\n"
+			"PUSHS GF@__XTMP_K1\n"
+			"PUSHS GF@__XTMP_K2\n"
+		);
 		append_str(to, "IDIVS\n");
 		break;
 	case tt_add:
 		append_str(to, "ADDS\n");
 		break;
 	case tt_subtract:
+		append_str(to,
+			"POPS  GF@__XTMP_K1\n"
+			"POPS  GF@__XTMP_K2\n"
+			"PUSHS GF@__XTMP_K1\n"
+			"PUSHS GF@__XTMP_K2\n"
+		);
 		append_str(to, "SUBS\n");
 		break;
 	case tt_and:
@@ -535,13 +556,19 @@ void GenerateNode(Node* self, String* to)
 	case tt_u_minus:
 		if (self->left->result == tt_integer)
 		{
-			append_str(to, "PUSHS int@0\n"
+			append_str(to, 
+				"POPS  GF@__XTMP_K1\n"
+				"PUSHS int@0\n"
+				"PUSHS GF@__XTMP_K1\n"
 				"SUBS\n"); break;
 		}
 		if (self->left->result == tt_number
 			|| self->left->result == tt_int_convert)
 		{
-			append_str(to, "PUSHS float@0\n"
+			append_str(to, 
+				"POPS  GF@__XTMP_K1\n"
+				"PUSHS float@0\n"
+				"PUSHS GF@__XTMP_K1\n"
 				"SUBS\n"); break;
 		}
 		break;
@@ -561,16 +588,16 @@ void GenerateNode(Node* self, String* to)
 		break;
 
 	case tt_g:
-		append_str(to, "GTS\n");
-		break;
-	case tt_l:
 		append_str(to, "LTS\n");
 		break;
+	case tt_l:
+		append_str(to, "GTS\n");
+		break;
 	case tt_le:
-		append_str(to, "GTS\n""NOTS\n");
+		append_str(to, "LTS\n""NOTS\n");
 		break;
 	case tt_ge:
-		append_str(to, "LTS\n""NOTS\n");
+		append_str(to, "GTS\n""NOTS\n");
 		break;
 	case tt_ee:
 		append_str(to, "EQS\n");

@@ -303,7 +303,7 @@ void fd_generate(const funcDecl* self, struct CodeGen* codegen)
 	for (size_t i = 0; i < size_Vector_token(&self->args); i++)
 	{
 		const char* t = c_str(&at_Vector_token(&self->args, i)->sval);
-		append_str(func, "DEFVAR LF@");
+		append_str(func, "DEFVAR ");
 		append_str(func, t);
 		push_back_str(func, '\n');
 		append_str(func, "POPS ");
@@ -706,6 +706,8 @@ Error afc_analyze(AssOrFCall* self, struct SemanticAnalyzer* analyzer)
 			e_msg("Variable %s does not exist", c_str(&i->sval));
 			return e_redefinition;
 		}
+		SA_DiscoverVariable(analyzer, &i->sval);
+
 		if (!exp) continue;
 
 		token_type tt = GetExpType(exp, analyzer, &e);
@@ -740,7 +742,7 @@ Error afc_analyze(AssOrFCall* self, struct SemanticAnalyzer* analyzer)
 			exp = exp->next;
 			continue;
 		}
-		if (!FitsType(tt, v->type)) {
+		if (!FitsType(v->type, tt)) {
 			e_msg("Expression and variable types do not match");
 			return e_type_ass;
 		}
@@ -854,6 +856,8 @@ Error prg_analyze(Program* self, struct SemanticAnalyzer* analyzer)
 void prg_generate(Program* self, struct CodeGen* codegen)
 {
 	append_str(&codegen->global, ".IFJcode21\n"
+		"DEFVAR GF@__XTMP_K1\n"
+		"DEFVAR GF@__XTMP_K2\n"
 		"DEFVAR GF@__XTMP_STR\n"
 		"DEFVAR GF@__XTMP_STRLEN\n\n");
 	blk_generate(&self->global_block, codegen);
@@ -1329,7 +1333,7 @@ void for_acc_break(For* self)
 
 static const struct IASTCycle vfptr_for = (IASTCycle)
 {
-	.element =  (IASTElement)
+	.element = (IASTElement)
 	{
 		for_append,
 		for_print,

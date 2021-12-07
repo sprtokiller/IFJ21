@@ -186,7 +186,7 @@ const char* xchr =
 	"POPFRAME\n"
 	"RETURN\n";
 
-// a/(a-a*b+b)
+// a/(a-a*b+b) 
 const char* xpow = 
 "# float pow(float, int)\n"
 "LABEL $$_builtin_pow\n"
@@ -197,6 +197,7 @@ const char* xpow =
 	"POPS LF@in\n"
 	
 	"DEFVAR LF@ecx\n"
+	"FLOAT2INTS\n"
 	"POPS LF@ecx\n"
 	
 	"DEFVAR LF@ebx # res\n"

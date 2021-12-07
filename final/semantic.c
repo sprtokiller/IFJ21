@@ -101,6 +101,16 @@ bool SA_AddVariable(selfptr, String* id, token_type type, bool has_value, bool g
 	return true;
 }
 
+bool SA_DiscoverVariable(selfptr, String* id)
+{
+	Variable* xtok = SA_FindVariable(self, c_str(id));
+	if (!xtok)return false;
+
+	clear_str(id);
+	append_str(id, xtok->asm_name);
+	return true;
+}
+
 Variable* SA_FindVariable(selfptr, const char* id)
 {
 	Variable* tok = NULL;

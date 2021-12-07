@@ -197,6 +197,7 @@ const char* xpow =
 	"POPS LF@in\n"
 	
 	"DEFVAR LF@ecx\n"
+	"FLOAT2INTS\n"
 	"POPS LF@ecx\n"
 	
 	"DEFVAR LF@ebx # res\n"
@@ -204,7 +205,7 @@ const char* xpow =
 
 	"DEFVAR LF@eax #bool\n"
 	"JUMPIFEQ $_pow_one LF@ecx int@0\n"
-	"LT LF@eax LF@ecx LF@0\n"
+	"LT LF@eax LF@ecx int@0\n"
 	"JUMPIFNEQ $_pow_pos LF@eax bool@true\n"
 
 	"DIV LF@in float@0x8p-3 LF@in\n" //flip the bird
