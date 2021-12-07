@@ -20,6 +20,7 @@ void Destructor(selfptr);
 
 String* CG_AddFunction(selfptr);
 String* CG_EndFunction(selfptr);
+void CG_AddBuiltins(selfptr);
 
 #ifndef CODE_IMPL
 #pragma pop_macro("c_class")

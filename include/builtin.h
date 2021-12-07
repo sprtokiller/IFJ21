@@ -9,7 +9,7 @@ X(readi)\
 X(readn)\
 X(substr)\
 X(tointeger)\
-X(write)\
+X(write)
 
 
 typedef enum BuiltIns

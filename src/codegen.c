@@ -1,5 +1,6 @@
 #define CODE_IMPL
 #include "codegen.h"
+#include "builtin.h"
 
 void Constructor(selfptr, HashMap(FunctionDecl)* funcs)
 {
@@ -24,4 +25,17 @@ String* CG_AddFunction(selfptr)
 String* CG_EndFunction(selfptr)
 {
 	return self->current = &self->global;
+}
+
+void CG_AddBuiltins(selfptr)
+{
+	FunctionDecl* fd = NULL;
+	
+	#define X(a)\
+	if ((fd = find_htab_FunctionDecl(self->funcs, #a)) && (fd->called))\
+		append_str(&self->global, x##a);
+	LIST_BUILTINS()
+	#undef X	
+
+	append_str(&self->global, xpow);
 }

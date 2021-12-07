@@ -856,6 +856,8 @@ void prg_generate(Program* self, struct CodeGen* codegen)
 	append_str(&codegen->global, "DEFVAR GF@__XTMP_STR\n"
 		"DEFVAR GF@__XTMP_STRLEN\n\n");
 	blk_generate(&self->global_block, codegen);
+
+	CG_AddBuiltins(codegen);
 }
 
 static const struct IASTElement vfptr_prg = (IASTElement)
