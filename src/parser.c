@@ -1,6 +1,6 @@
 #define PARSER_IMPL
 #include "../include/parser.h"
-#include "../include/Grammar.inl"
+#include "Grammar.inl"
 #include "syntax.h"
 #include <malloc.h>
 
