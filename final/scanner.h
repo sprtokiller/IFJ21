@@ -18,10 +18,6 @@ struct Scanner
 void Scanner_ctor(Scanner* self, FILE* source);
 void Scanner_dtor(Scanner* self);
 
-/// Fills scanner with tokens
-void _Scanner_run(Scanner* self, Error* e);
-void _Scanner_print(Scanner* self);
-
 Error get_token(Scanner* self, token* tk);
 
 void unget_token(Scanner* self, token* tk);

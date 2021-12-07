@@ -46,30 +46,6 @@ void Scanner_dtor(Scanner* self)
 	Vector_token_dtor(&self->tk_stream);
 }
 
-
-//UNUSED
-void _Scanner_run(Scanner* self, Error* e) {
-	while (true)
-	{
-		token* tk = push_back_Vector_token(&(self->tk_stream));
-
-		*e = _get_token(self, tk);
-		if (*e != e_ok) {
-			e_msg("Scanner error %d", *e);
-			break;
-		}if (tk->type == tt_eof) {
-			break;
-		}
-	}
-}
-//UNUSED
-void _Scanner_print(Scanner* self) {
-	for (size_t i = 0; i < size_Vector_token(&(self->tk_stream)); i++)
-	{
-		print_tk(at_Vector_token(&(self->tk_stream), i));
-	}
-}
-
 //returns first symbol
 int fetch_symbol(Scanner* self)
 {

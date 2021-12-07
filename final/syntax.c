@@ -63,7 +63,7 @@ void rq_generate(reqStmt* self, struct CodeGen* codegen)
 
 }
 
-static const struct IASTElement vfptr_rq = (IASTElement)
+static struct IASTElement vfptr_rq = (IASTElement)
 {
 	rq_append,
 	rq_print,
@@ -152,7 +152,7 @@ void blk_generate(const blockPart* self, struct CodeGen* codegen)
 	}
 }
 
-static const struct IASTElement vfptr_blk = (IASTElement)
+static struct IASTElement vfptr_blk = (IASTElement)
 {
 	blk_append,
 	blk_print,
@@ -508,7 +508,7 @@ void ls_generate(const localStmt* self, struct CodeGen* codegen)
 }
 
 
-static const struct IASTElement vfptr_ls = (IASTElement)
+static struct IASTElement vfptr_ls = (IASTElement)
 {
 	ls_append,
 	ls_print,
@@ -788,7 +788,7 @@ void afc_generate(const AssOrFCall* self, struct CodeGen* codegen)
 	}
 }
 
-static const struct IASTElement vfptr_afc = (IASTElement)
+static struct IASTElement vfptr_afc = (IASTElement)
 {
 	afc_append,
 	afc_print,
@@ -865,7 +865,7 @@ void prg_generate(Program* self, struct CodeGen* codegen)
 	CG_AddBuiltins(codegen);
 }
 
-static const struct IASTElement vfptr_prg = (IASTElement)
+static struct IASTElement vfptr_prg = (IASTElement)
 {
 	prg_append,
 	prg_print,
@@ -1092,16 +1092,14 @@ void wh_acc_break(While* self)
 	self->has_break = true;
 }
 
-static const struct IASTCycle vfptr_wh = (IASTCycle)
+static const struct IASTCycle vfptr_wh = (const IASTCycle)
 {
-	.element = (IASTElement){
-	wh_append,
-	wh_print,
-	While_dtor,
-	wh_analyze,
-	wh_generate
-},
-.acc_break = wh_acc_break
+	.element.append = wh_append,
+	.element.print = wh_print,
+	.element.dtor = While_dtor,
+	.element.analyze = wh_analyze,
+	.element.generate = wh_generate,
+	.acc_break = wh_acc_break
 };
 void While_ctor(While* self)
 {
@@ -1331,16 +1329,13 @@ void for_acc_break(For* self)
 	self->has_break = true;
 }
 
-static const struct IASTCycle vfptr_for = (IASTCycle)
+static const struct IASTCycle vfptr_for = (const IASTCycle)
 {
-	.element = (IASTElement)
-	{
-		for_append,
-		for_print,
-		For_dtor,
-		for_analyze,
-		for_generate
-	},
+	.element.append = for_append,
+	.element.print = for_print,
+	.element.dtor = For_dtor,
+	.element.analyze = for_analyze,
+	.element.generate = for_generate,
 	.acc_break = for_acc_break
 };
 void For_ctor(For* self)
@@ -1544,16 +1539,13 @@ void rep_acc_break(Repeat* self)
 	self->has_break = true;
 }
 
-static const struct IASTCycle vfptr_rep = (IASTCycle)
+static const struct IASTCycle vfptr_rep = (const IASTCycle)
 {
-	.element = (IASTElement)
-	{
-		rep_append,
-		rep_print,
-		Repeat_dtor,
-		rep_analyze,
-		rep_generate
-	},
+	.element.append = rep_append,
+	.element.print = rep_print,
+	.element.dtor = Repeat_dtor,
+	.element.analyze = rep_analyze,
+	.element.generate = rep_generate,
 	.acc_break = rep_acc_break
 };
 void Repeat_ctor(Repeat* self)
@@ -1716,7 +1708,7 @@ void ret_generate(const Return* self, struct CodeGen* codegen)
 	push_back_str(func, '\n');
 }
 
-static const struct IASTElement vfptr_ret = (IASTElement)
+static struct IASTElement vfptr_ret = (IASTElement)
 {
 	ret_append,
 	ret_print,
@@ -1992,7 +1984,7 @@ void br_generate(const Branch* self, struct CodeGen* codegen)
 	push_back_str(func, '\n');
 }
 
-static const struct IASTElement vfptr_br = (IASTElement)
+static struct IASTElement vfptr_br = (IASTElement)
 {
 	br_append,
 	br_print,
@@ -2182,7 +2174,7 @@ void gs_generate(const globalStmt* self, struct CodeGen* codegen)
 	}
 }
 
-static const struct IASTElement vfptr_gs = (IASTElement)
+static struct IASTElement vfptr_gs = (IASTElement)
 {
 	gs_append,
 	gs_print,
@@ -2249,7 +2241,7 @@ void brk_generate(const Break* self, struct CodeGen* codegen)
 	push_back_str(func, '\n');
 }
 
-static const struct IASTElement vfptr_brk = (IASTElement)
+static struct IASTElement vfptr_brk = (IASTElement)
 {
 	brk_append,
 	brk_print,
