@@ -469,7 +469,7 @@ Error ls_analyze(localStmt* self, struct SemanticAnalyzer* analyzer)
 		return e_ok;
 	}
 
-	
+
 	Error e = e_ok;
 	token_type tt = GetExpType(&self->value, analyzer, &e);
 	if (e) {
@@ -518,7 +518,7 @@ void ls_generate(const localStmt* self, struct CodeGen* codegen)
 		}
 		push_back_str(code, '\n');
 		return;
-	}	
+	}
 }
 
 
@@ -763,7 +763,7 @@ Error afc_analyze(AssOrFCall* self, struct SemanticAnalyzer* analyzer)
 					e_msg("Variable and function return value types does not match");
 					return e_type_ass;
 				}
-				*at_Vector_LPCSTR(&self->varnames, (i+j) - self->idents.data_) = vi->asm_name;
+				*at_Vector_LPCSTR(&self->varnames, (i + j) - self->idents.data_) = vi->asm_name;
 				vi->has_value = true;
 			}
 			exp = exp->next;
@@ -804,7 +804,7 @@ void afc_generate(const AssOrFCall* self, struct CodeGen* codegen)
 					continue;
 				}
 				append_str(func, "POPS ");
-				append_str(func, *at_Vector_LPCSTR(&self->varnames, (i + j)- self->idents.data_));
+				append_str(func, *at_Vector_LPCSTR(&self->varnames, (i + j) - self->idents.data_));
 				push_back_str(func, '\n');
 			}
 			exp = exp->next;
@@ -837,10 +837,10 @@ void AssOrFCall_dtor(AssOrFCall* self)
 	{
 		Vector_token_dtor(&self->idents);
 		List_exp_dtor(&self->expressions);
+		Vector_LPCSTR_dtor(&self->varnames);
 		return;
 	}
 	Vector_Node_dtor(&self->fcall);
-	Vector_LPCSTR_dtor(&self->varnames);
 }
 #pragma endregion
 ///////////////////////////////////////////////////////
@@ -1129,7 +1129,7 @@ void wh_acc_break(While* self)
 
 static struct IASTCycle vfptr_wh = (const IASTCycle)
 {
-	.element.append =	(append_fp)wh_append,
+	.element.append = (append_fp)wh_append,
 	.element.print = (print_fp)wh_print,
 	.element.dtor = (dtor_fp)While_dtor,
 	.element.analyze = (analyze_fp)wh_analyze,
@@ -1367,7 +1367,7 @@ void for_acc_break(For* self)
 
 static struct IASTCycle vfptr_for = (IASTCycle)
 {
-	.element.append =	(append_fp)for_append,
+	.element.append = (append_fp)for_append,
 	.element.print = (print_fp)for_print,
 	.element.dtor = (dtor_fp)For_dtor,
 	.element.analyze = (analyze_fp)for_analyze,
@@ -1478,7 +1478,7 @@ Error rep_analyze(Repeat* self, struct SemanticAnalyzer* analyzer)
 	else
 		self->expr.data_[0].result = tt_true;
 
-	
+
 
 	e = blk_analyze(&self->block, analyzer);
 	return e;
@@ -1603,7 +1603,7 @@ void rep_acc_break(Repeat* self)
 
 static struct IASTCycle vfptr_rep = (const IASTCycle)
 {
-	.element.append =	(append_fp)rep_append,
+	.element.append = (append_fp)rep_append,
 	.element.print = (print_fp)rep_print,
 	.element.dtor = (dtor_fp)Repeat_dtor,
 	.element.analyze = (analyze_fp)rep_analyze,
