@@ -7,3 +7,9 @@ file(GLOB SOURCES "*.cpp")
 
 # add the executable
 add_executable("generator" ${SOURCES} ${INCLUDE})
+
+# gen output
+add_custom_target( grammar.inl
+	COMMAND generator
+	OUTPUT "grammar.inl"
+	)

@@ -2,12 +2,13 @@
 #include "codegen.h"
 #include "builtin.h"
 
-void Constructor(selfptr, HashMap(FunctionDecl)* funcs)
+void Constructor(selfptr, HashMap(FunctionDecl)* funcs, bool has_pow)
 {
 	Vector_String_ctor(&self->code);
 	String_ctor(&self->global, NULL);
 	CG_EndFunction(self);
 	self->funcs = funcs;
+	self->has_pow = has_pow;
 }
 void Destructor(selfptr)
 {
@@ -36,6 +37,6 @@ void CG_AddBuiltins(selfptr)
 		append_str(&self->global, x##a);
 	LIST_BUILTINS()
 	#undef X	
-
-	append_str(&self->global, xpow);
+	if (self->has_pow)
+		append_str(&self->global, xpow);
 }

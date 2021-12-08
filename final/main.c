@@ -1,5 +1,5 @@
 ﻿#include "common.h"
-#include "../include/parser.h"
+#include "parser.h"
 #include "semantic.h"
 #include "codegen.h"
 #include <stdio.h>
@@ -9,7 +9,8 @@ int main(int argc, char* argv[])
 	SetupTerminal();
 	Error e = e_ok;
 
-	FILE* stream = fopen(SOURCE_DIR "/examples/testnum.tl","r");
+	//FILE* stream = stdin;
+	FILE* stream = fopen("D:/ic21int_win64_2021-10-04/testnum.tl", "r");
 
 	UNIQUE(SemanticAnalyzer) semantic = {0};
 	SemanticAnalyzer_ctor(&semantic);
@@ -23,7 +24,7 @@ int main(int argc, char* argv[])
 	if (e) { e_msg(error_type_name(e)); return e; }
 
 	UNIQUE(CodeGen) cg = {0};
-	CodeGen_ctor(&cg, &semantic.funcs);
+	CodeGen_ctor(&cg, &semantic.funcs, semantic.has_pow);
 
 	(*parser.program)->generate(parser.program, &cg);
 

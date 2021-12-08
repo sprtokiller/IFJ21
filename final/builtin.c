@@ -112,13 +112,13 @@ const char* xsubstr =
 	"JUMPIFEQ $substr_err LF@eax bool@true\n"
 	"LT LF@eax LF@edi LF@esi\n"
 	"JUMPIFEQ $substr_err LF@eax bool@true\n"
-
+	"SUB LF@esi LF@esi int@1\n"
 "LABEL $substr_cycle\n"
 	"GETCHAR LF@edx LF@str LF@esi\n"
 	"CONCAT LF@out LF@out LF@edx\n"
 	"ADD LF@esi LF@esi int@1\n"
-	"GT LF@eax LF@esi LF@edi\n"
-	"JUMPIFEQ $substr_cycle LF@eax LF@false\n"
+	"EQ LF@eax LF@esi LF@edi\n"
+	"JUMPIFEQ $substr_cycle LF@eax bool@false\n"
 
 	"PUSHS LF@out\n"
 	"POPFRAME\n"
@@ -186,7 +186,7 @@ const char* xchr =
 	"POPFRAME\n"
 	"RETURN\n";
 
-// a/(a-a*b+b) 
+// a/(a-a*b+b)
 const char* xpow = 
 "# float pow(float, int)\n"
 "LABEL $$_builtin_pow\n"
@@ -205,7 +205,7 @@ const char* xpow =
 
 	"DEFVAR LF@eax #bool\n"
 	"JUMPIFEQ $_pow_one LF@ecx int@0\n"
-	"LT LF@eax LF@ecx LF@0\n"
+	"LT LF@eax LF@ecx int@0\n"
 	"JUMPIFNEQ $_pow_pos LF@eax bool@true\n"
 
 	"DIV LF@in float@0x8p-3 LF@in\n" //flip the bird

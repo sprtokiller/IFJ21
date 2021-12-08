@@ -62,7 +62,8 @@ bool SA_AddFunction(selfptr, Vector(token_type)* args, Vector(token_type)* rets,
 	{
 		fdec = find_htab_FunctionDecl(&self->funcs, id);
 		if (fdec->proto == prototype && !prototype)return false;
-
+		fdec->proto = prototype;
+		self->curr_func = fdec;
 		return !(!Span_EQ(fdec->types, (Span_token_type) { args->data_, args->end_ }) ||
 			!Span_EQ(fdec->ret, (Span_token_type) { rets->data_, rets->end_ }));
 	}
@@ -99,6 +100,16 @@ bool SA_AddVariable(selfptr, String* id, token_type type, bool has_value, bool g
 
 	*tok = (Variable){ c_str(id), type, has_value, global };
 	*push_back_Vector_LPCSTR(&self->curr_func->variables) = c_str(id);
+	return true;
+}
+
+bool SA_DiscoverVariable(selfptr, String* id)
+{
+	Variable* xtok = SA_FindVariable(self, c_str(id));
+	if (!xtok)return false;
+
+	clear_str(id);
+	append_str(id, xtok->asm_name);
 	return true;
 }
 
