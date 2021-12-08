@@ -33,16 +33,17 @@ add_subdirectory(${CMAKE_BINARY_DIR}/googletest-src
 enable_testing()
 add_compile_definitions(SOURCE_DIR="${CMAKE_SOURCE_DIR}")
 
-add_subdirectory("test")
 add_subdirectory("gen")
+add_subdirectory("test")
 add_subdirectory("final")
 
 # include header files
 include_directories(include)
-file(GLOB INCLUDE "include/*.h" "include/*.inl")
+file(GLOB INCLUDE "include/*.h" "*.inl")
 
 # include source files
 file(GLOB SOURCES "src/*.c")
 
 # add the executable
 add_executable(${PROJECT_NAME} ${SOURCES} ${INCLUDE})
+add_dependencies(${PROJECT_NAME} grammar.inl)
