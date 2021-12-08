@@ -25,6 +25,7 @@ typedef enum
 	s_commentary_ml,
 	s_kw,
 	s_id,
+	s_clpar,
 
 	s_float = 1 << 13,
 	s_expf,
@@ -43,6 +44,30 @@ void Scanner_ctor(Scanner* self, FILE* source)
 void Scanner_dtor(Scanner* self)
 {
 	Vector_token_dtor(&self->tk_stream);
+}
+
+
+//UNUSED
+void _Scanner_run(Scanner* self, Error* e) {
+	while (true)
+	{
+		token* tk = push_back_Vector_token(&(self->tk_stream));
+
+		*e = _get_token(self, tk);
+		if (*e != e_ok) {
+			e_msg("Scanner error %d", *e);
+			break;
+		}if (tk->type == tt_eof) {
+			break;
+		}
+	}
+}
+//UNUSED
+void _Scanner_print(Scanner* self) {
+	for (size_t i = 0; i < size_Vector_token(&(self->tk_stream)); i++)
+	{
+		print_tk(at_Vector_token(&(self->tk_stream), i));
+	}
 }
 
 //returns first symbol
@@ -108,7 +133,7 @@ int skip_space(Scanner* self, int sym)
  */
 bool is_operand(uint32_t state)
 {
-	return state == s_int || (state & 1 << 13) > 0 || state == s_id;
+	return state == s_int || (state & 1 << 13) > 0 || state == s_id || state == s_clpar;
 }
 
 /*!
@@ -119,7 +144,7 @@ bool is_operand(uint32_t state)
  *  @param el char target char
  *  @return TRUE, if char is in str
  */
-inline bool x_bsearch(const char* str, size_t len, int el)
+bool x_bsearch(const char* str, size_t len, int el)
 {
 	int l = 0;
 	int r = len;
@@ -145,14 +170,41 @@ bool esc_sym(int c)
 	return x_bsearch(esc_, 10, c);
 }
 
+void get_esc(int c, char str[5])
+{
+	switch (c)
+	{
+	case '\"':
+	case '\'':
+	case '\\':
+		sprintf(str, "%03d", c);break;
+	case 'n':
+		sprintf(str, "%03d", '\n'); break;
+	case 'r':
+		sprintf(str, "%03d", '\r'); break;
+	case 't':
+		sprintf(str, "%03d", '\t'); break;
+	case 'f':
+		sprintf(str, "%03d", '\f'); break;
+	case 'a':
+		sprintf(str, "%03d", '\a'); break;
+	case 'b':
+		sprintf(str, "%03d", '\b'); break;
+	case 'v':
+		sprintf(str, "%03d", '\v'); break;
+	default:
+		break;
+	}
+}
+
 /*!
  *  Detection of posible kw char
  *  @return TRUE, if c is posible kw char
  */
 bool maybe_kw(int c)
 {
-	static const char* str = "abdefgilnorstw";
-	return x_bsearch(str, 15, c);
+	static const char* str = "abdefgilnorstuw";
+	return x_bsearch(str, 16, c);
 }
 
 //Storage of pointers to new/old states and symbols
@@ -196,8 +248,13 @@ bool _parse_kw(Scanner* self, String* xtoken, int* xsym, token_type* tt)
 		predict = "and"; *tt = tt_and; break;
 
 	case 'b':
-		predict = "boolean"; *tt = tt_boolean; break;
-
+		switch (nsym)
+		{
+		case 'r': predict = "break"; *tt = tt_break; break;
+		case 'o': predict = "boolean"; *tt = tt_boolean; break;
+		default:return false;
+		}
+		break;
 	case 'd':
 		predict = "do"; *tt = tt_do; break;
 
@@ -228,6 +285,7 @@ bool _parse_kw(Scanner* self, String* xtoken, int* xsym, token_type* tt)
 		{
 			case 'a': predict = "false"; *tt = tt_false; break;
 			case 'u': predict = "function"; *tt = tt_function; break;
+			case 'o': predict = "for"; *tt = tt_for; break;
 			default:return false;
 		}
 		break;
@@ -273,6 +331,7 @@ bool _parse_kw(Scanner* self, String* xtoken, int* xsym, token_type* tt)
 			{
 				case 'q': predict = "require"; *tt = tt_require; break;
 				case 't': predict = "return"; *tt = tt_return; break;
+				case 'p': predict = "repeat"; *tt = tt_repeat; break;
 				default: return false;
 			}
 			break;
@@ -288,6 +347,8 @@ bool _parse_kw(Scanner* self, String* xtoken, int* xsym, token_type* tt)
 		}
 		break;
 
+	case 'u':
+		predict = "until"; *tt = tt_until; break;
 	case 'w':
 		predict = "while"; *tt = tt_while; break;
 	default:
@@ -336,7 +397,7 @@ Error _get_token(Scanner* self, token* tk)
 	sg.state_from = &state;
 
 
-	Error e = Ok;
+	Error e = e_ok;
 	bool valid = false;
 	uint8_t escape_cnt = 0;
 
@@ -376,6 +437,7 @@ Error _get_token(Scanner* self, token* tk)
 				predict = tt_left_parenthese;
 				goto simple_tk;
 			case ')':
+				state = s_clpar;
 				predict = tt_right_parenthese;
 				goto simple_tk;
 			case '^':
@@ -403,7 +465,7 @@ Error _get_token(Scanner* self, token* tk)
 				goto cont_scan;
 			case '=':
 				state = s_cmp;
-				predict = tt_e;
+				predict = tt_assign;
 				goto cont_scan;
 			case '.':
 				state = s_cat;
@@ -423,7 +485,6 @@ Error _get_token(Scanner* self, token* tk)
 			case '\v':
 				continue;
 			case EOF:
-				e = e_eof;
 				predict = tt_eof;
 				token_ctor(tk, predict, NULL);
 				tk->line = self->line;
@@ -545,15 +606,25 @@ Error _get_token(Scanner* self, token* tk)
 		case s_string:
 			if (sym == '"')
 			{
-				push_back_str(&xtoken, (char)sym);
+				pop_front_str(&xtoken); // remove excessive "
 				sym = 0;
 				goto make_token;
+			}
+			else if (sym == ' ')
+			{
+				append_str(&xtoken, "\\032");
+				break;
+			}
+			else if (sym == '#')
+			{
+				append_str(&xtoken, "\\035");
+				break;
 			}
 			else if (sym == '\\')
 			{
 				state = s_esc;
 			}
-			else if (sym == EOF)
+			else if (sym == EOF || sym == '\n')
 			{
 				return e_invalid_token;
 			}
@@ -563,7 +634,7 @@ Error _get_token(Scanner* self, token* tk)
 			if (sym == '=')
 			{
 				push_back_str(&xtoken, (char)sym);
-				predict = (token_type)((uint32_t)predict + 1);
+				predict = tt_ee;
 				sym = 0;
 			}
 			goto make_token;
@@ -595,8 +666,10 @@ Error _get_token(Scanner* self, token* tk)
 		case s_esc:
 			if (esc_sym(sym) && !escape_cnt)
 			{
+				char c[5];
+				get_esc(sym, c);
 				state = s_string;
-				push_back_str(&xtoken, (char)sym);
+				append_str(&xtoken, c);
 			}
 			else if (isdigit(sym)) {
 				push_back_str(&xtoken, (char)sym);
@@ -633,6 +706,7 @@ Error _get_token(Scanner* self, token* tk)
 		case s_kw:
 			if (sym == EOF || (!isalnum(sym) && sym != '_')) {
 				predict = tt_identifier;
+				state = s_id;
 				goto make_token;
 			}
 			if (!_parse_kw(self, &xtoken, &sym, &predict))
@@ -667,21 +741,24 @@ Error _get_token(Scanner* self, token* tk)
 			return e;
 		}
 	}
-	return e_eof;
+	return e_invalid_token;
 }
 
-void Scanner_print(Scanner* self, Error* e) {
-	token tk;
 
-	while (true)
-	{
-		*e = _get_token(self, &tk);
-		if (*e == e_eof)break;
-		if (*e != Ok) {
-			e_msg(" %d", *e);
-			break;
-		}
-		print_tk(&tk);
-		token_dtor(&tk);
-	}
+Error get_token(Scanner* self, token* tk)
+{
+	if (empty_Vector_token(&self->tk_stream))
+		return _get_token(self, tk);
+	token* xtk = back_Vector_token(&self->tk_stream); //token is moved
+	*tk = *xtk;
+	xtk->var = v_none;
+	DEBUG_ZERO(xtk);
+	pop_back_Vector_token(&self->tk_stream);
+	return e_ok;
+}
+void unget_token(Scanner* self, token* tk)
+{
+	*push_back_Vector_token(&self->tk_stream) = *tk;
+	tk->var = v_none;
+	DEBUG_ZERO(tk);
 }

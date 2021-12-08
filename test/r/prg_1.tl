@@ -63,6 +63,7 @@ D: Val: write
 D:Token at [16, 14]: left parenthese
 D:Token at [16, 15]: string literal
 D: Val: Faktorial\032nelze\032spocitat\010
+D: Val: "Faktorial nelze spocitat\n"
 D:Token at [16, 43]: right parenthese
 D:Token at [17, 5]: else
 D:Token at [18, 9]: identifier

@@ -9,6 +9,8 @@ list(REMOVE_ITEM tests "${PROJECT_SOURCE_DIR}/test/main.cpp")
 
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
+add_compile_definitions(RAW_OUTPUT)
+
 foreach(file ${tests})
   set(name)
   get_filename_component(name ${file} NAME_WE)

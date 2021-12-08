@@ -10,9 +10,10 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 message(STATUS "${CMAKE_C_COMPILER_ID} detected, adding compile flags")
 if (CMAKE_C_COMPILER_ID STREQUAL "Clang")
   # using Clang
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wno-ignored-pragmas")
 elseif (CMAKE_C_COMPILER_ID STREQUAL "GNU")
   # using GCC
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -Wall -Wextra -Werror -g")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -Wall -Wextra -g")
 elseif (CMAKE_C_COMPILER_ID STREQUAL "MSVC")
   # using Visual Studio C++
   message(DEPRECATION "Pls don't use pure MSVC")
@@ -31,15 +32,18 @@ add_subdirectory(${CMAKE_BINARY_DIR}/googletest-src
 
 enable_testing()
 add_compile_definitions(SOURCE_DIR="${CMAKE_SOURCE_DIR}")
-add_subdirectory("test")
 
+add_subdirectory("gen")
+add_subdirectory("test")
+add_subdirectory("final")
 
 # include header files
 include_directories(include)
-file(GLOB INCLUDE "include/*.h")
+file(GLOB INCLUDE "include/*.h" "*.inl")
 
 # include source files
 file(GLOB SOURCES "src/*.c")
 
 # add the executable
 add_executable(${PROJECT_NAME} ${SOURCES} ${INCLUDE})
+add_dependencies(${PROJECT_NAME} grammar.inl)

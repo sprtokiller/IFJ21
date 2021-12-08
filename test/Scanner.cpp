@@ -23,7 +23,7 @@ public:
 	}
 	Error get_token(token& tk)
 	{
-		return _get_token(&s, &tk);
+		return ::get_token(&s, &tk);
 	}
 };
 
@@ -39,7 +39,7 @@ private:
 private:
 	void SetUp() override
 	{
-		e = Ok;
+		e = e_ok;
 		current_out = "";
 	}
 	void TearDown() override
@@ -65,10 +65,12 @@ public:
 		if (state != 1)
 			e_exit("Wrong calling order in tests! %i!=1", state);
 
+		_Scanner_run(&sc, &e);
+
 		//record text in stderr
 		testing::internal::CaptureStderr();
 
-		Scanner_print(&sc, &e);
+		_Scanner_print(&sc);
 
 		//saves log to string
 		current_out = testing::internal::GetCapturedStderr();
@@ -100,8 +102,7 @@ public:
 		current << current_out;
 		current.close();
 
-		//Checks if scanner is at end of file
-		ASSERT_EQ(e,e_eof);
+		ASSERT_EQ(e,e_ok);
 
 		//writes rule file to folder test/o if file doesn't exists
 		//but only if error didn't occurred
@@ -163,7 +164,7 @@ TEST_F(ProgramTest, scan_1)
 	const char* TestPathCor = SOURCE_DIR"/test/r/" NAME;
 	TestOutput(TestPathOut, TestPathCor);
 }
-#undef Name
+#undef NAME
 
 #define NAME "prg_1.tl"
 TEST_F(ProgramTest, prg_1)
@@ -178,7 +179,7 @@ TEST_F(ProgramTest, prg_1)
 	const char* TestPathCor = SOURCE_DIR"/test/r/" NAME;
 	TestOutput(TestPathOut, TestPathCor);
 }
-#undef Name
+#undef NAME
 
 #define NAME "prg_2.tl"
 TEST_F(ProgramTest, prg_2)
@@ -193,7 +194,7 @@ TEST_F(ProgramTest, prg_2)
 	const char* TestPathCor = SOURCE_DIR"/test/r/" NAME;
 	TestOutput(TestPathOut, TestPathCor);
 }
-#undef Name
+#undef NAME
 
 #define NAME "prg_3.tl"
 TEST_F(ProgramTest, prg_3)
@@ -208,4 +209,4 @@ TEST_F(ProgramTest, prg_3)
 	const char* TestPathCor = SOURCE_DIR"/test/r/" NAME;
 	TestOutput(TestPathOut, TestPathCor);
 }
-#undef Name
+#undef NAME

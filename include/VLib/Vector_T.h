@@ -58,6 +58,8 @@ struct c_class
 	size_t capacity_;		/**< internal storage*/
 };
 #ifdef IsClass
+extern void __rdtor(VECTOR_T)(VECTOR_T* self);
+
 inline void Template(_Destroy)(VECTOR_T* _First, VECTOR_T* _Last)
 {
 	while (_First != _Last)
@@ -82,11 +84,23 @@ inline void Template(_Destroy_single)(VECTOR_T* element)
 #endif // IsClass
 #endif
 
+/// @brief Move constructor, moves content from one vector to another
+/// leaving first empty
+/// @param [in]self -> pointer to valid vector
+/// @param [in]other  vector to move from
+inline void __rcat2(c_class, _move_ctor)(selfptr, c_class* other)
+{
+	*self = *other;
+	other->data_ = other->end_ = NULL;
+	other->capacity_ = 0;
+}
+
 /// @brief 
 /// @param [in]self -> pointer to valid vector
 /// @param [in]n  position
 /// @return reference to an element at certain position
 NODISCARD VECTOR_T* Template(at)(const selfptr, size_t n);
+
 
 /// @brief 
 /// @param [in]self -> pointer to valid vector
@@ -145,4 +159,6 @@ void Template(pop_back)(selfptr);
 
 #undef IsClass
 #undef VECTOR_T
+#undef c_class
 #endif
+

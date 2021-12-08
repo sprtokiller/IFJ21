@@ -20,11 +20,17 @@ mono_crash.*
 [Bb]uild/*
 [Oo]ut/*
 
+# Generator results
+[Gg]en/[Oo]ut.txt
+[Gg]en/*.csv.bak
+[Ii]nclude/*.inl
+
 # Visual Studio 2015/2017 cache/options directory
 .vs/
 
 # Test Output
 test/o/*
+test/[Oo]ut/*
 
 # Visual Studio 2017 auto generated files
 Generated\ Files/
@@ -352,3 +358,5 @@ FodyWeavers.xsd
 
 # Generated CmakeSettings.json
 CMakeSettings.json
+/pass
+/gen/out/build/x64-Debug

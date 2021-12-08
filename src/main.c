@@ -1,61 +1,36 @@
-#include "scanner.h"
-#ifdef _WIN32
-	#include "windows.h"
-#endif // _WIN32
-
-#include "common.h"
-
+﻿#include "common.h"
+#include "../include/parser.h"
+#include "semantic.h"
+#include "codegen.h"
+#include <stdio.h>
+	
 int main(int argc, char* argv[])
 {
-#ifdef _WIN32
-	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-	DWORD dwMode = 0;
-	GetConsoleMode(hOut, &dwMode);
-	dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-	SetConsoleMode(hOut, dwMode);
-#endif // _WIN32
+	SetupTerminal();
+	Error e = e_ok;
 
-	bool verbose = false;
-	size_t argIndex;
-	for (argIndex = 1; argIndex < argc && argv[argIndex][0] == '-'; argIndex++) {
-		switch (argv[argIndex][1]) {
-		case 'v': verbose = true; break;
-		case 'h': usage(argv[0]); exit(EXIT_FAILURE); break;
-		default: usage(argv[0]); exit(64); break;
-		}
+	FILE* stream = fopen(SOURCE_DIR "/examples/testnum.tl","r");
+
+	UNIQUE(SemanticAnalyzer) semantic = {0};
+	SemanticAnalyzer_ctor(&semantic);
+
+	UNIQUE(Parser) parser;
+	Parser_ctor(&parser, stream);
+	e = Start(&parser);
+	if (e) { e_msg(error_type_name(e)); return e; }
+
+	e = (*parser.program)->analyze(parser.program, &semantic);
+	if (e) { e_msg(error_type_name(e)); return e; }
+
+	UNIQUE(CodeGen) cg = {0};
+	CodeGen_ctor(&cg, &semantic.funcs);
+
+	(*parser.program)->generate(parser.program, &cg);
+
+	printf("%s\n", c_str(&cg.global));
+	for (size_t i = 0; i < size_Vector_String(&cg.code); i++){
+		printf("%s\n", c_str(at_Vector_String(&cg.code, i)));
 	}
 
-
-
-	//LLC_s* llc = LLC_init(64);
-	//coord_s coords = { .column = 1, .line = 1 };
-
-	//if (!llc) {
-	//	e_msg("Alocation failed.\n");
-	//	return 1;
-	//}
-
-	////prints all tokens recived stops at EOF
-	//token_s* t = NULL;
-	//do
-	//{
-	//	if (t) free(t);
-	//	t = get_t(stdin, llc, &coords);
-	//	if (!t) break;
-	//	print_t(t);
-	//} while ((t->group != tg_eof) && (t->group != tg_err));
-
-
-	//LLC_destroy(llc);
-	
-	FILE* fp = fopen(SOURCE_DIR"/examples/scan_1.tl", "r");
-
-	Scanner sc;
-	Scanner_ctor(&sc, fp);
-	Error e = Ok;
-	Scanner_print(&sc, &e);
-	Scanner_dtor(&sc);
-
-
-	return EXIT_SUCCESS;
+	return e;
 }
