@@ -292,7 +292,7 @@ Error fd_analyze(funcDecl* self, struct SemanticAnalyzer* analyzer)
 }
 void fd_generate(const funcDecl* self, struct CodeGen* codegen)
 {
-d	const char* fname = c_str(&self->name.sval);
+	const char* fname = c_str(&self->name.sval);
 	FunctionDecl* fd = find_htab_FunctionDecl(codegen->funcs, fname);
 
 	if (!fd->called)return;
