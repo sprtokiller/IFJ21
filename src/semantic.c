@@ -82,7 +82,7 @@ void SA_LeaveFunction(selfptr)
 bool SA_AddVariable(selfptr, String* id, token_type type, bool has_value, bool global)
 {
 	Variable* xtok = SA_FindVariable(self, c_str(id));
-	Variable* tok = emplace_htab_Variable(self->current, id);
+	Variable* tok = emplace_htab_Variable(self->current, c_str(id));
 	if (!tok)return false; //var already exists, push failed
 
 	if (global)

@@ -421,7 +421,8 @@ Error _get_token(Scanner* self, token* tk)
 				goto simple_tk;
 			case '~':
 				predict = tt_ne;
-				goto simple_tk;
+				state = s_ne;
+				goto cont_scan;
 			case ',':
 				predict = tt_comma;
 				goto simple_tk;

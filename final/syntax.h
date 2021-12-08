@@ -24,6 +24,12 @@ typedef struct IASTElement
 	void (*generate)(const struct IASTElement** self, struct CodeGen* codegen);
 }IASTElement,**ppIASTElement;
 
+typedef RetState(*	append_fp	)(struct IASTElement** self, token* tk);
+typedef void(*		print_fp	)(struct IASTElement** self);
+typedef void(*		dtor_fp		)(struct IASTElement** self);
+typedef Error(*		analyze_fp	)(struct IASTElement** self, struct SemanticAnalyzer* analyzer);
+typedef void (*		generate_fp	)(const struct IASTElement** self, struct CodeGen* codegen);
+
 void ppIASTElement_dtor(ppIASTElement* self);
 
 IASTElement** MakeStatement(token_type type);

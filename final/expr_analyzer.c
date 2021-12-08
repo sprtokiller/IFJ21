@@ -278,6 +278,8 @@ token_type GetNodeType(Node* node, SemanticAnalyzer* analyzer, bool simple, Erro
 
 	switch (node->core.type)
 	{
+	case tt_internal_variable:
+		return node->result;
 	case tt_identifier:
 	{
 		Variable* x = SA_FindVariable(analyzer, c_str(&node->core.sval));
@@ -287,7 +289,7 @@ token_type GetNodeType(Node* node, SemanticAnalyzer* analyzer, bool simple, Erro
 		}
 		token_dtor(&node->core);
 		node->core.type = tt_internal_variable; //restate with pseudoname
-		node->core.expression = x->asm_name;
+		node->core.varname = (void*)x->asm_name;
 
 		if (!x->has_value)
 			return node->result = tt_nil;
@@ -312,7 +314,8 @@ token_type GetNodeType(Node* node, SemanticAnalyzer* analyzer, bool simple, Erro
 		}
 
 		return node->result = (l == tt_number)||(r == tt_number)?tt_number:tt_integer;
-	case tt_power:			  
+	case tt_power:
+		analyzer->has_pow = true;
 		if (AnyNil(r, l)) {
 			*err = e_RTnil;
 			return tt_err;
@@ -459,7 +462,7 @@ token_type GetExpType(Vector(Node)* ast, SemanticAnalyzer* analyzer, Error* err)
 	return GetNodeType(ast->data_->left, analyzer, true, err);
 }
 
-size_t Argc(Node* self)
+size_t Argc(const Node* self)
 {
 	size_t x = 0;
 	if (self->core.type != tt_comma && self->core.type != tt_fcall)return 1;
@@ -467,13 +470,21 @@ size_t Argc(Node* self)
 	if (self->left)x += Argc(self->left);
 	return x;
 }
-void GenerateNode(Node* self, String* to)
+void GenerateNode(const Node* self, String* to)
 {
 	if (self->right)GenerateNode(self->right, to);
 	if (self->left)GenerateNode(self->left, to);
 
 	switch (self->core.type)
 	{
+	case tt_concatenate:
+		append_str(to,
+			"POPS  GF@__XTMP_K1\n"
+			"POPS  GF@__XTMP_K2\n"
+			"CONCAT GF@__XTMP_K1 GF@__XTMP_K1 GF@__XTMP_K2\n"
+			"PUSHS GF@__XTMP_K1\n"
+		);
+		break;
 	case tt_internal_variable:
 		append_str(to, "PUSHS ");
 		append_str(to, (const char*)self->core.expression);
@@ -631,7 +642,7 @@ void GenerateNode(Node* self, String* to)
 		append_str(to, "INT2FLOATS\n");
 
 }
-void GenerateExpression(Vector(Node)* self, String* to)
+void GenerateExpression(const Vector(Node)* self, String* to)
 {
 	GenerateNode(self->data_->left, to);
 }

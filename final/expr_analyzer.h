@@ -21,7 +21,7 @@ void Destructor(ExpressionAnalyzer* self);
 
 Error Execute(ExpressionAnalyzer* self, struct Scanner* scanner);
 token_type GetExpType(Vector(Node)* ast, struct SemanticAnalyzer* analyzer, Error* err);
-void GenerateExpression(Vector(Node)* self, String* to);
+void GenerateExpression(const Vector(Node)* self, String* to);
 
 #ifndef EXPRA_IMPL
 #pragma pop_macro("c_class")

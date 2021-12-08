@@ -12,10 +12,11 @@ struct c_class
 	Vector(String) code;
 	String* current;
 	String global;
+	bool has_pow;
 };
 
 
-void Constructor(selfptr, HashMap(FunctionDecl)* funcs);
+void Constructor(selfptr, HashMap(FunctionDecl)* funcs, bool has_pow);
 void Destructor(selfptr);
 
 String* CG_AddFunction(selfptr);

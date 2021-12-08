@@ -23,26 +23,6 @@ const char* token_type_name(token_type type);
 
 typedef struct token token;
 
-typedef struct
-{
-	//the data we actually care about
-	token_type type : sizeof(token_type) * 8 - 3;
-
-	uint8_t var : 3;
-	union
-	{
-		String sval;
-		double dval;
-		int64_t ival;
-		struct
-		{
-			void* expression;
-			int ec;
-		};
-	};
-}token_core;
-
-
 enum val_ty { v_none, v_str, v_flt, v_int, v_bool, v_expr };
 
 struct token {
@@ -64,6 +44,7 @@ struct token {
 			void* expression;
 			int ec;
 		};
+		const char* varname;
 	};
 };
 

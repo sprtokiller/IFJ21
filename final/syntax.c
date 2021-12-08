@@ -15,6 +15,8 @@ typedef struct IASTCycle
 	void(*acc_break)(struct IASTCycle** self);
 }IASTCycle;
 
+typedef void(*acc_break_fp)(struct IASTCycle** self);
+
 static void PrintExpression(const Vector(Node)* vec)
 {
 	for (size_t i = 1; i < size_Vector_Node(vec); i++)
@@ -65,11 +67,11 @@ void rq_generate(reqStmt* self, struct CodeGen* codegen)
 
 static struct IASTElement vfptr_rq = (IASTElement)
 {
-	rq_append,
-	rq_print,
-	reqStmt_dtor,
-	rq_analyze,
-	rq_generate
+	(append_fp)rq_append,
+	(print_fp)rq_print,
+	(dtor_fp)reqStmt_dtor,
+	(analyze_fp)rq_analyze,
+	(generate_fp)rq_generate
 };
 void reqStmt_ctor(reqStmt* self)
 {
@@ -146,7 +148,7 @@ void blk_generate(const blockPart* self, struct CodeGen* codegen)
 {
 	for (size_t i = 0; i < size_Vector_ppIASTElement(&self->block); i++)
 	{
-		IASTElement** pp = *at_Vector_ppIASTElement(&self->block, i);
+		const IASTElement** pp = (const IASTElement**)*at_Vector_ppIASTElement(&self->block, i);
 		if ((*pp)->generate)
 			(*pp)->generate(pp, codegen);
 	}
@@ -154,11 +156,11 @@ void blk_generate(const blockPart* self, struct CodeGen* codegen)
 
 static struct IASTElement vfptr_blk = (IASTElement)
 {
-	blk_append,
-	blk_print,
-	blockPart_dtor,
-	blk_analyze,
-	blk_generate
+	(append_fp)blk_append,
+	(print_fp)blk_print,
+	(dtor_fp)blockPart_dtor,
+	(analyze_fp)blk_analyze,
+	(generate_fp)blk_generate
 };
 void blockPart_ctor(blockPart* self)
 {
@@ -280,7 +282,8 @@ Error fd_analyze(funcDecl* self, struct SemanticAnalyzer* analyzer)
 	{
 		token* t = at_Vector_token(&self->args, i);
 		if (!SA_AddVariable(analyzer, &t->sval,
-			t->type, true, false))return e_redefinition;
+			*at_Vector_token_type(&self->types, i), true, false))
+			return e_redefinition;
 	}
 
 	ERR_CHECK(blk_analyze(&self->block, analyzer));
@@ -354,11 +357,11 @@ void fd_generate(const funcDecl* self, struct CodeGen* codegen)
 
 static struct IASTElement vfptr_fd = (IASTElement)
 {
-	fd_append,
-	fd_print,
-	funcDecl_dtor,
-	fd_analyze,
-	fd_generate
+	(append_fp)fd_append,
+	(print_fp)fd_print,
+	(dtor_fp)funcDecl_dtor,
+	(analyze_fp)fd_analyze,
+	(generate_fp)fd_generate
 };
 void funcDecl_ctor(funcDecl* self)
 {
@@ -452,14 +455,16 @@ Error ls_analyze(localStmt* self, struct SemanticAnalyzer* analyzer)
 		return e_other;
 	}
 
-
-	if (!SA_AddVariable(analyzer, &self->id, self->type, self->has_value, false)) {
-		e_msg("Variable already exists!");
-		return e_redefinition;
+	if (!self->has_value)
+	{
+		if (!SA_AddVariable(analyzer, &self->id, self->type, self->has_value, false)) {
+			e_msg("Variable already exists!");
+			return e_redefinition;
+		}
+		return e_ok;
 	}
-	if (!self->has_value)return e_ok;
 
-
+	
 	Error e = e_ok;
 	token_type tt = GetExpType(&self->value, analyzer, &e);
 	if (e) {
@@ -475,6 +480,12 @@ Error ls_analyze(localStmt* self, struct SemanticAnalyzer* analyzer)
 		}
 		tt = *fp->ret.begin; //Get first
 	}
+
+	if (!SA_AddVariable(analyzer, &self->id, self->type, self->has_value, false)) {
+		e_msg("Variable already exists!");
+		return e_redefinition;
+	}
+
 	if (!FitsType(self->type, tt))
 	{
 		e_msg("Expression type is invalid");
@@ -487,12 +498,12 @@ void ls_generate(const localStmt* self, struct CodeGen* codegen)
 {
 	String* code = codegen->current;
 	const char* t = c_str(&self->id);
-	append_str(code, "DEFVAR ");
-	append_str(code, t);
-	push_back_str(code, '\n');
 	if (self->has_value)
 	{
 		GenerateExpression(&self->value, code);
+		append_str(code, "DEFVAR ");
+		append_str(code, t);
+		push_back_str(code, '\n');
 		append_str(code, "POPS ");
 		append_str(code, t);
 		push_back_str(code, '\n');
@@ -504,17 +515,22 @@ void ls_generate(const localStmt* self, struct CodeGen* codegen)
 				append_str(code, "CLEARS\n");
 		}
 		push_back_str(code, '\n');
+		return;
 	}
+	append_str(code, "DEFVAR ");
+	append_str(code, t);
+	push_back_str(code, '\n');
+	
 }
 
 
 static struct IASTElement vfptr_ls = (IASTElement)
 {
-	ls_append,
-	ls_print,
-	localStmt_dtor,
-	ls_analyze,
-	ls_generate
+	(append_fp)ls_append,
+	(print_fp)ls_print,
+	(dtor_fp)localStmt_dtor,
+	(analyze_fp)ls_analyze,
+	(generate_fp)ls_generate
 };
 void localStmt_ctor(localStmt* self)
 {
@@ -560,7 +576,7 @@ void List_exp_dtor(List_exp* self)
 {
 	List_Node_dtor(self->first);
 }
-List_exp* push(List_exp* self)
+List_Node* push(List_exp* self)
 {
 	if (!self->last)
 	{
@@ -570,7 +586,12 @@ List_exp* push(List_exp* self)
 	self->n++;
 	return  self->last = self->last->next = calloc(sizeof(List_Node), 1);
 }
-
+void GenerateList(List_Node* self, String* func)
+{
+	if (!self)return;
+	GenerateList(self->next, func);
+	GenerateExpression(&self->expression, func);
+}
 
 typedef struct AssOrFCall
 {
@@ -587,6 +608,7 @@ typedef struct AssOrFCall
 		{
 			Vector(token) idents;
 			List_exp expressions;
+			Vector(LPCSTR) varnames;
 		};
 		Vector(Node) fcall;
 	};
@@ -650,7 +672,7 @@ RetState afc_append(AssOrFCall* self, token* tk)
 			self->eq = true;
 			break;
 		case tt_expression:
-			Vector_Node_move_ctor(push(&self->expressions),
+			Vector_Node_move_ctor(&push(&self->expressions)->expression,
 				(Vector(Node)*)tk->expression);
 			break;
 		default:
@@ -684,6 +706,12 @@ void afc_print(AssOrFCall* self)
 }
 Error afc_analyze(AssOrFCall* self, struct SemanticAnalyzer* analyzer)
 {
+	size_t szx = size_Vector_token(&self->idents);
+	reserve_Vector_LPCSTR(&self->varnames, szx);
+	for (size_t i = 0; i < szx; i++)
+		self->varnames.data_[i] = NULL;
+	self->varnames.end_ = self->varnames.data_ + szx;
+
 	Error e = e_ok;
 	if (self->op == ass_fcall) // fcall
 	{
@@ -706,11 +734,10 @@ Error afc_analyze(AssOrFCall* self, struct SemanticAnalyzer* analyzer)
 			e_msg("Variable %s does not exist", c_str(&i->sval));
 			return e_redefinition;
 		}
-		SA_DiscoverVariable(analyzer, &i->sval);
-
+		*at_Vector_LPCSTR(&self->varnames, i - self->idents.data_) = v->asm_name;
 		if (!exp) continue;
 
-		token_type tt = GetExpType(exp, analyzer, &e);
+		token_type tt = GetExpType(&exp->expression, analyzer, &e);
 		if (tt == tt_eof && !self->all_assigned) {
 			e_msg("Less vars assigned than expekted");
 			return e_count;
@@ -737,6 +764,7 @@ Error afc_analyze(AssOrFCall* self, struct SemanticAnalyzer* analyzer)
 					e_msg("Variable and function return value types does not match");
 					return e_type_ass;
 				}
+				*at_Vector_LPCSTR(&self->varnames, (i+j) - self->idents.data_) = vi->asm_name;
 				vi->has_value = true;
 			}
 			exp = exp->next;
@@ -760,10 +788,12 @@ void afc_generate(const AssOrFCall* self, struct CodeGen* codegen)
 
 	List_Node* exp = self->expressions.first;
 	size_t n = 0;
+
+	GenerateList(exp, func);
+
+	exp = self->expressions.first;
 	for (token* i = self->idents.data_; i < self->idents.end_ && n < self->expressions.n; i++, n++)
 	{
-		GenerateExpression(&exp->expression, func);
-
 		if (exp->expression.data_[0].left->result == tt_fcall)
 		{
 			FunctionDecl* fd = find_htab_FunctionDecl(codegen->funcs, c_str(&exp->expression.data_[0].left->core.sval));
@@ -771,18 +801,18 @@ void afc_generate(const AssOrFCall* self, struct CodeGen* codegen)
 			{
 				if (i + j == self->idents.end_)
 				{
-					append_str(func, "CLEARS\n");
-					break;
+					append_str(func, "POPS GF@__XTMP_K1\n");
+					continue;
 				}
 				append_str(func, "POPS ");
-				append_str(func, c_str(&(i + j)->sval));
+				append_str(func, *at_Vector_LPCSTR(&self->varnames, (i + j)- self->idents.data_));
 				push_back_str(func, '\n');
 			}
 			exp = exp->next;
 			continue;
 		}
 		append_str(func, "POPS ");
-		append_str(func, c_str(&i->sval));
+		append_str(func, *at_Vector_LPCSTR(&self->varnames, i - self->idents.data_));
 		push_back_str(func, '\n');
 		exp = exp->next;
 	}
@@ -790,11 +820,11 @@ void afc_generate(const AssOrFCall* self, struct CodeGen* codegen)
 
 static struct IASTElement vfptr_afc = (IASTElement)
 {
-	afc_append,
-	afc_print,
-	AssOrFCall_dtor,
-	afc_analyze,
-	afc_generate
+	(append_fp)afc_append,
+	(print_fp)afc_print,
+	(dtor_fp)AssOrFCall_dtor,
+	(analyze_fp)afc_analyze,
+	(generate_fp)afc_generate
 };
 void AssOrFCall_ctor(AssOrFCall* self)
 {
@@ -811,6 +841,7 @@ void AssOrFCall_dtor(AssOrFCall* self)
 		return;
 	}
 	Vector_Node_dtor(&self->fcall);
+	Vector_LPCSTR_dtor(&self->varnames);
 }
 #pragma endregion
 ///////////////////////////////////////////////////////
@@ -867,11 +898,11 @@ void prg_generate(Program* self, struct CodeGen* codegen)
 
 static struct IASTElement vfptr_prg = (IASTElement)
 {
-	prg_append,
-	prg_print,
-	Program_dtor,
-	prg_analyze,
-	prg_generate
+	(append_fp)prg_append,
+	(print_fp)prg_print,
+	(dtor_fp)Program_dtor,
+	(analyze_fp)prg_analyze,
+	(generate_fp)prg_generate
 };
 void Program_ctor(Program* self)
 {
@@ -930,7 +961,7 @@ void wh_print(While* self)
 Error wh_analyze(While* self, struct SemanticAnalyzer* analyzer)
 {
 	UNIQUE(CycleGuard) cg;
-	CycleGuard_ctor(&cg, analyzer, (CycleCore) { self });
+	CycleGuard_ctor(&cg, analyzer, (CycleCore) { &self->method });
 
 	if (SA_IsGlobal(analyzer)) {
 		e_msg("Invalid statement for global scope");
@@ -1092,14 +1123,14 @@ void wh_acc_break(While* self)
 	self->has_break = true;
 }
 
-static const struct IASTCycle vfptr_wh = (const IASTCycle)
+static struct IASTCycle vfptr_wh = (const IASTCycle)
 {
-	.element.append = wh_append,
-	.element.print = wh_print,
-	.element.dtor = While_dtor,
-	.element.analyze = wh_analyze,
-	.element.generate = wh_generate,
-	.acc_break = wh_acc_break
+	.element.append =	(append_fp)wh_append,
+	.element.print = (print_fp)wh_print,
+	.element.dtor = (dtor_fp)While_dtor,
+	.element.analyze = (analyze_fp)wh_analyze,
+	.element.generate = (generate_fp)wh_generate,
+	.acc_break = (acc_break_fp)wh_acc_break
 };
 void While_ctor(While* self)
 {
@@ -1175,6 +1206,7 @@ RetState for_append(For* self, token* tk)
 		self->fills_block = true;
 	default:break;
 	}
+	return s_refused;
 }
 void for_print(For* self)
 {
@@ -1193,7 +1225,7 @@ void for_print(For* self)
 Error for_analyze(For* self, struct SemanticAnalyzer* analyzer)
 {
 	UNIQUE(CycleGuard) cg;
-	CycleGuard_ctor(&cg, analyzer, (CycleCore) { self });
+	CycleGuard_ctor(&cg, analyzer, (CycleCore) { &self->method });
 
 	Error e = e_ok;
 	if (SA_IsGlobal(analyzer)) {
@@ -1201,7 +1233,7 @@ Error for_analyze(For* self, struct SemanticAnalyzer* analyzer)
 		return e_other;
 	}
 	SA_AddScope(analyzer);
-	SA_AddVariable(analyzer, &self->id, tt_integer, true, false);
+	SA_AddVariable(analyzer, &self->id.sval, tt_integer, true, false);
 
 	token_type tt_ex = GetExpType(&self->expr, analyzer, &e);
 	if (e)return e;
@@ -1235,7 +1267,7 @@ Error for_analyze(For* self, struct SemanticAnalyzer* analyzer)
 			if (size_Span_token_type(&fd->ret))return e_count;
 			tt_ex = fd->ret.begin[0];
 		}
-		if (tt_ex != tt_integer)return tt_type;
+		if (tt_ex != tt_integer)return e_type;
 	}
 
 	self->block.partial = true;
@@ -1329,14 +1361,14 @@ void for_acc_break(For* self)
 	self->has_break = true;
 }
 
-static const struct IASTCycle vfptr_for = (const IASTCycle)
+static struct IASTCycle vfptr_for = (IASTCycle)
 {
-	.element.append = for_append,
-	.element.print = for_print,
-	.element.dtor = For_dtor,
-	.element.analyze = for_analyze,
-	.element.generate = for_generate,
-	.acc_break = for_acc_break
+	.element.append =	(append_fp)for_append,
+	.element.print = (print_fp)for_print,
+	.element.dtor = (dtor_fp)For_dtor,
+	.element.analyze = (analyze_fp)for_analyze,
+	.element.generate = (generate_fp)for_generate,
+	.acc_break = (acc_break_fp)for_acc_break
 };
 void For_ctor(For* self)
 {
@@ -1405,7 +1437,7 @@ void rep_print(Repeat* self)
 Error rep_analyze(Repeat* self, struct SemanticAnalyzer* analyzer)
 {
 	UNIQUE(CycleGuard) cg;
-	CycleGuard_ctor(&cg, analyzer, (CycleCore) { self });
+	CycleGuard_ctor(&cg, analyzer, (CycleCore) { &self->method });
 
 	if (SA_IsGlobal(analyzer)) {
 		e_msg("Invalid statement for global scope");
@@ -1414,6 +1446,22 @@ Error rep_analyze(Repeat* self, struct SemanticAnalyzer* analyzer)
 	Error e = e_ok;
 	token_type tt = GetExpType(&self->expr, analyzer, &e);
 	if (e)return e;
+
+	if (tt == tt_fcall)
+	{
+		FunctionDecl* fd = SA_FindFunction(analyzer, c_str(&self->expr.data_[0].left->core.sval));
+		if (size_Span_token_type(&fd->ret))return e_count;
+		tt = fd->ret.begin[0];
+	}
+
+	if (tt == tt_boolean)
+		return blk_analyze(&self->block, analyzer);
+
+	if (tt == tt_nil)
+		self->expr.data_[0].result = tt_false;
+	else
+		self->expr.data_[0].result = tt_true;
+
 	e = blk_analyze(&self->block, analyzer);
 	return e;
 }
@@ -1425,7 +1473,7 @@ void rep_generate_fc(const Repeat* self, struct CodeGen* codegen)
 	if (self->expr.data_[0].result == tt_true)
 	{
 		blk_generate(&self->block, codegen);
-		GenerateExpression(&self->expr, codegen);
+		GenerateExpression(&self->expr, func);
 		append_str(func, "CLEARS\n");
 		return;
 	}
@@ -1435,7 +1483,7 @@ void rep_generate_fc(const Repeat* self, struct CodeGen* codegen)
 		append_str(func, c);
 		push_back_str(func, '\n');
 		blk_generate(&self->block, codegen);
-		GenerateExpression(&self->expr, codegen);
+		GenerateExpression(&self->expr, func);
 		append_str(func, "CLEARS\n");
 		append_str(func, "JUMP $rep_cy_");
 		append_str(func, c);
@@ -1459,7 +1507,7 @@ void rep_generate_fc(const Repeat* self, struct CodeGen* codegen)
 
 	blk_generate(&self->block, codegen);
 
-	GenerateExpression(&self->expr, codegen);
+	GenerateExpression(&self->expr, func);
 	append_str(func, "POPS LF@_rep_");
 	append_str(func, c);
 	push_back_str(func, '\n');
@@ -1539,14 +1587,14 @@ void rep_acc_break(Repeat* self)
 	self->has_break = true;
 }
 
-static const struct IASTCycle vfptr_rep = (const IASTCycle)
+static struct IASTCycle vfptr_rep = (const IASTCycle)
 {
-	.element.append = rep_append,
-	.element.print = rep_print,
-	.element.dtor = Repeat_dtor,
-	.element.analyze = rep_analyze,
-	.element.generate = rep_generate,
-	.acc_break = rep_acc_break
+	.element.append =	(append_fp)rep_append,
+	.element.print = (print_fp)rep_print,
+	.element.dtor = (dtor_fp)Repeat_dtor,
+	.element.analyze = (analyze_fp)rep_analyze,
+	.element.generate = (generate_fp)rep_generate,
+	.acc_break = (acc_break_fp)rep_acc_break
 };
 void Repeat_ctor(Repeat* self)
 {
@@ -1593,7 +1641,7 @@ RetState ret_append(Return* self, token* tk)
 			clear_Vector_Node((Vector(Node)*)tk->expression);
 			return s_accept;
 		}
-		Vector_Node_move_ctor(push(&self->retlist),
+		Vector_Node_move_ctor(&push(&self->retlist)->expression,
 			(Vector(Node)*)tk->expression);
 		return s_await;
 	default:
@@ -1626,7 +1674,7 @@ Error ret_analyze(Return* self, struct SemanticAnalyzer* analyzer)
 	}
 	if (e != e_ok)return e;
 
-	for (token_type* i = rets.begin; i != rets.end; i++)
+	for (const token_type* i = rets.begin; i != rets.end; i++)
 	{
 		if (!node)return e_ok;
 		tt = GetExpType(&node->expression, analyzer, &e);
@@ -1669,11 +1717,11 @@ void ret_generate(const Return* self, struct CodeGen* codegen)
 	sprintf(d, "%p", self->function);
 
 	List_Node* exp = self->retlist.first;
-	const size_t lim = size_Span_token_type(&self->function);
+	const size_t lim = size_Span_token_type(&self->function->ret);
 	for (size_t i = 0; i < lim; i++)
 	{
 		if (!exp)break;
-		GenerateExpression(exp, func);
+		GenerateExpression(&exp->expression, func);
 
 		char c[19];
 		if (exp->expression.data_[0].left->result == tt_fcall)
@@ -1686,7 +1734,7 @@ void ret_generate(const Return* self, struct CodeGen* codegen)
 					append_str(func, "CLEARS\n");
 					break;
 				}
-				sprintf(d, "%p", i + j);
+				sprintf(c, "%zu", i + j);
 				append_str(func, "POPS LF@__fret_");
 				append_str(func, c);
 				append_str(func, d);
@@ -1695,7 +1743,7 @@ void ret_generate(const Return* self, struct CodeGen* codegen)
 			exp = exp->next;
 			continue;
 		}
-		sprintf(c, "%p", i);
+		sprintf(c, "%zu", i);
 		append_str(func, "POPS LF@__fret_");
 		append_str(func, c);
 		append_str(func, d);
@@ -1710,11 +1758,11 @@ void ret_generate(const Return* self, struct CodeGen* codegen)
 
 static struct IASTElement vfptr_ret = (IASTElement)
 {
-	ret_append,
-	ret_print,
-	Return_dtor,
-	ret_analyze,
-	ret_generate
+	(append_fp)ret_append,
+	(print_fp)ret_print,
+	(dtor_fp)Return_dtor,
+	(analyze_fp)ret_analyze,
+	(generate_fp)ret_generate
 };
 void Return_ctor(Return* self)
 {
@@ -1986,11 +2034,11 @@ void br_generate(const Branch* self, struct CodeGen* codegen)
 
 static struct IASTElement vfptr_br = (IASTElement)
 {
-	br_append,
-	br_print,
-	Branch_dtor,
-	br_analyze,
-	br_generate
+	(append_fp)br_append,
+	(print_fp)br_print,
+	(dtor_fp)Branch_dtor,
+	(analyze_fp)br_analyze,
+	(generate_fp)br_generate
 };
 void Branch_ctor(Branch* self)
 {
@@ -2119,11 +2167,19 @@ Error gs_analyze(globalStmt* self, struct SemanticAnalyzer* analyzer)
 	}
 	if (self->type == tt_function)
 		return SA_AddFunction(analyzer, &self->fargs, &self->fretargs, c_str(&self->id), true) ? e_ok : e_redefinition;
+
 	if (!SA_AddVariable(analyzer, &self->id, self->type, self->has_value, true)) {
 		e_msg("Variable already exists in this scope");
 		return e_redefinition;
 	}
-	if (!self->has_value)return e_ok;
+	if (!self->has_value)
+	{
+		if (!SA_AddVariable(analyzer, &self->id, self->type, self->has_value, true)) {
+			e_msg("Variable already exists in this scope");
+			return e_redefinition;
+		}
+		return e_ok;
+	}
 
 	Error e = e_ok;
 	token_type tt = GetExpType(&self->value, analyzer, &e);
@@ -2140,6 +2196,10 @@ Error gs_analyze(globalStmt* self, struct SemanticAnalyzer* analyzer)
 		}
 		tt = *fp->ret.begin; //Get first
 	}
+	if (!SA_AddVariable(analyzer, &self->id, self->type, self->has_value, true)) {
+		e_msg("Variable already exists in this scope");
+		return e_redefinition;
+	}
 	if (!FitsType(self->type, tt))
 	{
 		e_msg("Expression type is invalid");
@@ -2154,12 +2214,13 @@ void gs_generate(const globalStmt* self, struct CodeGen* codegen)
 
 	String* code = codegen->current;
 	const char* t = c_str(&self->id);
-	append_str(code, "DEFVAR ");
-	append_str(code, t);
-	push_back_str(code, '\n');
+
 	if (self->has_value)
 	{
 		GenerateExpression(&self->value, code);
+		append_str(code, "DEFVAR ");
+		append_str(code, t);
+		push_back_str(code, '\n');
 		append_str(code, "POPS ");
 		append_str(code, t);
 		push_back_str(code, '\n');
@@ -2171,16 +2232,20 @@ void gs_generate(const globalStmt* self, struct CodeGen* codegen)
 				append_str(code, "CLEARS\n");
 		}
 		push_back_str(code, '\n');
+		return;
 	}
+	append_str(code, "DEFVAR ");
+	append_str(code, t);
+	push_back_str(code, '\n');
 }
 
 static struct IASTElement vfptr_gs = (IASTElement)
 {
-	gs_append,
-	gs_print,
-	globalStmt_dtor,
-	gs_analyze,
-	gs_generate
+	(append_fp)gs_append,
+	(print_fp)gs_print,
+	(dtor_fp)globalStmt_dtor,
+	(analyze_fp)gs_analyze,
+	(generate_fp)gs_generate
 };
 void globalStmt_ctor(globalStmt* self)
 {
@@ -2243,11 +2308,11 @@ void brk_generate(const Break* self, struct CodeGen* codegen)
 
 static struct IASTElement vfptr_brk = (IASTElement)
 {
-	brk_append,
-	brk_print,
-	Break_dtor,
-	brk_analyze,
-	brk_generate
+	(append_fp)brk_append,
+	(print_fp)brk_print,
+	(dtor_fp)Break_dtor,
+	(analyze_fp)brk_analyze,
+	(generate_fp)brk_generate
 };
 void Break_ctor(Break* self)
 {
@@ -2272,43 +2337,43 @@ IASTElement** MakeStatement(token_type type)
 	{
 	case tt_function:
 		out = calloc(sizeof(funcDecl), 1);
-		funcDecl_ctor(out);
+		funcDecl_ctor((funcDecl*)out);
 		break;
 	case tt_local:
 		out = calloc(sizeof(localStmt), 1);
-		localStmt_ctor(out);
+		localStmt_ctor((localStmt*)out);
 		break;
 	case tt_global:
 		out = calloc(sizeof(globalStmt), 1);
-		globalStmt_ctor(out);
+		globalStmt_ctor((globalStmt*)out);
 		break;
 	case tt_identifier:
 		out = calloc(sizeof(AssOrFCall), 1);
-		AssOrFCall_ctor(out);
+		AssOrFCall_ctor((AssOrFCall*)out);
 		break;
 	case tt_while:
 		out = calloc(sizeof(While), 1);
-		While_ctor(out);
+		While_ctor((While*)out);
 		break;
 	case tt_for:
 		out = calloc(sizeof(For), 1);
-		For_ctor(out);
+		For_ctor((For*)out);
 		break;
 	case tt_repeat:
 		out = calloc(sizeof(Repeat), 1);
-		Repeat_ctor(out);
+		Repeat_ctor((Repeat*)out);
 		break;
 	case tt_return:
 		out = calloc(sizeof(Return), 1);
-		Return_ctor(out);
+		Return_ctor((Return*)out);
 		break;
 	case tt_if:
 		out = calloc(sizeof(Branch), 1);
-		Branch_ctor(out);
+		Branch_ctor((Branch*)out);
 		break;
 	case tt_break:
 		out = calloc(sizeof(Break), 1);
-		Break_ctor(out);
+		Break_ctor((Break*)out);
 		break;
 	default:
 		break;
@@ -2319,7 +2384,7 @@ IASTElement** MakeStatement(token_type type)
 IASTElement** MakeProgram()
 {
 	IASTElement** out = calloc(sizeof(Program), 1);
-	Program_ctor(out);
+	Program_ctor((Program*)out);
 	return out;
 }
 

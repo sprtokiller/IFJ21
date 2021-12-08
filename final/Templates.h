@@ -40,6 +40,11 @@ typedef struct
 #define IsClass
 #include "Vector_T.h"
 
+typedef const char* LPCSTR;
+
+#define VECTOR_T LPCSTR
+#include "Vector_T.h"
+
 #define VECTOR_T String
 #define IsClass
 #include "Vector_T.h"

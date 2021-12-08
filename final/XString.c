@@ -193,12 +193,12 @@ void prepend_str(String* self, const char* input)
 
 	if (!self->is_large)
 	{
-		memmove(self->short_str + x.len, self->short_str, x.len);
+		memmove(self->short_str + x.len, self->short_str, sizeof(String) - 1 - self->term);
 		memcpy(self->short_str, x.data, x.len);
 		self->term -= x.len;
 		return;
 	}
-	memmove(self->str + x.len, self->str, x.len);
+	memmove(self->str + x.len, self->str, self->len);
 	memcpy(self->str, x.data, x.len);
 	self->len += x.len;
 }

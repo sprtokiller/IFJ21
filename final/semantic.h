@@ -33,6 +33,7 @@ struct SemanticAnalyzer
 	FunctionDecl* curr_func;
 	size_t level; //scope level
 	CycleCore cycles;
+	bool has_pow;
 };
 
 inline bool SA_IsGlobal(selfptr)
@@ -56,7 +57,7 @@ inline bool FitsType(token_type t1, token_type t2)
 }
 
 token_type GetExpType(Vector(Node)* ast, SemanticAnalyzer* analyzer, Error* err);//convenience
-void GenerateExpression(Vector(Node)* self, String* to);
+void GenerateExpression(const Vector(Node)* self, String* to);
 
 
 #ifndef SEMANTIC_IMPL

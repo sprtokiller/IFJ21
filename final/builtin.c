@@ -112,13 +112,13 @@ const char* xsubstr =
 	"JUMPIFEQ $substr_err LF@eax bool@true\n"
 	"LT LF@eax LF@edi LF@esi\n"
 	"JUMPIFEQ $substr_err LF@eax bool@true\n"
-
+	"SUB LF@esi LF@esi int@1\n"
 "LABEL $substr_cycle\n"
 	"GETCHAR LF@edx LF@str LF@esi\n"
 	"CONCAT LF@out LF@out LF@edx\n"
 	"ADD LF@esi LF@esi int@1\n"
-	"GT LF@eax LF@esi LF@edi\n"
-	"JUMPIFEQ $substr_cycle LF@eax LF@false\n"
+	"EQ LF@eax LF@esi LF@edi\n"
+	"JUMPIFEQ $substr_cycle LF@eax bool@false\n"
 
 	"PUSHS LF@out\n"
 	"POPFRAME\n"
