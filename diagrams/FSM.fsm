@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <!DOCTYPE qfsmproject SYSTEM 'qfsm.dtd'>
 <qfsmproject version="0.54" author="Qfsm">
-  <machine nummooreout="8" transfontitalic="0" draw_it="1" statefontsize="8" transfont="Helvetica" statefontitalic="0" author="komatrich" description="" version="2" name="IFJ" arrowtype="3" numbits="7" statefontweight="50" statefont="Helvetica" numin="8" transfontsize="8" transfontweight="50" type="1" numout="8" initialstate="0">
+  <machine nummooreout="8" transfontitalic="0" draw_it="1" statefontsize="12" transfont="Noto Sans Light" statefontitalic="0" author="komatrich" description="" version="2" name="IFJ" arrowtype="3" numbits="7" statefontweight="25" statefont="Noto Sans Light" numin="8" transfontsize="12" transfontweight="25" type="1" numout="8" initialstate="0">
     <outputnames_moore>s_out7,s_out6,s_out5,s_out4,s_out3,s_out2,s_out1,s_out0</outputnames_moore>
     <inputnames>i_7,i_6,i_5,i_4,i_3,i_2,i_1,i_0</inputnames>
     <outputnames>o_7,o_6,o_5,o_4,o_3,o_2,o_1,o_0</outputnames>
@@ -10,7 +10,7 @@
     <state pencolor="0" exit_actions="" radius="40" description="" finalstate="1" entry_actions="" moore_outputs="" ypos="190" code="1" xpos="450" linewidth="1">plus</state>
     <state pencolor="0" exit_actions="" radius="40" description="" finalstate="1" entry_actions="" moore_outputs="" ypos="290" code="2" xpos="450" linewidth="1">minus</state>
     <state pencolor="0" exit_actions="" radius="40" description="" finalstate="1" entry_actions="" moore_outputs="" ypos="490" code="3" xpos="450" linewidth="1">div</state>
-    <state pencolor="0" exit_actions="" radius="40" description="" finalstate="1" entry_actions="" moore_outputs="" ypos="990" code="4" xpos="450" linewidth="1">#clpar left_par</state>
+    <state pencolor="0" exit_actions="" radius="40" description="" finalstate="1" entry_actions="" moore_outputs="" ypos="990" code="4" xpos="450" linewidth="1">#clpar         left_par</state>
     <state pencolor="0" exit_actions="" radius="40" description="" finalstate="1" entry_actions="" moore_outputs="" ypos="1390" code="5" xpos="450" linewidth="1">#semicolon</state>
     <state pencolor="0" exit_actions="" radius="40" description="" finalstate="1" entry_actions="" moore_outputs="" ypos="1490" code="6" xpos="450" linewidth="1">#colon</state>
     <state pencolor="0" exit_actions="" radius="40" description="" finalstate="1" entry_actions="" moore_outputs="" ypos="1790" code="7" xpos="450" linewidth="1">#assign</state>
@@ -25,7 +25,7 @@
     <state pencolor="0" exit_actions="" radius="40" description="" finalstate="1" entry_actions="" moore_outputs="" ypos="690" code="16" xpos="450" linewidth="1">#length</state>
     <state pencolor="0" exit_actions="" radius="40" description="" finalstate="1" entry_actions="" moore_outputs="" ypos="1690" code="17" xpos="450" linewidth="1">#l</state>
     <state pencolor="0" exit_actions="" radius="40" description="" finalstate="1" entry_actions="" moore_outputs="" ypos="1590" code="18" xpos="450" linewidth="1">#g</state>
-    <state pencolor="0" exit_actions="" radius="40" description="" finalstate="1" entry_actions="" moore_outputs="" ypos="2840" code="19" xpos="450" linewidth="1">'EOF'</state>
+    <state pencolor="0" exit_actions="" radius="40" description="" finalstate="1" entry_actions="" moore_outputs="" ypos="2820" code="19" xpos="450" linewidth="1">'EOF'</state>
     <state pencolor="0" exit_actions="" radius="40" description="" finalstate="0" entry_actions="" moore_outputs="" ypos="880" code="20" xpos="1160" linewidth="1">keyword-FSM</state>
     <state pencolor="0" exit_actions="" radius="40" description="" finalstate="1" entry_actions="" moore_outputs="" ypos="2620" code="21" xpos="450" linewidth="1">int</state>
     <state pencolor="0" exit_actions="" radius="40" description="" finalstate="0" entry_actions="" moore_outputs="" ypos="2740" code="22" xpos="650" linewidth="1">#expf_sign</state>
@@ -189,7 +189,7 @@
       <inputs default="0" any="0" invert="0">\n</inputs>
       <outputs></outputs>
     </transition>
-    <transition c1x="250.1313591814688" c2y="2842.892807643016" c1y="1315.785615286031" description="" straight="0" type="1" ypos="928.6784229290464" endx="410" xpos="170.1970387722031" endy="2840" c2x="60.06567959073436">
+    <transition c1x="250.1313591814688" c2y="2822.892807643016" c1y="1315.785615286031" description="" straight="0" type="1" ypos="928.6784229290464" endx="410" xpos="170.1970387722031" endy="2820" c2x="60.06567959073436">
       <from>0</from>
       <to>19</to>
       <inputs default="0" any="0" invert="0">'EOF'</inputs>
@@ -288,7 +288,7 @@
     <transition c1x="551.6990908980439" c2y="1993.092249996962" c1y="1896.184499993924" description="" straight="0" type="1" ypos="1890" endx="610" xpos="490" endy="1990" c2x="548.349545449022">
       <from>15</from>
       <to>70</to>
-      <inputs default="1" any="0" invert="0"></inputs>
+      <inputs default="1" any="0" invert="0">\000\001\002\003\004\005\006\007\008\t\n\00B\00C\r\00E\010\011\014\017\018\019\01A\01B\01C\01D\01E\01F\s!"#$%&amp;()*+,\-/0123456789:;&lt;=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\07F\080\081\082\083\084\085\086\087\088\089\08A\08B\08C\08D\08E\08F\090\091\092\093\094\095\096\097\098\099\09A\09B\09C\09D\09E\09F\0A0\0A1\0A2\0A3\0A4\0A5\0A6\0A7\0A8\0A9\0AA\0AB\0AC\0AD\0AE\0AF\0B0\0B1\0B2\0B3\0B4\0B5\0B6\0B7\0B8\0B9\0BA\0BB\0BC\0BD\0BE\0BF\0C0\0C1\0C2\0C3\0C4\0C5\0C6\0C7\0C8\0C9\0CA\0CB\0CC\0CD\0CE\0CF\0D0\0D1\0D2\0D3\0D4\0D5\0D6\0D7\0D8\0D9\0DA\0DB\0DC\0DD\0DE\0DF\0E0\0E1\0E2\0E3\0E4\0E5\0E6\0E7\0E8\0E9\0EA\0EB\0EC\0ED\0EE\0EF\0F0\0F1\0F2\0F3\0F4\0F5\0F6\0F7\0F8\0F9\0FA\0FB\0FC\0FD\0FE\0FF</inputs>
       <outputs></outputs>
     </transition>
     <transition c1x="530" c2y="1690" c1y="1690" description="" straight="1" type="1" ypos="1690" endx="610" xpos="490" endy="1690" c2x="570">
@@ -432,7 +432,7 @@
     <transition c1x="726.699090898044" c2y="2623.574416669705" c1y="2687.14883333941" description="" straight="0" type="1" ypos="2720.723250009114" endx="810" xpos="685.048636347066" endy="2620" c2x="748.349545449022">
       <from>22</from>
       <to>62</to>
-      <inputs default="1" any="0" invert="0"></inputs>
+      <inputs default="1" any="0" invert="0">\000\001\002\003\004\005\006\007\008\t\n\00B\00C\r\00E\010\011\014\017\018\019\01A\01B\01C\01D\01E\01F\s!"#$%&amp;()*\-./:;&lt;=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\07F\080\081\082\083\084\085\086\087\088\089\08A\08B\08C\08D\08E\08F\090\091\092\093\094\095\096\097\098\099\09A\09B\09C\09D\09E\09F\0A0\0A1\0A2\0A3\0A4\0A5\0A6\0A7\0A8\0A9\0AA\0AB\0AC\0AD\0AE\0AF\0B0\0B1\0B2\0B3\0B4\0B5\0B6\0B7\0B8\0B9\0BA\0BB\0BC\0BD\0BE\0BF\0C0\0C1\0C2\0C3\0C4\0C5\0C6\0C7\0C8\0C9\0CA\0CB\0CC\0CD\0CE\0CF\0D0\0D1\0D2\0D3\0D4\0D5\0D6\0D7\0D8\0D9\0DA\0DB\0DC\0DD\0DE\0DF\0E0\0E1\0E2\0E3\0E4\0E5\0E6\0E7\0E8\0E9\0EA\0EB\0EC\0ED\0EE\0EF\0F0\0F1\0F2\0F3\0F4\0F5\0F6\0F7\0F8\0F9\0FA\0FB\0FC\0FD\0FE\0FF</inputs>
       <outputs></outputs>
     </transition>
     <transition c1x="730" c2y="2740" c1y="2740" description="" straight="1" type="1" ypos="2740" endx="810" xpos="690" endy="2740" c2x="770">
@@ -462,13 +462,13 @@
     <transition c1x="727.1847250933311" c2y="2622.629514606666" c1y="2565.259029213332" description="" straight="0" type="1" ypos="2537.888543819998" endx="810" xpos="685.7770876399966" endy="2620" c2x="758.5923625466655">
       <from>23</from>
       <to>62</to>
-      <inputs default="1" any="0" invert="0"></inputs>
+      <inputs default="1" any="0" invert="0">\000\001\002\003\004\005\006\007\008\t\n\00B\00C\r\00E\010\011\014\017\018\019\01A\01B\01C\01D\01E\01F\s!"#$%&amp;'()*+,\-./:;&lt;=>?@ABCDFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdfghijklmnopqrstuvwxyz{|}~\07F\080\081\082\083\084\085\086\087\088\089\08A\08B\08C\08D\08E\08F\090\091\092\093\094\095\096\097\098\099\09A\09B\09C\09D\09E\09F\0A0\0A1\0A2\0A3\0A4\0A5\0A6\0A7\0A8\0A9\0AA\0AB\0AC\0AD\0AE\0AF\0B0\0B1\0B2\0B3\0B4\0B5\0B6\0B7\0B8\0B9\0BA\0BB\0BC\0BD\0BE\0BF\0C0\0C1\0C2\0C3\0C4\0C5\0C6\0C7\0C8\0C9\0CA\0CB\0CC\0CD\0CE\0CF\0D0\0D1\0D2\0D3\0D4\0D5\0D6\0D7\0D8\0D9\0DA\0DB\0DC\0DD\0DE\0DF\0E0\0E1\0E2\0E3\0E4\0E5\0E6\0E7\0E8\0E9\0EA\0EB\0EC\0ED\0EE\0EF\0F0\0F1\0F2\0F3\0F4\0F5\0F6\0F7\0F8\0F9\0FA\0FB\0FC\0FD\0FE\0FF</inputs>
       <outputs></outputs>
     </transition>
     <transition c1x="740" c2y="290" c1y="290" description="" straight="1" type="1" ypos="290" endx="820" xpos="700" endy="290" c2x="780">
       <from>24</from>
       <to>27</to>
-      <inputs default="1" any="0" invert="0">\000\001\002\003\004\005\006\007\008\t\00B\00C\r\00E\010\011\014\017\018\019\01A\01B\01C\01D\01E\01F\s!#$%&amp;'()*+,\-./01345789:;&lt;=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\07F\080\081\082\083\084\085\086\087\088\089\08A\08B\08C\08D\08E\08F\090\091\092\093\094\095\096\097\098\099\09A\09B\09C\09D\09E\09F\0A0\0A1\0A2\0A3\0A4\0A5\0A6\0A7\0A8\0A9\0AA\0AB\0AC\0AD\0AE\0AF\0B0\0B1\0B2\0B3\0B4\0B5\0B6\0B7\0B8\0B9\0BA\0BB\0BC\0BD\0BE\0BF\0C0\0C1\0C2\0C3\0C4\0C5\0C6\0C7\0C8\0C9\0CA\0CB\0CC\0CD\0CE\0CF\0D0\0D1\0D2\0D3\0D4\0D5\0D6\0D7\0D8\0D9\0DA\0DB\0DC\0DD\0DE\0DF\0E0\0E1\0E2\0E3\0E4\0E5\0E6\0E7\0E8\0E9\0EA\0EB\0EC\0ED\0EE\0EF\0F0\0F1\0F2\0F3\0F4\0F5\0F6\0F7\0F8\0F9\0FA\0FB\0FC\0FD\0FE\0FF</inputs>
+      <inputs default="1" any="0" invert="0">\000\001\002\003\004\005\006\007\008\t\00B\00C\r\00E\010\011\014\017\018\019\01A\01B\01C\01D\01E\01F\s!#$%&amp;()*+,\-./0123456789:;&lt;=>?@ABCDGHIJKLMNPQRSTUVWXYZ\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\07F\080\081\082\083\084\085\086\087\088\089\08A\08B\08C\08D\08E\08F\090\091\092\093\094\095\096\097\098\099\09A\09B\09C\09D\09E\09F\0A0\0A1\0A2\0A3\0A4\0A5\0A6\0A7\0A8\0A9\0AA\0AB\0AC\0AD\0AE\0AF\0B0\0B1\0B2\0B3\0B4\0B5\0B6\0B7\0B8\0B9\0BA\0BB\0BC\0BD\0BE\0BF\0C0\0C1\0C2\0C3\0C4\0C5\0C6\0C7\0C8\0C9\0CA\0CB\0CC\0CD\0CE\0CF\0D0\0D1\0D2\0D3\0D4\0D5\0D6\0D7\0D8\0D9\0DA\0DB\0DC\0DD\0DE\0DF\0E0\0E1\0E2\0E3\0E4\0E5\0E6\0E7\0E8\0E9\0EA\0EB\0EC\0ED\0EE\0EF\0F0\0F1\0F2\0F3\0F4\0F5\0F6\0F7\0F8\0F9\0FA\0FB\0FC\0FD\0FE\0FF</inputs>
       <outputs></outputs>
     </transition>
     <transition c1x="856.6666666666666" c2y="130" c1y="130" description="" straight="0" type="1" ypos="290" endx="1020" xpos="700" endy="290" c2x="863.3333333333334">
@@ -600,7 +600,7 @@
     <transition c1x="789.4022261189058" c2y="190.4715807973696" c1y="192.9641595953645" description="" straight="1" type="1" ypos="252.6661757518776" endx="872.9979624929727" xpos="845.6408368276452" endy="252.1707392217179" c2x="927.0380024391052">
       <from>27</from>
       <to>27</to>
-      <inputs default="1" any="0" invert="0">\000\001\002\003\004\005\006\007\008\t\00B\00C\r\00E\010\011\014\017\018\019\01A\01B\01C\01D\01E\01F\s!"#$%&amp;'()*+,\-./0123456789:;&lt;=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\07F\080\081\082\083\084\085\086\087\088\089\08A\08B\08C\08D\08E\08F\090\091\092\093\094\095\096\097\098\099\09A\09B\09C\09D\09E\09F\0A0\0A1\0A2\0A3\0A4\0A5\0A6\0A7\0A8\0A9\0AA\0AB\0AC\0AD\0AE\0AF\0B0\0B1\0B2\0B3\0B4\0B5\0B6\0B7\0B8\0B9\0BA\0BB\0BC\0BD\0BE\0BF\0C0\0C1\0C2\0C3\0C4\0C5\0C6\0C7\0C8\0C9\0CA\0CB\0CC\0CD\0CE\0CF\0D0\0D1\0D2\0D3\0D4\0D5\0D6\0D7\0D8\0D9\0DA\0DB\0DC\0DD\0DE\0DF\0E0\0E1\0E2\0E3\0E4\0E5\0E6\0E7\0E8\0E9\0EA\0EB\0EC\0ED\0EE\0EF\0F0\0F1\0F2\0F3\0F4\0F5\0F6\0F7\0F8\0F9\0FA\0FB\0FC\0FD\0FE\0FF</inputs>
+      <inputs default="1" any="0" invert="0">\000\001\002\003\004\005\006\007\008\t\00B\00C\r\00E\010\011\014\017\018\019\01A\01B\01C\01D\01E\01F\s!"#$%&amp;()*+,\-./0123456789:;&lt;=>?@ABCDGHIJKLMNPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\07F\080\081\082\083\084\085\086\087\088\089\08A\08B\08C\08D\08E\08F\090\091\092\093\094\095\096\097\098\099\09A\09B\09C\09D\09E\09F\0A0\0A1\0A2\0A3\0A4\0A5\0A6\0A7\0A8\0A9\0AA\0AB\0AC\0AD\0AE\0AF\0B0\0B1\0B2\0B3\0B4\0B5\0B6\0B7\0B8\0B9\0BA\0BB\0BC\0BD\0BE\0BF\0C0\0C1\0C2\0C3\0C4\0C5\0C6\0C7\0C8\0C9\0CA\0CB\0CC\0CD\0CE\0CF\0D0\0D1\0D2\0D3\0D4\0D5\0D6\0D7\0D8\0D9\0DA\0DB\0DC\0DD\0DE\0DF\0E0\0E1\0E2\0E3\0E4\0E5\0E6\0E7\0E8\0E9\0EA\0EB\0EC\0ED\0EE\0EF\0F0\0F1\0F2\0F3\0F4\0F5\0F6\0F7\0F8\0F9\0FA\0FB\0FC\0FD\0FE\0FF</inputs>
       <outputs></outputs>
     </transition>
     <transition c1x="940" c2y="290" c1y="290" description="" straight="1" type="1" ypos="290" endx="1020" xpos="900" endy="290" c2x="980">
@@ -621,7 +621,7 @@
       <inputs default="0" any="0" invert="0">"]]-"</inputs>
       <outputs></outputs>
     </transition>
-    <transition c1x="781.9707769362478" c2y="-14.50447015030187" c1y="-1.167101237602168" description="" straight="1" type="1" ypos="53.91463113457414" endx="869.9746645512373" xpos="842.7417801078398" endy="51.26363379083821" c2x="918.9814862359764">
+    <transition c1x="781.9707769362478" c2y="-14.50447015030186" c1y="-1.167101237602161" description="" straight="1" type="1" ypos="53.91463113457417" endx="869.9746645512372" xpos="842.7417801078398" endy="51.26363379083822" c2x="918.9814862359764">
       <from>66</from>
       <to>66</to>
       <inputs default="1" any="0" invert="0">\000\001\002\003\004\005\006\007\008\t\n\00B\00C\r\00E\010\011\014\017\018\019\01A\01B\01C\01D\01E\01F\s!^_`abcdefghijklmnopqrstuvwxyz{|}~\07F\080\081\082\083\084\085\086\087\088\089\08A\08B\08C\08D\08E\08F\090\091\092\093\094\095\096\097\098\099\09A\09B\09C\09D\09E\09F\0A0\0A1\0A2\0A3\0A4\0A5\0A6\0A7\0A8\0A9\0AA\0AB\0AC\0AD\0AE\0AF\0B0\0B1\0B2\0B3\0B4\0B5\0B6\0B7\0B8\0B9\0BA\0BB\0BC\0BD\0BE\0BF\0C0\0C1\0C2\0C3\0C4\0C5\0C6\0C7\0C8\0C9\0CA\0CB\0CC\0CD\0CE\0CF\0D0\0D1\0D2\0D3\0D4\0D5\0D6\0D7\0D8\0D9\0DA\0DB\0DC\0DD\0DE\0DF\0E0\0E1\0E2\0E3\0E4\0E5\0E6\0E7\0E8\0E9\0EA\0EB\0EC\0ED\0EE\0EF\0F0\0F1\0F2\0F3\0F4\0F5\0F6\0F7\0F8\0F9\0FA\0FB\0FC\0FD\0FE\0FF</inputs>
@@ -636,7 +636,7 @@
     <transition c1x="573.4710998118828" c2y="2056.473393673894" c1y="2067.569878091624" description="" straight="1" type="1" ypos="2123.637407084229" endx="660.6063831555139" xpos="633.3338115802715" endy="2121.431818342597" c2x="710.6814780851579">
       <from>72</from>
       <to>72</to>
-      <inputs default="1" any="0" invert="0"></inputs>
+      <inputs default="1" any="0" invert="0">\000\001\002\003\004\005\006\007\008\t\n\00B\00C\r\00E\010\011\014\017\018\019\01A\01B\01C\01D\01E\01F\s!#$%&amp;()*+,\-./0123456789:;&lt;=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\07F\080\081\082\083\084\085\086\087\088\089\08A\08B\08C\08D\08E\08F\090\091\092\093\094\095\096\097\098\099\09A\09B\09C\09D\09E\09F\0A0\0A1\0A2\0A3\0A4\0A5\0A6\0A7\0A8\0A9\0AA\0AB\0AC\0AD\0AE\0AF\0B0\0B1\0B2\0B3\0B4\0B5\0B6\0B7\0B8\0B9\0BA\0BB\0BC\0BD\0BE\0BF\0C0\0C1\0C2\0C3\0C4\0C5\0C6\0C7\0C8\0C9\0CA\0CB\0CC\0CD\0CE\0CF\0D0\0D1\0D2\0D3\0D4\0D5\0D6\0D7\0D8\0D9\0DA\0DB\0DC\0DD\0DE\0DF\0E0\0E1\0E2\0E3\0E4\0E5\0E6\0E7\0E8\0E9\0EA\0EB\0EC\0ED\0EE\0EF\0F0\0F1\0F2\0F3\0F4\0F5\0F6\0F7\0F8\0F9\0FA\0FB\0FC\0FD\0FE\0FF</inputs>
       <outputs></outputs>
     </transition>
     <transition c1x="730" c2y="2160" c1y="2160" description="" straight="1" type="1" ypos="2160" endx="810" xpos="690" endy="2160" c2x="770">
@@ -654,7 +654,7 @@
     <transition c1x="733.3333333333334" c2y="2360" c1y="2360" description="" straight="1" type="1" ypos="2360" endx="820" xpos="690" endy="2360" c2x="776.6666666666666">
       <from>74</from>
       <to>77</to>
-      <inputs default="1" any="0" invert="0"></inputs>
+      <inputs default="1" any="0" invert="0">\000\001\002\003\004\005\006\007\008\t\n\00B\00C\r\00E\010\011\014\017\018\019\01A\01B\01C\01D\01E\01F\s!#$%&amp;()*+\-./:;&lt;=>?@{|}~\07F\080\081\082\083\084\085\086\087\088\089\08A\08B\08C\08D\08E\08F\090\091\092\093\094\095\096\097\098\099\09A\09B\09C\09D\09E\09F\0A0\0A1\0A2\0A3\0A4\0A5\0A6\0A7\0A8\0A9\0AA\0AB\0AC\0AD\0AE\0AF\0B0\0B1\0B2\0B3\0B4\0B5\0B6\0B7\0B8\0B9\0BA\0BB\0BC\0BD\0BE\0BF\0C0\0C1\0C2\0C3\0C4\0C5\0C6\0C7\0C8\0C9\0CA\0CB\0CC\0CD\0CE\0CF\0D0\0D1\0D2\0D3\0D4\0D5\0D6\0D7\0D8\0D9\0DA\0DB\0DC\0DD\0DE\0DF\0E0\0E1\0E2\0E3\0E4\0E5\0E6\0E7\0E8\0E9\0EA\0EB\0EC\0ED\0EE\0EF\0F0\0F1\0F2\0F3\0F4\0F5\0F6\0F7\0F8\0F9\0FA\0FB\0FC\0FD\0FE\0FF</inputs>
       <outputs></outputs>
     </transition>
     <transition c1x="607.8540173417466" c2y="2258.941979304709" c1y="2263.465428102698" description="" straight="0" type="1" ypos="2320" endx="650.0000013333333" xpos="650.000001" endy="2200" c2x="605.3867257323276">
@@ -663,7 +663,7 @@
       <inputs default="0" any="0" invert="0">A-z,'\\','\'','\"'</inputs>
       <outputs></outputs>
     </transition>
-    <transition c1x="701.4586718993395" c2y="2308.125338566007" c1y="2322.968665358499" description="" straight="1" type="1" ypos="2337.811992150991" endx="737.8119921509908" xpos="683.2820117735138" endy="2293.282011773514" c2x="719.6353320251651">
+    <transition c1x="701.4586718993396" c2y="2308.125338566007" c1y="2322.968665358499" description="" straight="1" type="1" ypos="2337.811992150991" endx="737.8119921509912" xpos="683.2820117735138" endy="2293.282011773514" c2x="719.6353320251653">
       <from>74</from>
       <to>71</to>
       <inputs default="0" any="0" invert="0">0-9</inputs>
@@ -684,7 +684,7 @@
     <transition c1x="850.0000006666667" c2y="2673.333333333334" c1y="2686.666666666667" description="" straight="1" type="1" ypos="2700" endx="850.0000013333333" xpos="850.0000003333333" endy="2660" c2x="850.000001">
       <from>82</from>
       <to>62</to>
-      <inputs default="1" any="0" invert="0"></inputs>
+      <inputs default="1" any="0" invert="0">\000\001\002\003\004\005\006\007\008\t\n\00B\00C\r\00E\010\011\014\017\018\019\01A\01B\01C\01D\01E\01F\s!"#$%&amp;'()*+,\-./:;&lt;=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\07F\080\081\082\083\084\085\086\087\088\089\08A\08B\08C\08D\08E\08F\090\091\092\093\094\095\096\097\098\099\09A\09B\09C\09D\09E\09F\0A0\0A1\0A2\0A3\0A4\0A5\0A6\0A7\0A8\0A9\0AA\0AB\0AC\0AD\0AE\0AF\0B0\0B1\0B2\0B3\0B4\0B5\0B6\0B7\0B8\0B9\0BA\0BB\0BC\0BD\0BE\0BF\0C0\0C1\0C2\0C3\0C4\0C5\0C6\0C7\0C8\0C9\0CA\0CB\0CC\0CD\0CE\0CF\0D0\0D1\0D2\0D3\0D4\0D5\0D6\0D7\0D8\0D9\0DA\0DB\0DC\0DD\0DE\0DF\0E0\0E1\0E2\0E3\0E4\0E5\0E6\0E7\0E8\0E9\0EA\0EB\0EC\0ED\0EE\0EF\0F0\0F1\0F2\0F3\0F4\0F5\0F6\0F7\0F8\0F9\0FA\0FB\0FC\0FD\0FE\0FF</inputs>
       <outputs></outputs>
     </transition>
     <transition c1x="923.7354230633415" c2y="2841.668905491839" c1y="2834.673583357081" description="" straight="1" type="1" ypos="2776.84393033982" endx="838.2469472820112" xpos="865.5732076694084" endy="2778.234353032426" c2x="786.2549322998913">
@@ -693,16 +693,16 @@
       <inputs default="0" any="0" invert="0">0-9</inputs>
       <outputs></outputs>
     </transition>
-    <transition c1x="713.0296884585955" c2y="2203.220543578358" c1y="2218.156815909253" description="" straight="1" type="1" ypos="2233.093088240148" endx="678.2842712474619" xpos="730.4023970641623" endy="2188.284271247462" c2x="695.6569798530287">
+    <transition c1x="713.0296884585953" c2y="2203.220543578358" c1y="2218.156815909253" description="" straight="1" type="1" ypos="2233.093088240148" endx="678.2842712474619" xpos="730.4023970641619" endy="2188.284271247462" c2x="695.6569798530286">
       <from>71</from>
       <to>72</to>
       <inputs default="0" any="0" invert="0">00-99</inputs>
       <outputs></outputs>
     </transition>
-    <transition c1x="801.7443024274447" c2y="2317.721074451654" c1y="2303.726420150771" description="" straight="1" type="1" ypos="2289.731765849887" endx="831.7157287525381" xpos="786.758589264898" endy="2331.715728752538" c2x="816.7300155899914">
+    <transition c1x="801.7443024274446" c2y="2317.721074451654" c1y="2303.726420150771" description="" straight="1" type="1" ypos="2289.731765849887" endx="831.7157287525381" xpos="786.7585892648979" endy="2331.715728752538" c2x="816.7300155899914">
       <from>71</from>
       <to>77</to>
-      <inputs default="1" any="0" invert="0"></inputs>
+      <inputs default="1" any="0" invert="0">\000\001\002\003\004\005\006\007\008\t\n\00B\00C\r\00E\010\011\014\017\018\019\01A\01B\01C\01D\01E\01F\s!"#$%&amp;'()*+,\-./:;&lt;=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\07F\080\081\082\083\084\085\086\087\088\089\08A\08B\08C\08D\08E\08F\090\091\092\093\094\095\096\097\098\099\09A\09B\09C\09D\09E\09F\0A0\0A1\0A2\0A3\0A4\0A5\0A6\0A7\0A8\0A9\0AA\0AB\0AC\0AD\0AE\0AF\0B0\0B1\0B2\0B3\0B4\0B5\0B6\0B7\0B8\0B9\0BA\0BB\0BC\0BD\0BE\0BF\0C0\0C1\0C2\0C3\0C4\0C5\0C6\0C7\0C8\0C9\0CA\0CB\0CC\0CD\0CE\0CF\0D0\0D1\0D2\0D3\0D4\0D5\0D6\0D7\0D8\0D9\0DA\0DB\0DC\0DD\0DE\0DF\0E0\0E1\0E2\0E3\0E4\0E5\0E6\0E7\0E8\0E9\0EA\0EB\0EC\0ED\0EE\0EF\0F0\0F1\0F2\0F3\0F4\0F5\0F6\0F7\0F8\0F9\0FA\0FB\0FC\0FD\0FE\0FF</inputs>
       <outputs></outputs>
     </transition>
   </machine>
