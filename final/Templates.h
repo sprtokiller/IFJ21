@@ -23,6 +23,7 @@
 #include "function.h"
 
 #define HASH_T FunctionDecl
+#define IsClass
 #include "symtable.h"
 
 typedef struct
@@ -38,11 +39,6 @@ typedef struct
 
 #define VECTOR_T HashMap(Variable)
 #define IsClass
-#include "Vector_T.h"
-
-typedef const char* LPCSTR;
-
-#define VECTOR_T LPCSTR
 #include "Vector_T.h"
 
 #define VECTOR_T String

@@ -30,6 +30,7 @@ struct SemanticAnalyzer
 	HashMap(FunctionDecl) funcs; //functions
 	Vector(HashMap(Variable)) scopes;
 	HashMap(Variable)* current;
+
 	FunctionDecl* curr_func;
 	size_t level; //scope level
 	CycleCore cycles;

@@ -99,6 +99,7 @@ bool SA_AddVariable(selfptr, String* id, token_type type, bool has_value, bool g
 	}
 
 	*tok = (Variable){ c_str(id), type, has_value, global };
+	*push_back_Vector_LPCSTR(&self->curr_func->variables) = c_str(id);
 	return true;
 }
 

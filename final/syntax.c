@@ -292,7 +292,7 @@ Error fd_analyze(funcDecl* self, struct SemanticAnalyzer* analyzer)
 }
 void fd_generate(const funcDecl* self, struct CodeGen* codegen)
 {
-	const char* fname = c_str(&self->name.sval);
+d	const char* fname = c_str(&self->name.sval);
 	FunctionDecl* fd = find_htab_FunctionDecl(codegen->funcs, fname);
 
 	if (!fd->called)return;
@@ -303,12 +303,17 @@ void fd_generate(const funcDecl* self, struct CodeGen* codegen)
 	push_back_str(func, '\n');
 	append_str(func, "CREATEFRAME\n""PUSHFRAME\n");
 
-	for (size_t i = 0; i < size_Vector_token(&self->args); i++)
+	for (size_t i = 0; i < size_Vector_LPCSTR(&fd->variables); i++)
 	{
-		const char* t = c_str(&at_Vector_token(&self->args, i)->sval);
+		const char* t = *at_Vector_LPCSTR(&fd->variables, i);
 		append_str(func, "DEFVAR ");
 		append_str(func, t);
 		push_back_str(func, '\n');
+	}
+
+	for (size_t i = 0; i < size_Vector_token(&self->args); i++)
+	{
+		const char* t = c_str(&at_Vector_token(&self->args, i)->sval);
 		append_str(func, "POPS ");
 		append_str(func, t);
 		push_back_str(func, '\n');
@@ -501,9 +506,6 @@ void ls_generate(const localStmt* self, struct CodeGen* codegen)
 	if (self->has_value)
 	{
 		GenerateExpression(&self->value, code);
-		append_str(code, "DEFVAR ");
-		append_str(code, t);
-		push_back_str(code, '\n');
 		append_str(code, "POPS ");
 		append_str(code, t);
 		push_back_str(code, '\n');
@@ -516,11 +518,7 @@ void ls_generate(const localStmt* self, struct CodeGen* codegen)
 		}
 		push_back_str(code, '\n');
 		return;
-	}
-	append_str(code, "DEFVAR ");
-	append_str(code, t);
-	push_back_str(code, '\n');
-	
+	}	
 }
 
 
@@ -927,6 +925,8 @@ typedef struct While
 	bool has_break : 1;
 	Vector(Node) expr;
 	blockPart block;
+
+	String index;
 }While;
 
 void While_ctor(While* self);
@@ -980,7 +980,14 @@ Error wh_analyze(While* self, struct SemanticAnalyzer* analyzer)
 	}
 
 	if (tt == tt_boolean)
+	{
+		char c[19] = { 0 };
+		sprintf(c, "%p", self);
+
+		String_ctor(&self->index, "_wh_");
+		append_str(&self->index, c);
 		return blk_analyze(&self->block, analyzer);
+	}
 
 	if (tt == tt_nil)
 		self->expr.data_[0].result = tt_false;
@@ -1020,10 +1027,6 @@ void wh_generate_fc(const While* self, struct CodeGen* codegen)
 		}
 		return;
 	}
-
-	append_str(func, "DEFVAR LF@_wh_");
-	append_str(func, c);
-	push_back_str(func, '\n');
 
 	append_str(func, "JUMP $wh_c_");
 	append_str(func, c);
@@ -1144,6 +1147,7 @@ void While_dtor(While* self)
 {
 	blockPart_dtor(&self->block);
 	Vector_Node_dtor(&self->expr);
+	String_dtor(&self->index);
 }
 #pragma endregion
 ///////////////////////////////////////////////////////
@@ -1158,6 +1162,7 @@ typedef struct For
 	bool has_terminus : 1;
 	bool has_expr : 1;
 	token id;
+	String index;
 	Vector(Node) expr;
 	Vector(Node) terminus;
 	Vector(Node) increment;
@@ -1252,6 +1257,13 @@ Error for_analyze(For* self, struct SemanticAnalyzer* analyzer)
 		FunctionDecl* fd = SA_FindFunction(analyzer, c_str(&self->terminus.data_[0].left->core.sval));
 		if (size_Span_token_type(&fd->ret))return e_count;
 		tt_term = fd->ret.begin[0];
+
+		char c[19] = { 0 };
+		sprintf(c, "%p", self);
+
+		String_ctor(&self->index, "__for_");
+		append_str(&self->index, c);
+		SA_AddVariable(analyzer, &self->index, tt_integer, false, false);
 	}
 
 	if (tt_ex != tt_integer ||
@@ -1279,10 +1291,6 @@ void for_generate(const For* self, struct CodeGen* codegen)
 {
 	String* func = codegen->current;
 	const char* var = c_str(&self->id.sval);
-	append_str(func, "DEFVAR "); //create index
-	append_str(func, var);
-	push_back_str(func, '\n');
-
 
 	GenerateExpression(&self->expr, func);
 	append_str(func, "POPS "); //init index
@@ -1295,11 +1303,6 @@ void for_generate(const For* self, struct CodeGen* codegen)
 
 	char c[19] = { 0 };
 	sprintf(c, "%p", self);
-	if (self->terminus.data_[0].left->result == tt_fcall) {
-		append_str(func, "DEFVAR LF@__for_"); //create index
-		append_str(func, c);
-		push_back_str(func, '\n');
-	}
 
 	append_str(func, "JUMP $for_c_");
 	append_str(func, c);
@@ -1383,6 +1386,7 @@ void For_dtor(For* self)
 	Vector_Node_dtor(&self->terminus);
 	Vector_Node_dtor(&self->increment);
 	blockPart_dtor(&self->block);
+	String_dtor(&self->index);
 }
 #pragma endregion
 ///////////////////////////////////////////////////////
@@ -1395,6 +1399,8 @@ typedef struct Repeat
 	bool has_break : 1;
 	Vector(Node) expr;
 	blockPart block;
+
+	String index;
 }Repeat;
 
 void Repeat_ctor(Repeat* self);
@@ -1455,13 +1461,24 @@ Error rep_analyze(Repeat* self, struct SemanticAnalyzer* analyzer)
 		tt = fd->ret.begin[0];
 	}
 
+
+
 	if (tt == tt_boolean)
+	{
+		char c[19] = { 0 };
+		sprintf(c, "%p", self);
+
+		String_ctor(&self->index, "_rep_");
+		append_str(&self->index, c);
 		return blk_analyze(&self->block, analyzer);
+	}
 
 	if (tt == tt_nil)
 		self->expr.data_[0].result = tt_false;
 	else
 		self->expr.data_[0].result = tt_true;
+
+	
 
 	e = blk_analyze(&self->block, analyzer);
 	return e;
@@ -1497,10 +1514,6 @@ void rep_generate_fc(const Repeat* self, struct CodeGen* codegen)
 		}
 		return;
 	}
-
-	append_str(func, "DEFVAR LF@_rep_");
-	append_str(func, c);
-	push_back_str(func, '\n');
 
 	append_str(func, "LABEL $rep_cy_"); //cycle
 	append_str(func, c);
@@ -1608,6 +1621,7 @@ void Repeat_dtor(Repeat* self)
 {
 	blockPart_dtor(&self->block);
 	Vector_Node_dtor(&self->expr);
+	String_dtor(&self->index);
 }
 #pragma endregion
 ///////////////////////////////////////////////////////
@@ -1955,6 +1969,7 @@ typedef struct Branch
 	bool has_if : 1;
 	bool fills_block : 1;
 	List_elseif blocks;
+	String idx;
 }Branch;
 
 void Branch_ctor(Branch* self);
@@ -2016,6 +2031,11 @@ Error br_analyze(Branch* self, struct SemanticAnalyzer* analyzer)
 		e_msg("Invalid statement for global scope");
 		return e_other;
 	}
+	char c[19];
+	sprintf(c, "%p", self);
+	String_ctor(&self->idx, "_if_");
+	append_str(&self->idx, c);
+	SA_AddVariable(analyzer, &self->idx, tt_boolean, false, false);
 	return Check_elseif(&self->blocks, analyzer);
 }
 void br_generate(const Branch* self, struct CodeGen* codegen)
@@ -2024,9 +2044,6 @@ void br_generate(const Branch* self, struct CodeGen* codegen)
 
 	char c[19];
 	sprintf(c, "%p", self);
-	append_str(func, "DEFVAR LF@_if_");
-	append_str(func, c);
-	push_back_str(func, '\n');
 	Generate_elseif(&self->blocks, codegen, c);
 	append_str(func, "LABEL $endif_");
 	append_str(func, c);
@@ -2049,6 +2066,7 @@ void Branch_ctor(Branch* self)
 void Branch_dtor(Branch* self)
 {
 	List_elseif_dtor(&self->blocks);
+	String_dtor(&self->idx);
 }
 #pragma endregion
 ///////////////////////////////////////////////////////
