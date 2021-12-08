@@ -22,7 +22,8 @@ mono_crash.*
 
 # Generator results
 [Gg]en/[Oo]ut.txt
-[Ii]nclude/[Gg]rammar.inl
+[Gg]en/*.csv.bak
+[Ii]nclude/*.inl
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
