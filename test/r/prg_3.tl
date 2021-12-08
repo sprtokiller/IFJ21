@@ -1,6 +1,6 @@
 D:Token at [2, 1]: require
 D:Token at [2, 9]: string literal
-D: Val: "ifj21"
+D: Val: ifj21
 D:Token at [4, 1]: function
 D:Token at [4, 10]: identifier
 D: Val: main
@@ -14,7 +14,7 @@ D:Token at [5, 13]: string
 D:Token at [5, 20]: assignment
 D: Val: =
 D:Token at [5, 22]: string literal
-D: Val: "Toto je nejaky text"
+D: Val: Toto\032je\032nejaky\032text
 D:Token at [6, 2]: local
 D:Token at [6, 8]: identifier
 D: Val: s2
@@ -27,7 +27,7 @@ D: Val: s1
 D:Token at [6, 25]: concatenate
 D: Val: ..
 D:Token at [6, 28]: string literal
-D: Val: ", ktery jeste trochu obohatime"
+D: Val: ,\032ktery\032jeste\032trochu\032obohatime
 D:Token at [7, 2]: identifier
 D: Val: write
 D:Token at [7, 7]: left parenthese
@@ -35,7 +35,7 @@ D:Token at [7, 8]: identifier
 D: Val: s1
 D:Token at [7, 10]: comma
 D:Token at [7, 12]: string literal
-D: Val: "\010"
+D: Val: \010
 D:Token at [7, 18]: comma
 D:Token at [7, 20]: identifier
 D: Val: s2
@@ -97,37 +97,37 @@ D:Token at [9, 2]: identifier
 D: Val: write
 D:Token at [9, 7]: left parenthese
 D:Token at [9, 8]: string literal
-D: Val: "4 znaky od"
+D: Val: 4\032znaky\032od
 D:Token at [9, 20]: comma
 D:Token at [9, 22]: identifier
 D: Val: s1len
 D:Token at [9, 27]: comma
 D:Token at [9, 29]: string literal
-D: Val: ". znaku v \""
+D: Val: .\032znaku\032v\032\034
 D:Token at [9, 43]: comma
 D:Token at [9, 45]: identifier
 D: Val: s2
 D:Token at [9, 47]: comma
 D:Token at [9, 49]: string literal
-D: Val: "\":"
+D: Val: \034:
 D:Token at [9, 54]: comma
 D:Token at [9, 56]: identifier
 D: Val: s1
 D:Token at [9, 58]: comma
 D:Token at [9, 60]: string literal
-D: Val: "\n"
+D: Val: \010
 D:Token at [9, 64]: right parenthese
 D:Token at [10, 2]: identifier
 D: Val: write
 D:Token at [10, 7]: left parenthese
 D:Token at [10, 8]: string literal
-D: Val: "Zadejte serazenou posloupnost vsech malych pismen a-h, "
+D: Val: Zadejte\032serazenou\032posloupnost\032vsech\032malych\032pismen\032a-h,\032
 D:Token at [10, 65]: right parenthese
 D:Token at [11, 2]: identifier
 D: Val: write
 D:Token at [11, 7]: left parenthese
 D:Token at [11, 8]: string literal
-D: Val: "pricemz se pismena nesmeji v posloupnosti opakovat: "
+D: Val: pricemz\032se\032pismena\032nesmeji\032v\032posloupnosti\032opakovat:\032
 D:Token at [11, 62]: right parenthese
 D:Token at [12, 2]: identifier
 D: Val: s1
@@ -152,16 +152,16 @@ D:Token at [14, 12]: not equality
 D:Token at [14, 13]: assignment
 D: Val: =
 D:Token at [14, 15]: string literal
-D: Val: "abcdefgh"
+D: Val: abcdefgh
 D:Token at [14, 26]: do
 D:Token at [15, 4]: identifier
 D: Val: write
 D:Token at [15, 9]: left parenthese
 D:Token at [15, 10]: string literal
-D: Val: "\n"
+D: Val: \010
 D:Token at [15, 14]: comma
 D:Token at [15, 16]: string literal
-D: Val: "Spatne zadana posloupnost, zkuste znovu:"
+D: Val: Spatne\032zadana\032posloupnost,\032zkuste\032znovu:
 D:Token at [15, 58]: right parenthese
 D:Token at [16, 4]: identifier
 D: Val: s1
