@@ -5,7 +5,7 @@
 
 /*!
  *  States of finite state machine
- *  
+ *
  *  @code s_float is moved to 1 << 13
  */
 typedef enum
@@ -59,7 +59,7 @@ int fetch_symbol(Scanner* self)
 
 /*!
  *  skips everything to end of line or end of file
- *  
+ *
  *  @return EOF or \"\\n\"
  */
 int skip_comment(Scanner* self)
@@ -72,7 +72,7 @@ int skip_comment(Scanner* self)
 
 /*!
  *  skips everything to ]]
- *  
+ *
  *  @return EOF or \"]\"
  */
 int skip_comment_ml(Scanner* self)
@@ -91,7 +91,7 @@ int skip_comment_ml(Scanner* self)
 
 /*!
  *  skips all white spaces except new line
- *  
+ *
  *  @return next char
  */
 int skip_space(Scanner* self, int sym)
@@ -103,7 +103,7 @@ int skip_space(Scanner* self, int sym)
 
 /*!
  *  By masking value of state return bool
- *  
+ *
  *  @param state is numeric value of enum
  *	@return TRUE, if state is operand
  */
@@ -114,7 +114,7 @@ bool is_operand(uint32_t state)
 
 /*!
  *  Binary search char in string
- *  
+ *
  *  @param str string of ordered chars
  *  @param len size of str
  *  @param el char target char
@@ -153,7 +153,7 @@ void get_esc(int c, char str[5])
 	case '\"':
 	case '\'':
 	case '\\':
-		sprintf(str, "%03d", c);break;
+		sprintf(str, "%03d", c); break;
 	case 'n':
 		sprintf(str, "%03d", '\n'); break;
 	case 'r':
@@ -259,10 +259,10 @@ bool _parse_kw(Scanner* self, String* xtoken, int* xsym, token_type* tt)
 	case 'f':
 		switch (nsym)
 		{
-			case 'a': predict = "false"; *tt = tt_false; break;
-			case 'u': predict = "function"; *tt = tt_function; break;
-			case 'o': predict = "for"; *tt = tt_for; break;
-			default:return false;
+		case 'a': predict = "false"; *tt = tt_false; break;
+		case 'u': predict = "function"; *tt = tt_function; break;
+		case 'o': predict = "for"; *tt = tt_for; break;
+		default:return false;
 		}
 		break;
 
@@ -272,9 +272,9 @@ bool _parse_kw(Scanner* self, String* xtoken, int* xsym, token_type* tt)
 	case 'i':
 		switch (nsym)
 		{
-			case 'n': predict = "integer"; *tt = tt_integer; break;
-			case 'f': predict = "if"; *tt = tt_if; break;
-			default:return false;
+		case 'n': predict = "integer"; *tt = tt_integer; break;
+		case 'f': predict = "if"; *tt = tt_if; break;
+		default:return false;
 		}
 		break;
 
@@ -284,10 +284,10 @@ bool _parse_kw(Scanner* self, String* xtoken, int* xsym, token_type* tt)
 	case 'n':
 		switch (nsym)
 		{
-			case 'i': predict = "nil"; *tt = tt_nil; break;
-			case 'o': predict = "not"; *tt = tt_not; break;
-			case 'u': predict = "number"; *tt = tt_number; break;
-			default: return false;
+		case 'i': predict = "nil"; *tt = tt_nil; break;
+		case 'o': predict = "not"; *tt = tt_not; break;
+		case 'u': predict = "number"; *tt = tt_number; break;
+		default: return false;
 		}
 		break;
 
@@ -305,10 +305,10 @@ bool _parse_kw(Scanner* self, String* xtoken, int* xsym, token_type* tt)
 			i++; push_back_str(xtoken, sym);
 			switch (sym)
 			{
-				case 'q': predict = "require"; *tt = tt_require; break;
-				case 't': predict = "return"; *tt = tt_return; break;
-				case 'p': predict = "repeat"; *tt = tt_repeat; break;
-				default: return false;
+			case 'q': predict = "require"; *tt = tt_require; break;
+			case 't': predict = "return"; *tt = tt_return; break;
+			case 'p': predict = "repeat"; *tt = tt_repeat; break;
+			default: return false;
 			}
 			break;
 		}
@@ -317,9 +317,9 @@ bool _parse_kw(Scanner* self, String* xtoken, int* xsym, token_type* tt)
 	case 't':
 		switch (nsym)
 		{
-			case 'h': predict = "then"; *tt = tt_then; break;
-			case 'r': predict = "true"; *tt = tt_true; break;
-			default:return false;
+		case 'h': predict = "then"; *tt = tt_then; break;
+		case 'r': predict = "true"; *tt = tt_true; break;
+		default:return false;
 		}
 		break;
 
@@ -456,7 +456,7 @@ Error _get_token(Scanner* self, token* tk)
 				tkstart_col = self->column;
 				tkstart_line = self->line;
 				/* fall through */
-			case ' ' :
+			case ' ':
 			case '\t':
 			case '\n':
 			case '\v':
@@ -492,7 +492,7 @@ Error _get_token(Scanner* self, token* tk)
 				sym = 0;
 				return e;
 			}
-		//start of states
+			//start of states
 		case s_int:
 			if (isdigit(sym)) {
 				push_back_str(&xtoken, (char)sym);
@@ -611,7 +611,7 @@ Error _get_token(Scanner* self, token* tk)
 			if (sym == '=')
 			{
 				push_back_str(&xtoken, (char)sym);
-				predict = tt_ee;
+				predict = predict == tt_assign ? tt_ee : (token_type)(predict + 1);
 				sym = 0;
 			}
 			goto make_token;
@@ -690,6 +690,7 @@ Error _get_token(Scanner* self, token* tk)
 			{
 				if (sym == EOF || (!isalnum(sym) && sym != '_')) {
 					predict = tt_identifier;
+					state = s_id;
 					goto make_token;
 				}
 				state = s_id;

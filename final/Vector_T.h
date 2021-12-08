@@ -93,6 +93,7 @@ inline void __rcat2(c_class, _move_ctor)(selfptr, c_class* other)
 	*self = *other;
 	other->data_ = other->end_ = NULL;
 	other->capacity_ = 0;
+	Constructor(other);
 }
 
 /// @brief 

@@ -120,7 +120,7 @@ Error Execute(ExpressionAnalyzer* self, Scanner* scanner)
 	Node_ctor(node);
 	ERR_CHECK(get_token(scanner, Node_emplace(node)));
 
-
+	;
 	while (e == e_ok)
 	{
 		ptrdiff_t* last_nt = LastNT(&tree, self->ast.data_); //node to kill
@@ -267,6 +267,7 @@ bool AnyNil(token_type a, token_type b)
 
 token_type GetNodeType(Node* node, SemanticAnalyzer* analyzer, bool simple, Error* err)
 {
+
 	if (!node)return tt_eof;
 	token_type r = tt_eof, l = tt_eof;
 	if (node->right)r = GetNodeType(node->right, analyzer, false, err);

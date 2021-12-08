@@ -9,8 +9,8 @@ int main(int argc, char* argv[])
 	SetupTerminal();
 	Error e = e_ok;
 
-	FILE* stream = stdin;
-	//FILE* stream = fopen("D:/ic21int_win64_2021-10-04/testnum.tl", "r");
+	//FILE* stream = stdin;
+	FILE* stream = fopen("D:/ic21int_win64_2021-10-04/testnum.tl", "r");
 
 	UNIQUE(SemanticAnalyzer) semantic = {0};
 	SemanticAnalyzer_ctor(&semantic);

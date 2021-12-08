@@ -706,11 +706,6 @@ void afc_print(AssOrFCall* self)
 }
 Error afc_analyze(AssOrFCall* self, struct SemanticAnalyzer* analyzer)
 {
-	size_t szx = size_Vector_token(&self->idents);
-	reserve_Vector_LPCSTR(&self->varnames, szx);
-	for (size_t i = 0; i < szx; i++)
-		self->varnames.data_[i] = NULL;
-	self->varnames.end_ = self->varnames.data_ + szx;
 
 	Error e = e_ok;
 	if (self->op == ass_fcall) // fcall
@@ -725,6 +720,12 @@ Error afc_analyze(AssOrFCall* self, struct SemanticAnalyzer* analyzer)
 		}
 		return e_ok;
 	}
+
+	size_t szx = size_Vector_token(&self->idents);
+	reserve_Vector_LPCSTR(&self->varnames, szx);
+	for (size_t i = 0; i < szx; i++)
+		self->varnames.data_[i] = NULL;
+	self->varnames.end_ = self->varnames.data_ + szx;
 
 	List_Node* exp = self->expressions.first; //first always exists
 	for (token* i = self->idents.data_; i != self->idents.end_; i++)
